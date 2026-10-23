@@ -1,0 +1,37 @@
+{
+  "classes": [
+    "bud_borer",
+    "healthy_foot",
+    "healthy_leaf",
+    "healthy_nut",
+    "healthy_trunk",
+    "mahali_koleroga",
+    "stem_bleeding",
+    "stem_cracking",
+    "yellow_leaf_disease"
+  ],
+  "class_to_idx": {
+    "bud_borer": 0,
+    "healthy_foot": 1,
+    "healthy_leaf": 2,
+    "healthy_nut": 3,
+    "healthy_trunk": 4,
+    "mahali_koleroga": 5,
+    "stem_bleeding": 6,
+    "stem_cracking": 7,
+    "yellow_leaf_disease": 8
+  },
+  "idx_to_class": {
+    "0": "bud_borer",
+    "1": "healthy_foot",
+    "2": "healthy_leaf",
+    "3": "healthy_nut",
+    "4": "healthy_trunk",
+    "5": "mahali_koleroga",
+    "6": "stem_bleeding",
+    "7": "stem_cracking",
+    "8": "yellow_leaf_disease"
+  },
+  "best_val_acc": 88.43813387423936,
+  "crop": "Arecanut"
+}

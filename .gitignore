@@ -1,0 +1,24 @@
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Model Weights (Hosted on Hugging Face: https://huggingface.co/kritika67/sasya)
+models/*.pth
+models/*.pt
+
+# Large Datasets & Image Pools
+data/tomato/
+data/contributed_pool/
+data/test_pool/
+data/*.db
+
+# Node & Frontend dependencies
+node_modules/
+dist/
+.env.local
+
+# Virtual environments
+.venv/
+venv/
