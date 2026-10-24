@@ -3,8 +3,7 @@ title: Sasya AI Backend
 emoji: 🌾
 colorFrom: green
 colorTo: green
-sdk: docker
-app_port: 7860
+sdk: gradio
 pinned: false
 ---
 
