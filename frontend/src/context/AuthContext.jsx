@@ -118,7 +118,7 @@ export function AuthProvider({ children }) {
   // Global User state (persisted)
   const [user, setUser] = useState(() => {
     const cached = localStorage.getItem('sasya_user');
-    return cached ? JSON.parse(cached) : DEMO_ACCOUNTS[0]; // Defaults to Ramesh Gowda for instant pitch test
+    return cached ? JSON.parse(cached) : null;
   });
 
   useEffect(() => {
