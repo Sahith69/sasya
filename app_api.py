@@ -32,6 +32,9 @@ import engine
 import weather_engine
 import database
 from database import SASYA_DB_PATH, get_db, log_audit
+
+# Initialize SQLite schemas and seed initial records on boot
+database.init_all_tables()
 from src.bounty_engine import (
     submit_contribution, verify_contribution, get_farmer_wallet,
     get_farmer_history, get_pending_queue, get_admin_analytics,
