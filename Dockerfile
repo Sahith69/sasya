@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     sqlite3 \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies
@@ -16,6 +17,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy full application codebase
 COPY . .
+
+# Download model checkpoints from Hugging Face model repository into models/
+RUN python -c "from huggingface_hub import snapshot_download; snapshot_download('kritika67/sasya', local_dir='models')"
 
 # Initialize SQLite database and seed initial records
 RUN python database.py
