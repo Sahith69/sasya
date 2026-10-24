@@ -121,9 +121,21 @@ export default function Detect() {
 
     let liveDiag = null;
     try {
-      if (uploadedFile) {
+      let fileToSend = uploadedFile;
+      if (!fileToSend && selectedImage) {
+        try {
+          const fetchRes = await fetch(selectedImage);
+          if (fetchRes.ok) {
+            const blob = await fetchRes.blob();
+            fileToSend = new File([blob], `${selectedSampleId || 'sample'}.jpg`, { type: 'image/jpeg' });
+          }
+        } catch (sampleErr) {
+          console.warn('Could not fetch sample as file:', sampleErr);
+        }
+      }
+      if (fileToSend) {
         liveDiag = await runCropDiagnosis({
-          file: uploadedFile,
+          file: fileToSend,
           cropHint: selectedCrop,
           district: user?.district || 'Dakshina Kannada'
         });
