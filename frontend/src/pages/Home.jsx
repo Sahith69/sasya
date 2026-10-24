@@ -108,18 +108,11 @@ const INITIAL_RAIN_REPORTS = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user, lang, setLang, toggleTheme, isDark, logout, updateProfile, t } = useAuth();
-
-  // Check if user is an Arecanut grower or expert/admin
-  const growsArecanut = Boolean(
-    user?.role === 'expert' || 
-    user?.role === 'admin' ||
-    (user?.crops && Array.isArray(user.crops) && user.crops.some(c => typeof c === 'string' && c.toLowerCase().includes('areca')))
-  );
+  const { user, lang, setLang, toggleTheme, isDark, logout, t } = useAuth();
 
   // State: Filters matching 3_Outbreak_Map.py
   const [includeSimulated, setIncludeSimulated] = useState(true);
-  const [selectedCrop, setSelectedCrop] = useState(() => (growsArecanut ? 'Arecanut' : 'All Crops'));
+  const [selectedCrop, setSelectedCrop] = useState('All Crops');
   const [selectedDistrict, setSelectedDistrict] = useState('All Districts');
   const [activeDistrictKey, setActiveDistrictKey] = useState('Mangaluru');
   const [hoveredCluster, setHoveredCluster] = useState(null);
@@ -135,7 +128,6 @@ export default function Home() {
 
   // Rain Reporting State
   const [isRainModalOpen, setIsRainModalOpen] = useState(false);
-  const [isRestrictedModalOpen, setIsRestrictedModalOpen] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [gpsError, setGpsError] = useState(null);
   const [detectedCoords, setDetectedCoords] = useState(null);
@@ -356,28 +348,10 @@ export default function Home() {
     );
   };
 
-  // Open Rain Report Modal (Strictly gated to Arecanut growers)
+  // Open Rain Report Modal
   const openRainModal = () => {
-    if (!growsArecanut) {
-      setIsRestrictedModalOpen(true);
-      return;
-    }
     setIsRainModalOpen(true);
     handleDetectGPS();
-  };
-
-  // Add Arecanut to Farm Profile if cultivator
-  const handleAddArecanutToProfile = () => {
-    const currentCrops = Array.isArray(user?.crops) ? user.crops : [];
-    const updatedCrops = Array.from(new Set([...currentCrops, 'Arecanut']));
-    if (updateProfile) {
-      updateProfile({ crops: updatedCrops });
-    }
-    setIsRestrictedModalOpen(false);
-    setIsRainModalOpen(true);
-    handleDetectGPS();
-    setReportSuccessToast("🌴 Arecanut added to farm profile. Live GPS rain reporting unlocked!");
-    setTimeout(() => setReportSuccessToast(null), 5000);
   };
 
   // Submit Live Rain Report
@@ -522,34 +496,19 @@ export default function Home() {
           {/* Right: GPS Rain Action, Theme, Language & Profile */}
           <div className="flex items-center gap-2 sm:gap-3">
             
-            {/* 🌧️ Live Rain Report Button (Gated to Arecanut Growers) */}
+            {/* 🌧️ Live Rain Report Button with Pulse Ring */}
             <button
               onClick={openRainModal}
-              className={`relative px-3.5 py-1.5 rounded-xl text-xs font-black shadow-xs flex items-center gap-1.5 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
-                growsArecanut
-                  ? 'bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white border border-sky-400/40'
-                  : 'bg-white/80 dark:bg-[#12241A] text-[#275637] dark:text-[#8BA695] border border-[#91BA94]/60 dark:border-[#1E3A2B] hover:border-amber-500/60'
-              }`}
-              title={growsArecanut ? "Report live rain at your GPS location" : "Available only for Arecanut farmers"}
+              className="relative px-3.5 py-1.5 rounded-xl text-xs font-black shadow-xs flex items-center gap-1.5 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white border border-sky-400/40"
+              title="Report live rain at your GPS location"
             >
-              {growsArecanut ? (
-                <>
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-200 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                  </span>
-                  <CloudRain className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Report Rain</span>
-                  <span className="text-[10px] px-1 py-0.2 rounded bg-white/20 font-bold ml-0.5">Areca</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-xs">🔒</span>
-                  <CloudRain className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Report Rain</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold">Areca Only</span>
-                </>
-              )}
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-200 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+              </span>
+              <CloudRain className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Report Rain Here</span>
+              <span className="sm:hidden">Rain</span>
             </button>
 
             {/* Theme Toggle */}
@@ -855,25 +814,10 @@ export default function Home() {
             {/* Quick Rain Report Button in Toolbar */}
             <button
               onClick={openRainModal}
-              className={`px-3 py-1.5 rounded-xl border font-bold text-xs flex items-center gap-1 shadow-xs cursor-pointer transition-all ${
-                growsArecanut
-                  ? 'border-sky-400 bg-sky-500 hover:bg-sky-600 text-white'
-                  : 'border-[#91BA94]/60 dark:border-[#1E3A2B] bg-white dark:bg-[#0E1E16] text-[#275637] dark:text-[#8BA695]'
-              }`}
+              className="px-3 py-1.5 rounded-xl border border-sky-400 bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs flex items-center gap-1 shadow-xs cursor-pointer"
             >
-              {growsArecanut ? (
-                <>
-                  <CloudRain className="w-3.5 h-3.5" />
-                  <span>Report Rain</span>
-                  <span className="text-[10px] px-1 py-0.2 rounded bg-white/20 ml-1">Areca</span>
-                </>
-              ) : (
-                <>
-                  <span>🔒</span>
-                  <CloudRain className="w-3.5 h-3.5" />
-                  <span>Report Rain (Arecanut Only)</span>
-                </>
-              )}
+              <CloudRain className="w-3.5 h-3.5" />
+              <span>Report Rain</span>
             </button>
           </div>
         </div>
@@ -1588,69 +1532,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── 11. ARECANUT GROWER ACCESS RESTRICTION MODAL ── */}
-      {isRestrictedModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className={`w-full max-w-md rounded-3xl border shadow-2xl p-6 sm:p-7 relative animate-card-in ${
-            isDark ? 'bg-[#102217] border-[#1E3A2B] text-white' : 'bg-white border-[#91BA94] text-[#275637]'
-          }`}>
-            <button 
-              onClick={() => setIsRestrictedModalOpen(false)}
-              className="absolute top-5 right-5 p-1.5 rounded-lg text-gray-400 hover:text-white cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-2xl shrink-0">
-                🌴
-              </div>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-500 font-mono">
-                  Arecanut Exclusive
-                </span>
-                <h3 className="font-black text-lg tracking-tight mt-0.5">
-                  Arecanut Growers Only
-                </h3>
-              </div>
-            </div>
-
-            <div className={`p-4 rounded-2xl border text-xs leading-relaxed space-y-2 mb-5 ${
-              isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-gray-300' : 'bg-[#FFF9E6] border-[#F5E096] text-[#8C6D15]'
-            }`}>
-              <p>
-                <strong>Why is this restricted?</strong> Live GPS rain reporting is exclusively available for farmers cultivating <strong>Arecanut (ಅಡಿಕೆ)</strong> in Coastal &amp; Malnad Karnataka.
-              </p>
-              <p>
-                Continuous monsoon downpours cause explosive <em>Phytophthora meadii</em> (Koleroga / Fruit Rot) fungal spore dispersal, making real-time precipitation mapping vital for spray wash-off timing.
-              </p>
-              <div className="pt-2 border-t border-amber-500/20 text-[11px] font-mono">
-                <span>Your registered crop: </span>
-                <strong className="text-emerald-500 dark:text-emerald-400">{user?.crops?.join(', ') || 'Non-Arecanut'}</strong>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <button
-                onClick={handleAddArecanutToProfile}
-                className="w-full py-3 px-4 rounded-2xl font-black text-xs bg-[#275637] hover:bg-[#1E462B] text-white shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01]"
-              >
-                <span>🌴 I also cultivate Arecanut (Add &amp; Enable)</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={() => setIsRestrictedModalOpen(false)}
-                className="w-full py-2.5 px-4 rounded-2xl font-bold text-xs text-gray-400 hover:text-white cursor-pointer transition-colors"
-              >
-                Close &amp; Continue as View-Only
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
-
       {/* ── MOBILE BOTTOM NAVIGATION ── */}
       <nav className={`sm:hidden fixed bottom-0 inset-x-0 backdrop-blur-lg border-t px-6 py-2 z-40 flex items-center justify-between shadow-lg ${
         isDark ? 'bg-[#0B1712]/95 border-[#162C20]' : 'bg-white/95 border-[#91BA94]'
@@ -1667,12 +1548,10 @@ export default function Home() {
 
         <button 
           onClick={openRainModal}
-          className={`min-h-[48px] flex flex-col items-center justify-center gap-1 active:scale-90 transition-transform ${
-            growsArecanut ? 'text-sky-400' : 'text-[#8BA695]'
-          }`}
+          className="min-h-[48px] flex flex-col items-center justify-center gap-1 active:scale-90 transition-transform text-sky-400"
         >
-          <CloudRain className={`w-5 h-5 ${growsArecanut ? 'animate-pulse' : 'opacity-70'}`} />
-          <span className="text-[10px] font-bold">{growsArecanut ? 'Rain GPS' : 'Rain (Areca)'}</span>
+          <CloudRain className="w-5 h-5 animate-pulse" />
+          <span className="text-[10px] font-bold">Rain GPS</span>
         </button>
 
         <button 
