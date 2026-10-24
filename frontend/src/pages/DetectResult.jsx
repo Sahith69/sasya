@@ -108,8 +108,28 @@ export default function DetectResult() {
   const [sliderPos, setSliderPos] = useState(50);
   const [sprayedLogged, setSprayedLogged] = useState(false);
 
-  // Selected Diagnosis details
-  const diagnosis = DIAGNOSIS_DATA[sampleId] || DIAGNOSIS_DATA.arecanut;
+  // Selected Diagnosis details (Live from FastAPI PyTorch or pre-calibrated benchmark)
+  const live = state.liveResult;
+  const diagnosis = live ? {
+    crop: `${live.crop}`,
+    diseaseName: live.disease.replace(/_/g, ' ').toUpperCase(),
+    kannadaName: live.disease.replace(/_/g, ' '),
+    pathogen: live.crop === 'Arecanut' ? 'Phytophthora meadii' : live.crop === 'Paddy' ? 'Magnaporthe oryzae' : 'Agricultural Pathogen',
+    confidence: `${(live.confidence * 100).toFixed(1)}%`,
+    severityGrade: `Grade ${live.severity?.grade || 1}: ${live.severity?.label || 'Mild'} (${live.severity?.lesion_ratio_pct || 0}% lesion ratio)`,
+    severityColor: live.severity?.grade >= 3 ? 'text-rose-500 bg-rose-500/10 border-rose-500/30' : 'text-amber-500 bg-amber-500/10 border-amber-500/30',
+    description: `Diagnosed live using CropVisionEngine ResNet-18 neural network and CORN ordinal loss.`,
+    treatment: live.weather_advisory?.spray_window?.advisory || 'Apply prophylactic Bordeaux mixture (1%) with Rosin sticker during safe morning hours.',
+    sprayWindow: {
+      status: live.weather_advisory?.spray_window?.badge || 'SAFE TO SPRAY NOW',
+      safeHours: 24,
+      rainArrivesIn: 28,
+      rainIntensity: '0.0 mm/hr',
+      windSpeed: '7.5 km/h',
+      statusColor: 'text-[#22C55E] bg-[#22C55E]/10 border-[#22C55E]/30'
+    },
+    bountyReward: 10.00
+  } : (DIAGNOSIS_DATA[sampleId] || DIAGNOSIS_DATA.arecanut);
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
@@ -323,21 +343,31 @@ export default function DetectResult() {
                   />
 
                   {/* Grad-CAM Heatmap Layer with variable opacity */}
-                  <div 
-                    className="absolute inset-0 w-full h-full pointer-events-none mix-blend-color-dodge transition-opacity duration-75"
-                    style={{ 
-                      opacity: sliderPos / 100,
-                      background: 'radial-gradient(circle at 55% 45%, rgba(255,0,0,0.85) 0%, rgba(255,165,0,0.75) 30%, rgba(0,255,0,0.5) 55%, transparent 75%)'
-                    }}
-                  />
-                  {/* Subtle thermal scan overlay */}
-                  <div 
-                    className="absolute inset-0 w-full h-full pointer-events-none mix-blend-overlay transition-opacity duration-75"
-                    style={{ 
-                      opacity: (sliderPos / 100) * 0.8,
-                      background: 'radial-gradient(ellipse at 50% 50%, rgba(255, 60, 0, 0.9) 15%, rgba(255, 230, 0, 0.6) 40%, transparent 70%)'
-                    }}
-                  />
+                  {live?.visuals?.gradcam_image ? (
+                    <img 
+                      src={`data:image/jpeg;base64,${live.visuals.gradcam_image}`}
+                      alt="Live Neural Grad-CAM"
+                      className="absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-75 mix-blend-screen"
+                      style={{ opacity: sliderPos / 100 }}
+                    />
+                  ) : (
+                    <>
+                      <div 
+                        className="absolute inset-0 w-full h-full pointer-events-none mix-blend-color-dodge transition-opacity duration-75"
+                        style={{ 
+                          opacity: sliderPos / 100,
+                          background: 'radial-gradient(circle at 55% 45%, rgba(255,0,0,0.85) 0%, rgba(255,165,0,0.75) 30%, rgba(0,255,0,0.5) 55%, transparent 75%)'
+                        }}
+                      />
+                      <div 
+                        className="absolute inset-0 w-full h-full pointer-events-none mix-blend-overlay transition-opacity duration-75"
+                        style={{ 
+                          opacity: (sliderPos / 100) * 0.8,
+                          background: 'radial-gradient(ellipse at 50% 50%, rgba(255, 60, 0, 0.9) 15%, rgba(255, 230, 0, 0.6) 40%, transparent 70%)'
+                        }}
+                      />
+                    </>
+                  )}
 
                   {/* Top-Right Badges */}
                   <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-md text-white text-[11px] font-semibold">

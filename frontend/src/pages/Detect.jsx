@@ -7,6 +7,7 @@ import {
   CheckCircle2, Sun, Moon, Zap, ShieldAlert, RefreshCw,
   Eye, Cpu
 } from 'lucide-react';
+import { runCropDiagnosis } from '../services/api';
 
 const SAMPLE_CARDS = [
   {
@@ -77,6 +78,7 @@ export default function Detect() {
   const [selectedCrop, setSelectedCrop] = useState('Arecanut');
   const [isOodSample, setIsOodSample] = useState(false);
   const [selectedSampleId, setSelectedSampleId] = useState('arecanut');
+  const [uploadedFile, setUploadedFile] = useState(null);
   
   // Scanning state & telemetry logs
   const [isScanning, setIsScanning] = useState(false);
@@ -95,11 +97,13 @@ export default function Detect() {
     setSelectedCrop(sample.crop);
     setIsOodSample(sample.ood);
     setSelectedSampleId(sample.id);
+    setUploadedFile(null);
   };
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      setUploadedFile(file);
       const url = URL.createObjectURL(file);
       setSelectedImage(url);
       setSelectedSampleId('custom');
@@ -107,20 +111,26 @@ export default function Detect() {
     }
   };
 
-  const handleRunDiagnosis = () => {
+  const handleRunDiagnosis = async () => {
     setIsScanning(true);
     setScanStep(0);
 
     const stepInterval = setInterval(() => {
-      setScanStep((prev) => {
-        if (prev < scanSteps.length - 1) {
-          return prev + 1;
-        } else {
-          clearInterval(stepInterval);
-          return prev;
-        }
-      });
+      setScanStep((prev) => (prev < scanSteps.length - 1 ? prev + 1 : prev));
     }, 380);
+
+    let liveDiag = null;
+    try {
+      if (uploadedFile) {
+        liveDiag = await runCropDiagnosis({
+          file: uploadedFile,
+          cropHint: selectedCrop,
+          district: user?.district || 'Dakshina Kannada'
+        });
+      }
+    } catch (err) {
+      console.warn('Backend diagnosis failed, falling back to client mode:', err);
+    }
 
     setTimeout(() => {
       clearInterval(stepInterval);
@@ -132,11 +142,12 @@ export default function Detect() {
           image: selectedImage,
           crop: selectedCrop,
           sampleId: selectedSampleId,
-          isOod: isOodSample,
+          isOod: liveDiag?.verification?.is_valid_crop === false ? true : isOodSample,
+          liveResult: liveDiag?.success ? liveDiag : null,
           timestamp: new Date().toISOString()
         }
       });
-    }, 2100);
+    }, 2000);
   };
 
   return (

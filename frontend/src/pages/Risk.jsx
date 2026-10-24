@@ -1,12 +1,14 @@
 // src/pages/Risk.jsx - 48-Hour Bioclimatic Weather Defense & Safe Spray Window
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   ArrowLeft, CloudRain, Sun, Moon, Droplets, Wind, 
   AlertTriangle, CheckCircle2, Clock, Shield, Volume2, 
-  ChevronRight, Sparkles, MapPin, Activity, Thermometer
+  ChevronRight, Sparkles, MapPin, Activity, Thermometer,
+  Sliders, RefreshCw
 } from 'lucide-react';
+import { simulateWhatIfScenario } from '../services/api';
 
 const DISTRICTS = [
   { id: 'dakshina_kannada', name: 'Dakshina Kannada (Venur / Belthangady)', crop: 'Arecanut & Paddy', lat: 13.01, lon: 75.14 },
@@ -52,6 +54,33 @@ export default function Risk() {
   const currentDist = DISTRICTS.find(d => d.id === selectedDistrict) || DISTRICTS[0];
   const currentChem = CHEMICALS.find(c => c.id === selectedChemical) || CHEMICALS[0];
   const dryingHoursNeeded = withSticker ? currentChem.withStickerDryHours : currentChem.defaultDryHours;
+
+  // Multimodal What-If Simulation State
+  const [deltaTemp, setDeltaTemp] = useState(0);
+  const [deltaHumidity, setDeltaHumidity] = useState(15);
+  const [deltaSoil, setDeltaSoil] = useState(10);
+  const [simulationResult, setSimulationResult] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    async function runSim() {
+      const res = await simulateWhatIfScenario({
+        crop: currentDist.crop.includes('Arecanut') ? 'Arecanut' : 'Paddy',
+        disease_name: currentDist.crop.includes('Arecanut') ? 'koleroga' : 'blast',
+        baseline_temp: 24.0,
+        baseline_humidity: 80.0,
+        baseline_soil_moisture: 60.0,
+        delta_temp: Number(deltaTemp),
+        delta_humidity: Number(deltaHumidity),
+        delta_soil_moisture: Number(deltaSoil)
+      });
+      if (active && res?.simulation) {
+        setSimulationResult(res.simulation);
+      }
+    }
+    runSim();
+    return () => { active = false; };
+  }, [deltaTemp, deltaHumidity, deltaSoil, currentDist]);
 
   const handlePlayAudio = () => {
     setIsPlayingAudio(true);
@@ -465,6 +494,152 @@ export default function Risk() {
 
           </div>
 
+        </div>
+
+        {/* ── SECTION 4: MULTIMODAL NEURAL FUSION & WHAT-IF SIMULATOR ── */}
+        <div className={`p-6 sm:p-7 rounded-3xl border shadow-xs space-y-6 ${
+          isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
+        }`}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-emerald-500" />
+                <h3 className="text-lg font-black tracking-tight">
+                  Multimodal Neural Fusion & Interactive "What-If" Simulator
+                </h3>
+              </div>
+              <p className={`text-xs mt-1 ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
+                Simulate microclimate variations. Answers: <em>"What happens if humidity spikes by +20% or soil moisture saturates by +15%?"</em>
+              </p>
+            </div>
+            {simulationResult && (
+              <span className={`text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full border ${
+                simulationResult.score_delta > 15
+                  ? 'bg-rose-500/15 text-rose-500 border-rose-500/30'
+                  : 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
+              }`}>
+                {simulationResult.trajectory} ({simulationResult.score_delta > 0 ? `+${simulationResult.score_delta}%` : `${simulationResult.score_delta}%`})
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Slider 1: Relative Humidity */}
+            <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#F9F9F6] border-[#D8E4DA]'}`}>
+              <div className="flex items-center justify-between text-xs font-bold mb-2">
+                <span className="flex items-center gap-1.5"><Droplets className="w-4 h-4 text-sky-500" /> Relative Humidity Shift</span>
+                <span className="font-mono text-emerald-500">{deltaHumidity > 0 ? `+${deltaHumidity}%` : `${deltaHumidity}%`}</span>
+              </div>
+              <input
+                type="range"
+                min="-20"
+                max="30"
+                step="5"
+                value={deltaHumidity}
+                onChange={(e) => setDeltaHumidity(e.target.value)}
+                className="w-full accent-emerald-500 cursor-pointer h-2 bg-gray-200 dark:bg-gray-700 rounded-lg"
+              />
+              <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                <span>-20% (Drier)</span>
+                <span>Normal (0%)</span>
+                <span>+30% (Saturated)</span>
+              </div>
+            </div>
+
+            {/* Slider 2: Temperature */}
+            <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#F9F9F6] border-[#D8E4DA]'}`}>
+              <div className="flex items-center justify-between text-xs font-bold mb-2">
+                <span className="flex items-center gap-1.5"><Thermometer className="w-4 h-4 text-amber-500" /> Ambient Temperature Shift</span>
+                <span className="font-mono text-emerald-500">{deltaTemp > 0 ? `+${deltaTemp}°C` : `${deltaTemp}°C`}</span>
+              </div>
+              <input
+                type="range"
+                min="-10"
+                max="10"
+                step="1"
+                value={deltaTemp}
+                onChange={(e) => setDeltaTemp(e.target.value)}
+                className="w-full accent-emerald-500 cursor-pointer h-2 bg-gray-200 dark:bg-gray-700 rounded-lg"
+              />
+              <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                <span>-10°C (Cold)</span>
+                <span>Normal (0°C)</span>
+                <span>+10°C (Heatwave)</span>
+              </div>
+            </div>
+
+            {/* Slider 3: Soil Moisture */}
+            <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#F9F9F6] border-[#D8E4DA]'}`}>
+              <div className="flex items-center justify-between text-xs font-bold mb-2">
+                <span className="flex items-center gap-1.5"><CloudRain className="w-4 h-4 text-indigo-500" /> Soil Moisture Saturation</span>
+                <span className="font-mono text-emerald-500">{deltaSoil > 0 ? `+${deltaSoil}%` : `${deltaSoil}%`}</span>
+              </div>
+              <input
+                type="range"
+                min="-20"
+                max="30"
+                step="5"
+                value={deltaSoil}
+                onChange={(e) => setDeltaSoil(e.target.value)}
+                className="w-full accent-emerald-500 cursor-pointer h-2 bg-gray-200 dark:bg-gray-700 rounded-lg"
+              />
+              <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                <span>-20% (Dry Soil)</span>
+                <span>Normal (0%)</span>
+                <span>+30% (Waterlogged)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Simulation Output Card */}
+          {simulationResult && (
+            <div className={`p-4 rounded-2xl border ${
+              isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#F9F9F6] border-[#D8E4DA]'
+            }`}>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
+                <div className="p-3 rounded-xl border bg-white dark:bg-[#12241A] border-gray-200 dark:border-gray-800 text-center">
+                  <div className="text-[10px] text-gray-400">Baseline Outbreak Score</div>
+                  <div className="text-xl font-black text-gray-700 dark:text-gray-300 mt-0.5">
+                    {simulationResult.baseline.risk_score}%
+                  </div>
+                  <div className="text-[10px] text-gray-400 font-bold">{simulationResult.baseline.risk_level}</div>
+                </div>
+
+                <div className="p-3 rounded-xl border bg-white dark:bg-[#12241A] border-gray-200 dark:border-gray-800 text-center">
+                  <div className="text-[10px] text-gray-400">Simulated Outbreak Score</div>
+                  <div className={`text-xl font-black mt-0.5 ${
+                    simulationResult.simulated.risk_score >= 70 ? 'text-rose-500' : 'text-amber-500'
+                  }`}>
+                    {simulationResult.simulated.risk_score}%
+                  </div>
+                  <div className="text-[10px] font-bold text-gray-400">{simulationResult.simulated.risk_level}</div>
+                </div>
+
+                <div className="p-3 rounded-xl border bg-white dark:bg-[#12241A] border-gray-200 dark:border-gray-800 text-center">
+                  <div className="text-[10px] text-gray-400">Epidemic Vulnerability Shift</div>
+                  <div className={`text-xl font-black mt-0.5 ${
+                    simulationResult.score_delta > 0 ? 'text-rose-500' : 'text-emerald-500'
+                  }`}>
+                    {simulationResult.score_delta > 0 ? `+${simulationResult.score_delta}%` : `${simulationResult.score_delta}%`}
+                  </div>
+                  <div className="text-[10px] text-gray-400 font-bold">Delta Impact</div>
+                </div>
+
+                <div className="p-3 rounded-xl border bg-white dark:bg-[#12241A] border-gray-200 dark:border-gray-800 text-center">
+                  <div className="text-[10px] text-gray-400">Simulated Condition</div>
+                  <div className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+                    {simulationResult.simulated.temperature}°C • {simulationResult.simulated.humidity}% RH
+                  </div>
+                  <div className="text-[10px] text-gray-400">Soil: {simulationResult.simulated.soil_moisture}%</div>
+                </div>
+              </div>
+
+              <div className="text-xs leading-relaxed text-gray-700 dark:text-gray-300 pt-2 border-t border-gray-200 dark:border-gray-800">
+                <strong className="text-emerald-500">Multimodal Scenario Analysis: </strong>
+                {simulationResult.scenario_summary}
+              </div>
+            </div>
+          )}
         </div>
 
       </main>

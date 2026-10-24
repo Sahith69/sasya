@@ -1,5 +1,5 @@
 // src/pages/admin/AdminOverview.jsx - Central Administrative Command & Operations Dashboard
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -9,10 +9,33 @@ import {
   Inbox, Users, CheckCircle2, AlertTriangle, ArrowRight, 
   TrendingUp, Shield, Cpu, Clock, DollarSign, Database, Sparkles
 } from 'lucide-react';
+import { getAdminOverview } from '../../services/api';
 
 export default function AdminOverview() {
   const { isDark, t } = useAuth();
   const pendingSubmissions = ADMIN_SUBMISSIONS.filter(s => s.status === 'Pending');
+  const [stats, setStats] = useState(ADMIN_ANALYTICS_OVERVIEW);
+  const [pendingCount, setPendingCount] = useState(pendingSubmissions.length);
+
+  useEffect(() => {
+    async function loadLive() {
+      const res = await getAdminOverview();
+      if (res?.success && res.analytics?.overview) {
+        const o = res.analytics.overview;
+        setStats(prev => ({
+          ...prev,
+          totalSubmissions: o.total_submissions,
+          pendingReview: o.total_pending,
+          verifiedThisMonth: o.total_verified,
+          totalBountyDisbursed: o.total_bounties_paid,
+          expertAgreementRate: res.analytics.ai_accuracy_against_expert || prev.expertAgreementRate,
+          activeGrowers: res.total_farmers || prev.activeGrowers
+        }));
+        setPendingCount(o.total_pending);
+      }
+    }
+    loadLive();
+  }, []);
 
   return (
     <div className="space-y-8 animate-card-in">
@@ -36,7 +59,7 @@ export default function AdminOverview() {
           className="px-4 py-2.5 rounded-xl bg-[#275637] hover:bg-[#1E462B] text-white font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs shrink-0"
         >
           <Inbox className="w-4 h-4" />
-          <span>{t('admin_nav_queue')} ({pendingSubmissions.length})</span>
+          <span>{t('admin_nav_queue')} ({pendingCount})</span>
         </Link>
       </div>
 
@@ -49,10 +72,10 @@ export default function AdminOverview() {
             <Clock className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-3xl font-black text-amber-500 mt-2">
-            {ADMIN_ANALYTICS_OVERVIEW.pendingReview}
+            {stats.pendingReview}
           </div>
           <div className="text-[11px] text-[#8BA695] mt-1">
-            {t('admin_kpi_review_time')}: {ADMIN_ANALYTICS_OVERVIEW.averageReviewTimeHours} hrs
+            {t('admin_kpi_review_time')}: {stats.averageReviewTimeHours} hrs
           </div>
         </div>
 
@@ -62,10 +85,10 @@ export default function AdminOverview() {
             <CheckCircle2 className="w-4 h-4 text-[#22C55E]" />
           </div>
           <div className="text-3xl font-black text-[#22C55E] mt-2">
-            {ADMIN_ANALYTICS_OVERVIEW.verifiedThisMonth}
+            {stats.verifiedThisMonth}
           </div>
           <div className="text-[11px] text-[#8BA695] mt-1">
-            {t('admin_kpi_submissions')}: {ADMIN_ANALYTICS_OVERVIEW.totalSubmissions}
+            {t('admin_kpi_submissions')}: {stats.totalSubmissions}
           </div>
         </div>
 
@@ -75,10 +98,10 @@ export default function AdminOverview() {
             <DollarSign className="w-4 h-4 text-[#22C55E]" />
           </div>
           <div className="text-3xl font-black text-[#22C55E] mt-2">
-            ₹{ADMIN_ANALYTICS_OVERVIEW.totalBountyDisbursed.toLocaleString('en-IN')}
+            ₹{stats.totalBountyDisbursed.toLocaleString('en-IN')}
           </div>
           <div className="text-[11px] text-[#8BA695] mt-1">
-            Across {ADMIN_ANALYTICS_OVERVIEW.activeGrowers} active young farmers
+            Across {stats.activeGrowers} active young farmers
           </div>
         </div>
 
@@ -88,7 +111,7 @@ export default function AdminOverview() {
             <Cpu className="w-4 h-4 text-[#22C55E]" />
           </div>
           <div className="text-3xl font-black text-[#22C55E] mt-2">
-            {ADMIN_ANALYTICS_OVERVIEW.expertAgreementRate}%
+            {stats.expertAgreementRate}%
           </div>
           <div className="text-[11px] text-[#8BA695] mt-1">
             ResNet-18 + CORN Ordinal Grader

@@ -6,8 +6,9 @@ import {
   User, Wallet, Camera, FileText, Settings, ArrowLeft, 
   MapPin, Shield, CheckCircle2, AlertTriangle, ChevronRight,
   Plus, UploadCloud, RotateCcw, Volume2, Sun, Moon, ArrowRight,
-  Clock, DollarSign, Sparkles
+  Clock, DollarSign, Sparkles, ExternalLink, Search, RefreshCw
 } from 'lucide-react';
+import { getFarmerParcels, lookupBhoomiRtc, registerBhoomiParcel } from '../services/api';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -69,6 +70,64 @@ export default function Profile() {
     setTimeout(() => {
       setPayoutSuccess(false);
     }, 4000);
+  };
+
+  // Bhoomi RTC Land Records State
+  const [parcels, setParcels] = useState([]);
+  const [bhoomiLoading, setBhoomiLoading] = useState(false);
+  const [bhoomiLookupForm, setBhoomiLookupForm] = useState({
+    district: 'Dakshina Kannada',
+    taluk: 'Belthangady',
+    hobli: 'Venur',
+    village: 'Kashipatna',
+    survey_no: '42',
+    hissa_no: '1'
+  });
+  const [lookupResult, setLookupResult] = useState(null);
+  const [registerSuccess, setRegisterSuccess] = useState('');
+
+  useEffect(() => {
+    async function loadParcels() {
+      const res = await getFarmerParcels(user?.id || 'farmer_ka_101');
+      if (res?.parcels) {
+        setParcels(res.parcels);
+      }
+    }
+    loadParcels();
+  }, [user]);
+
+  const handleLookupBhoomi = async (e) => {
+    e.preventDefault();
+    setBhoomiLoading(true);
+    setLookupResult(null);
+    setRegisterSuccess('');
+    try {
+      const res = await lookupBhoomiRtc(bhoomiLookupForm);
+      if (res?.success && res.record) {
+        setLookupResult(res.record);
+      }
+    } finally {
+      setBhoomiLoading(false);
+    }
+  };
+
+  const handleRegisterParcel = async () => {
+    if (!lookupResult) return;
+    setBhoomiLoading(true);
+    try {
+      const res = await registerBhoomiParcel({
+        farmer_id: user?.id || 'farmer_ka_101',
+        ...bhoomiLookupForm
+      });
+      if (res?.success) {
+        setRegisterSuccess(`Land parcel Sy ${bhoomiLookupForm.survey_no}/${bhoomiLookupForm.hissa_no} officially linked to your farm profile!`);
+        const updated = await getFarmerParcels(user?.id || 'farmer_ka_101');
+        if (updated?.parcels) setParcels(updated.parcels);
+        setLookupResult(null);
+      }
+    } finally {
+      setBhoomiLoading(false);
+    }
   };
 
   return (
@@ -148,6 +207,7 @@ export default function Profile() {
             { id: 'profile', label: t('menu_profile'), icon: User },
             { id: 'wallet', label: t('menu_wallet'), icon: Wallet },
             { id: 'scans', label: t('menu_scans'), icon: Camera },
+            { id: 'bhoomi', label: 'Bhoomi RTC', icon: Shield },
             { id: 'listings', label: t('menu_listings'), icon: FileText },
             { id: 'settings', label: t('menu_settings'), icon: Settings }
           ].map((tab) => (
@@ -470,6 +530,192 @@ export default function Profile() {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: BHOOMI RTC LAND RECORDS */}
+        {activeTab === 'bhoomi' && (
+          <div className="space-y-6 animate-card-in">
+            {/* Header Card */}
+            <div className={`border rounded-2xl p-6 shadow-xs ${
+              isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+            }`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🌾</span>
+                    <h2 className="text-xl font-black tracking-tight">Karnataka Bhoomi RTC Registry</h2>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                      Form-16 Pahani Online
+                    </span>
+                  </div>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
+                    Link your cadastral survey plots from the Karnataka Revenue Department directly to hyper-local 48-hour spray defense.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Linked Parcels List */}
+            <div className={`border rounded-2xl p-6 shadow-xs space-y-4 ${
+              isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+            }`}>
+              <div className="flex items-center justify-between">
+                <h3 className="font-extrabold text-sm flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-emerald-500" />
+                  <span>My Linked Cadastral Parcels ({parcels.length})</span>
+                </h3>
+              </div>
+
+              {registerSuccess && (
+                <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-xs font-bold flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{registerSuccess}</span>
+                </div>
+              )}
+
+              {parcels.length === 0 ? (
+                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  No parcels currently linked. Use the registry lookup tool below to search and link your land.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {parcels.map((p) => (
+                    <div 
+                      key={p.id}
+                      className={`p-4 rounded-xl border flex flex-col justify-between gap-3 ${
+                        isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#F9F9F6] border-[#D8E4DA]'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-sm text-emerald-500">
+                            Survey #{p.survey_no} / {p.hissa_no || '1'}
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                            {p.registered_crop}
+                          </span>
+                        </div>
+                        <div className="text-xs font-bold mt-1 text-gray-800 dark:text-gray-200">
+                          {p.owner_name}
+                        </div>
+                        <div className="text-[11px] text-gray-400 mt-0.5">
+                          {p.village}, {p.taluk}, {p.district}
+                        </div>
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-3">
+                          <span>Extent: {p.extent_acres}A {p.extent_guntas}G</span>
+                          <span>•</span>
+                          <span>Soil: {p.soil_type}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                        <a
+                          href={`http://localhost:8000/api/rtc/form16/${p.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] font-bold text-emerald-600 hover:underline flex items-center gap-1"
+                        >
+                          <span>View Official Form-16</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <Link
+                          to="/risk"
+                          className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-600 text-white hover:bg-emerald-700 transition-all"
+                        >
+                          Check Spray Window ➔
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Bhoomi Online Registry Search Card */}
+            <div className={`border rounded-2xl p-6 shadow-xs space-y-4 ${
+              isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+            }`}>
+              <h3 className="font-extrabold text-sm flex items-center gap-2">
+                <Search className="w-4 h-4 text-emerald-500" />
+                <span>Search Bhoomi Cadastral Registry</span>
+              </h3>
+
+              <form onSubmit={handleLookupBhoomi} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider mb-1 text-gray-400">
+                    District
+                  </label>
+                  <input
+                    type="text"
+                    value={bhoomiLookupForm.district}
+                    onChange={(e) => setBhoomiLookupForm({ ...bhoomiLookupForm, district: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold border bg-transparent border-gray-300 dark:border-gray-700"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider mb-1 text-gray-400">
+                    Taluk
+                  </label>
+                  <input
+                    type="text"
+                    value={bhoomiLookupForm.taluk}
+                    onChange={(e) => setBhoomiLookupForm({ ...bhoomiLookupForm, taluk: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold border bg-transparent border-gray-300 dark:border-gray-700"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider mb-1 text-gray-400">
+                    Survey Number
+                  </label>
+                  <input
+                    type="text"
+                    value={bhoomiLookupForm.survey_no}
+                    onChange={(e) => setBhoomiLookupForm({ ...bhoomiLookupForm, survey_no: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold border bg-transparent border-gray-300 dark:border-gray-700"
+                    placeholder="e.g. 42"
+                  />
+                </div>
+
+                <div className="sm:col-span-3 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={bhoomiLoading}
+                    className="px-5 py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                  >
+                    {bhoomiLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+                    <span>Fetch Official Bhoomi RTC</span>
+                  </button>
+                </div>
+              </form>
+
+              {/* Lookup Result Card */}
+              {lookupResult && (
+                <div className={`p-4 rounded-xl border mt-4 ${
+                  isDark ? 'bg-[#0B1712] border-emerald-500/40' : 'bg-emerald-50/50 border-emerald-300'
+                }`}>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                        <span className="font-extrabold text-sm">RTC Verified: {lookupResult.owner_name}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Certificate: {lookupResult.rtc_certificate_no} • Extent: {lookupResult.extent_acres}A {lookupResult.extent_guntas}G • Crop: {lookupResult.registered_crop}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleRegisterParcel}
+                      disabled={bhoomiLoading}
+                      className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 shadow-xs cursor-pointer transition-all"
+                    >
+                      Link Parcel to Farm Profile
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
