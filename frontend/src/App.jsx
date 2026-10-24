@@ -103,8 +103,8 @@ function MainApp() {
         {/* Digital Research Bounty Desk & Wallet */}
         <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
         
-        {/* Epidemic Surveillance Map */}
-        <Route path="/map" element={<ProtectedRoute><SurveillanceMap /></ProtectedRoute>} />
+        {/* Epidemic Surveillance & Outbreak Map */}
+        <Route path="/map" element={<Navigate to="/home" replace />} />
         
         {/* Agricultural Scientist & Expert Pathology Review Desk */}
         <Route path="/expert/queue" element={<ProtectedRoute><ExpertQueue /></ProtectedRoute>} />
