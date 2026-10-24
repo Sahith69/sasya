@@ -8,7 +8,7 @@
 
 body {
   background-color: #F9F9F6;
-  color: #1A3322;
+  color: #275637;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
@@ -23,35 +23,120 @@ body {
   background: #F1F4F1;
 }
 ::-webkit-scrollbar-thumb {
-  background: #A3C6AA;
+  background: #91BA94;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #6FA47A;
+  background: #275637;
 }
 
 /* Card glass styles */
 .agri-card {
   background: #FFFFFF;
-  border: 1px solid #D8E5DA;
+  border: 1px solid #91BA94;
   border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(39, 86, 55, 0.04);
+  box-shadow: 0 4px 20px rgba(39, 86, 55, 0.05);
 }
 
-.agri-button-primary {
-  background-color: #275637;
-  color: #FFFFFF;
-  font-weight: 700;
-  border-radius: 12px;
-  padding: 12px 20px;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+/* Keyframe Animations */
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.agri-button-primary:hover {
-  background-color: #1E462B;
-  box-shadow: 0 4px 14px rgba(39, 86, 55, 0.2);
+@keyframes toastSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gentleFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+
+@keyframes mascotBob {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulseBorder {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(39, 86, 55, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(39, 86, 55, 0);
+  }
+}
+
+@keyframes shimmerWave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-card-in {
+  animation: cardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-toast-slide {
+  animation: toastSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-float {
+  animation: gentleFloat 6s ease-in-out infinite;
+}
+
+.animate-mascot-bob {
+  animation: mascotBob 3.5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseBorder 2.5s infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(177, 210, 125, 0.2) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmerWave 4s infinite linear;
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 25s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
 }

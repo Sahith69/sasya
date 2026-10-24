@@ -16,7 +16,7 @@ export const DEMO_ACCOUNTS = [
     taluk: 'Belthangady',
     village: 'Venur',
     crops: ['Arecanut', 'Paddy'],
-    lang: 'kn',
+    lang: 'en',
     consentGiven: true,
     pass: 'farmer123',
     badge: '🌴 Arecanut (Coastal KA)'
@@ -31,7 +31,7 @@ export const DEMO_ACCOUNTS = [
     taluk: 'Theog',
     village: 'Fagu',
     crops: ['Apple'],
-    lang: 'hi',
+    lang: 'en',
     consentGiven: true,
     pass: 'apple123',
     badge: '🍏 Apple (Shimla, HP)'
@@ -54,8 +54,8 @@ export const DEMO_ACCOUNTS = [
 ];
 
 export function AuthProvider({ children }) {
-  // Language defaults to Kannada 'kn' as requested for the father's pitch story
-  const [lang, setLang] = useState(() => localStorage.getItem('sasya_lang') || 'kn');
+  // Starting language is ALWAYS English ('en')
+  const [lang, setLang] = useState('en');
   const [user, setUser] = useState(() => {
     const cached = localStorage.getItem('sasya_user');
     return cached ? JSON.parse(cached) : null;
@@ -89,7 +89,6 @@ export function AuthProvider({ children }) {
     );
     if (demo) {
       setUser(demo);
-      if (demo.lang) setLang(demo.lang);
       return { success: true, user: demo };
     }
 
@@ -100,7 +99,6 @@ export function AuthProvider({ children }) {
     );
     if (matched) {
       setUser(matched);
-      if (matched.lang) setLang(matched.lang);
       return { success: true, user: matched };
     }
 

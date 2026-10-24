@@ -48,7 +48,30 @@ export const TRANSLATIONS = {
     village: "Village",
     crops: "Crops",
     logout_btn: "Sign Out",
-    skip_intro: "Skip ➔"
+    skip_intro: "Skip ➔",
+
+    // Home Page Keys
+    brand_badge: "",
+    headline_line1: "Spot the disease early.",
+    headline_line2: "Farm together.",
+    sample_data_label: "SAMPLE DATA",
+    sample_data_crops: "Arecanut, paddy, tomato, apple",
+    hero_subtext: "Scan a leaf, see the 48-hour spray window, and ask other young farmers and experts. All in Kannada, Hindi or English.",
+    search_placeholder: "Search disease, crop or village",
+    search_btn: "Search",
+    
+    // Priority Cards
+    card_community_title: "Ask the community",
+    card_community_sub: "One space for each crop. Discuss symptoms with local growers.",
+    
+    card_scan_title: "Scan a leaf",
+    card_scan_sub: "Get an instant AI diagnosis and an expert check.",
+    
+    card_weather_title: "Spray window",
+    card_weather_sub: "Safe hours for the next 48 hours before rain washout.",
+    
+    card_contribute_title: "Contribute",
+    card_contribute_sub: "Upload verified diseased leaf photos to train Karnataka's open crop AI."
   },
   kn: {
     app_name: "ಸಸ್ಯ (Sasya)",
@@ -73,7 +96,7 @@ export const TRANSLATIONS = {
     autofill_btn: "⚡ ಒಟಿಪಿ ಭರ್ತಿ ಮಾಡಿ (123456)",
     verify_btn: "ಪರಿಶೀಲಿಸಿ & ಪಾಸ್‌ವರ್ಡ್ ಹೊಂದಿಸಿ",
     set_creds_title: "ಲಾಗಿನ್ ವಿವರಗಳನ್ನು ಹೊಂದಿಸಿ",
-    create_account_btn: "ಖಾತೆ ರಚಿಸಿ ಮುಂದುವರಿಯಿರಿ",
+    create_account_btn: "ಖಾತೆ ರಚಿಸಿ ಮುಂದುವರಿಸಿ",
     onboarding_title: "ಕೃಷಿ ವಿವರಗಳ ಸೆಟಪ್",
     onboarding_desc: "ರೋಗ ಮುನ್ಸೂಚನೆ ಮತ್ತು ಹವಾಮಾನ ಮಾಹಿತಿಯನ್ನು ವೈಯಕ್ತೀಕರಿಸಿ",
     select_lang: "೧. ನಿಮ್ಮ ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ",
@@ -97,7 +120,29 @@ export const TRANSLATIONS = {
     village: "ಗ್ರಾಮ",
     crops: "ಬೆಳೆಗಳು",
     logout_btn: "ಲಾಗ್‌ಔಟ್",
-    skip_intro: "ಮುಂದೆ ಹೋಗಿ ➔"
+    skip_intro: "ಮುಂದೆ ಹೋಗಿ ➔",
+
+    // Home Page Keys
+    brand_badge: "ಸಸ್ಯ",
+    headline_line1: "ರೋಗವನ್ನು ಮೊದಲೇ ಪತ್ತೆಹಚ್ಚಿ.",
+    headline_line2: "ಒಟ್ಟಾಗಿ ಕೃಷಿ ಮಾಡಿ.",
+    sample_data_label: "ಮಾದರಿ ಮಾಹಿತಿ",
+    sample_data_crops: "ಅಡಿಕೆ, ಭತ್ತ, ಟೊಮ್ಯಾಟೊ, ಸೇಬು",
+    hero_subtext: "ಎಲೆ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ, ೪೮ ಗಂಟೆಗಳ ಸ್ಪ್ರೇ ಕಿಟಕಿ ನೋಡಿ ಮತ್ತು ಇತರ ರೈತರೊಂದಿಗೆ ಚರ್ಚಿಸಿ. ಕನ್ನಡ, ಹಿಂದಿ ಮತ್ತು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ.",
+    search_placeholder: "ರೋಗ, ಬೆಳೆ ಅಥವಾ ಗ್ರಾಮ ಹುಡುಕಿ...",
+    search_btn: "ಹುಡುಕಿ",
+    
+    card_community_title: "ಸಮುದಾಯದಲ್ಲಿ ಕೇಳಿ",
+    card_community_sub: "ಪ್ರತಿಯೊಂದು ಬೆಳೆಗೂ ಪ್ರತ್ಯೇಕ ವೇದಿಕೆ. ಸ್ಥಳೀಯ ರೈತರೊಂದಿಗೆ ಚರ್ಚಿಸಿ.",
+    
+    card_scan_title: "ಎಲೆ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
+    card_scan_sub: "ತ್ವರಿತ AI ರೋಗ ಪತ್ತೆ ಮತ್ತು ತಜ್ಞರ ಪರಿಶೀಲನೆ ಪಡೆಯಿರಿ.",
+    
+    card_weather_title: "ಸ್ಪ್ರೇ ಕಿಟಕಿ",
+    card_weather_sub: "ಮಳೆಯಿಂದ ಮದ್ದು ಕೊಚ್ಚಿಹೋಗುವುದನ್ನು ತಪ್ಪಿಸಲು ಮುಂದಿನ ೪೮ ಗಂಟೆಗಳ ಸುರಕ್ಷಿತ ಸಮಯ.",
+    
+    card_contribute_title: "ಕೊಡುಗೆ ನೀಡಿ",
+    card_contribute_sub: "ಕೃಷಿ AI ಮಾದರಿ ತರಬೇತಿಗಾಗಿ ದೃಢೀಕರಿಸಿದ ರೋಗಗ್ರಸ್ತ ಎಲೆ ಫೋಟೋಗಳನ್ನು ನೀಡಿ."
   },
   hi: {
     app_name: "सस्य (Sasya)",
@@ -146,6 +191,28 @@ export const TRANSLATIONS = {
     village: "गाँव",
     crops: "फसलें",
     logout_btn: "लॉग आउट",
-    skip_intro: "छोड़ें ➔"
+    skip_intro: "छोड़ें ➔",
+
+    // Home Page Keys
+    brand_badge: "सस्य",
+    headline_line1: "बीमारी को समय रहते पहचानें।",
+    headline_line2: "साथ मिलकर खेती करें।",
+    sample_data_label: "सैंपल डेटा",
+    sample_data_crops: "सुपारी, धान, टमाटर, सेब",
+    hero_subtext: "पत्ती स्कैन करें, 48 घंटे की स्प्रे विंडो देखें और युवा किसानों एवं विशेषज्ञों से सलाह लें। हिंदी, कन्नड़ और अंग्रेज़ी में।",
+    search_placeholder: "बीमारी, फसल या गाँव खोजें...",
+    search_btn: "खोजें",
+    
+    card_community_title: "समुदाय से पूछें",
+    card_community_sub: "प्रत्येक फसल के लिए समर्पित मंच। स्थानीय किसानों से चर्चा करें।",
+    
+    card_scan_title: "पत्ती स्कैन करें",
+    card_scan_sub: "तुरंत AI रोग निदान और विशेषज्ञ समीक्षा प्राप्त करें।",
+    
+    card_weather_title: "स्प्रे विंडो",
+    card_weather_sub: "बारिश से पहले अगले 48 घंटों का सुरक्षित छिड़काव समय।",
+    
+    card_contribute_title: "योगदान दें",
+    card_contribute_sub: "ओपन एग्रीकल्चरल AI ट्रेनिंग के लिए सत्यापित रोगग्रस्त पत्तियां सबमिट करें।"
   }
 };
