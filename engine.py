@@ -14,6 +14,7 @@ from PIL import Image
 import numpy as np
 
 import torch
+torch.set_num_threads(1)
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import models, transforms
@@ -358,7 +359,7 @@ class CropVisionEngine:
             sm_pct = 65.0  # standard soil moisture proxy
             env_risk = evaluate_environmental_risk(active_crop, predicted_disease, t_c, h_pct, sm_pct)
 
-        return {
+        response = {
             "success": True,
             "error": None,
             "verification": verification,
@@ -380,6 +381,9 @@ class CropVisionEngine:
             "weather_advisory": weather_advisory,
             "multimodal_risk": env_risk
         }
+        import gc
+        gc.collect()
+        return response
 
     def simulate_what_if(
         self,

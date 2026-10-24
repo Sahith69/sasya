@@ -8,7 +8,7 @@ import config
 import torch
 import torch.nn.functional as F
 import numpy as np
-import matplotlib.pyplot as plt
+import cv2
 from PIL import Image
 
 class GradCAM:
@@ -67,7 +67,7 @@ class GradCAM:
         else:
             target = output[0, target_class]
             
-        target.backward(retain_graph=True)
+        target.backward(retain_graph=False)
         
         gradients = self.gradients[0]
         activations = self.activations[0]
@@ -84,6 +84,9 @@ class GradCAM:
             cam = cam / max_val
             
         cam = cam.cpu().detach().numpy()
+        self.gradients = None
+        self.activations = None
+        self.model.zero_grad(set_to_none=True)
         return cam
 
 def overlay_heatmap(image, heatmap, alpha=0.5, colormap='jet'):
@@ -94,13 +97,13 @@ def overlay_heatmap(image, heatmap, alpha=0.5, colormap='jet'):
         
     h, w = image_np.shape[:2]
     
-    heatmap_pil = Image.fromarray((heatmap * 255).astype(np.uint8))
-    heatmap_resized = heatmap_pil.resize((w, h), Image.BILINEAR)
-    heatmap_resized = np.array(heatmap_resized) / 255.0
+    # Ultra-lean C++ OpenCV colormap (zero matplotlib memory overhead)
+    heatmap_uint8 = np.uint8(np.clip(heatmap, 0, 1) * 255)
+    heatmap_resized = cv2.resize(heatmap_uint8, (w, h), interpolation=cv2.INTER_LINEAR)
     
-    cmap = plt.get_cmap(colormap)
-    colored_heatmap = cmap(heatmap_resized)[:, :, :3]
-    colored_heatmap = (colored_heatmap * 255).astype(np.uint8)
+    cv2_cmap = cv2.COLORMAP_JET if colormap == 'jet' else cv2.COLORMAP_VIRIDIS
+    colored_bgr = cv2.applyColorMap(heatmap_resized, cv2_cmap)
+    colored_rgb = cv2.cvtColor(colored_bgr, cv2.COLOR_BGR2RGB)
     
-    overlay = (image_np * (1 - alpha) + colored_heatmap * alpha).astype(np.uint8)
+    overlay = cv2.addWeighted(image_np, 1 - alpha, colored_rgb, alpha, 0)
     return Image.fromarray(overlay)
