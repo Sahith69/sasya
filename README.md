@@ -1,3 +1,13 @@
+---
+title: Sasya AI Backend
+emoji: 🌾
+colorFrom: green
+colorTo: emerald
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Crop Vision Engine (Backend & Model Core)
 
 A standalone, framework-agnostic AI inference engine for multi-crop disease classification, ordinal severity grading, and visual explainability.

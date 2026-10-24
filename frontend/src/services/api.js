@@ -2,7 +2,15 @@
 // Connects React frontend to FastAPI backend on http://localhost:8000
 // Automatically falls back to high-fidelity client-side simulation if backend is offline.
 
-export const API_BASE = 'http://localhost:8000/api';
+// Dynamically resolve API URL across local dev, Render, Vercel, and cloud deploys
+let rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+if (!rawApiUrl.startsWith('http://') && !rawApiUrl.startsWith('https://')) {
+  rawApiUrl = `https://${rawApiUrl}`;
+}
+if (!rawApiUrl.endsWith('/api')) {
+  rawApiUrl = rawApiUrl.replace(/\/+$/, '') + '/api';
+}
+export const API_BASE = rawApiUrl;
 
 /**
  * Resilient fetch wrapper with auto-timeout and graceful fallback

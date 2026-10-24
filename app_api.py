@@ -1134,4 +1134,5 @@ def admin_audit_log(limit: int = Query(50)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app_api.py:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("app_api.py:app", host="0.0.0.0", port=port, reload=True)
