@@ -25,6 +25,45 @@ export default function Profile() {
   const [walletBalance, setWalletBalance] = useState(12.00);
   const [payoutSuccess, setPayoutSuccess] = useState(false);
 
+  // Listings State
+  const [listings, setListings] = useState([
+    { 
+      title: '500L High-Pressure Power Sprayer for Rent', 
+      category: 'Equipment Rental',
+      rate: '₹800 / day', 
+      status: 'Available Now',
+      contact: 'Contact Ramesh (Self)'
+    },
+    { 
+      title: 'URGENT: 2 Palm Climbers Needed for Koleroga Spraying', 
+      category: 'Labour Request',
+      rate: '₹700 / day', 
+      status: 'Active Request (Rain in 28h)',
+      contact: '2 young farmers responded'
+    }
+  ]);
+  const [showListingModal, setShowListingModal] = useState(false);
+  const [listingTitle, setListingTitle] = useState('');
+  const [listingCategory, setListingCategory] = useState('Equipment Rental');
+  const [listingRate, setListingRate] = useState('₹500 / day');
+
+  const handleCreateListing = (e) => {
+    e.preventDefault();
+    if (!listingTitle.trim()) return;
+    setListings([
+      {
+        title: listingTitle.trim(),
+        category: listingCategory,
+        rate: listingRate.trim(),
+        status: 'Available Now',
+        contact: `Contact ${user?.name || 'Ramesh'} (Self)`
+      },
+      ...listings
+    ]);
+    setListingTitle('');
+    setShowListingModal(false);
+  };
+
   const handleSimulatePayout = () => {
     setPayoutSuccess(true);
     setTimeout(() => {
@@ -53,7 +92,7 @@ export default function Profile() {
           </button>
           <div>
             <h1 className="font-extrabold text-lg sm:text-xl tracking-tight">
-              Farmer Management Portal
+              {t('farmer_portal_title')}
             </h1>
             <p className={`text-[10px] hidden sm:block ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
               {user?.name || 'Ramesh Gowda'} • {user?.username || 'farmer_KA_101'}
@@ -157,7 +196,7 @@ export default function Profile() {
                       <span className={`text-[11px] font-mono px-2 py-0.5 rounded-md font-bold ${
                         isDark ? 'bg-[#0D4A3E] text-[#34D399]' : 'bg-[#B1D27D] text-[#275637]'
                       }`}>
-                        Active Farmer
+                        {t('active_farmer_badge')}
                       </span>
                     </div>
                     <p className={`text-xs mt-1 ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
@@ -172,14 +211,14 @@ export default function Profile() {
                     isDark ? 'bg-[#162C20] border-[#22C55E]/40 text-[#22C55E]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
                   }`}
                 >
-                  Edit Profile Details
+                  {t('btn_edit_profile')}
                 </button>
               </div>
 
               {/* Farm Details Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
                 <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-[#D8E5DA]'}`}>
-                  <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>Location</div>
+                  <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>{t('profile_location')}</div>
                   <div className="text-sm font-bold mt-1 flex items-center gap-1.5">
                     <MapPin className="w-4 h-4 text-[#22C55E]" />
                     <span>{user?.village || 'Venur'}, {user?.district || 'Dakshina Kannada'}</span>
@@ -187,17 +226,17 @@ export default function Profile() {
                 </div>
 
                 <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-[#D8E5DA]'}`}>
-                  <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>Crops Under Surveillance</div>
+                  <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>{t('profile_crops')}</div>
                   <div className="text-sm font-bold mt-1">
                     {user?.crops?.join(', ') || 'Arecanut (4 ac), Paddy (2 ac)'}
                   </div>
                 </div>
 
                 <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-[#D8E5DA]'}`}>
-                  <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>Spatial Privacy Shield</div>
+                  <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>{t('profile_privacy_shield')}</div>
                   <div className="text-sm font-bold mt-1 text-[#22C55E] flex items-center gap-1.5">
                     <Shield className="w-4 h-4 text-[#22C55E]" />
-                    <span>Centroid Anonymized Active</span>
+                    <span>{t('profile_privacy_active')}</span>
                   </div>
                 </div>
               </div>
@@ -217,7 +256,7 @@ export default function Profile() {
                   <span className={`text-[10px] font-mono uppercase tracking-wider font-bold ${
                     isDark ? 'text-[#34D399]' : 'text-[#275637]'
                   }`}>
-                    Open Research Bounty Balance
+                    {t('open_research_bounty')}
                   </span>
                   <div className="text-3xl sm:text-4xl font-black mt-1 font-mono">
                     ₹{walletBalance.toFixed(2)}
@@ -236,7 +275,7 @@ export default function Profile() {
                   }`}
                 >
                   <DollarSign className="w-4 h-4" />
-                  <span>Simulate Instant UPI Payout</span>
+                  <span>{t('btn_simulate_payout')}</span>
                 </button>
               </div>
 
@@ -253,7 +292,7 @@ export default function Profile() {
             <div className={`border rounded-[14px] p-6 shadow-xs ${
               isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
             }`}>
-              <h3 className="text-base font-bold mb-4">Verified Submission History</h3>
+              <h3 className="text-base font-bold mb-4">{t('verified_submission_history')}</h3>
               <div className="space-y-3">
                 {[
                   { crop: 'Arecanut', disease: 'Koleroga (Fruit Rot)', date: 'Today, 10:14 AM', bounty: '+₹1.00', status: 'Approved' },
@@ -288,7 +327,7 @@ export default function Profile() {
           <div className="space-y-6 animate-card-in">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold">Crop Pathology Scan Diary</h2>
+                <h2 className="text-xl font-bold">{t('scan_diary_title')}</h2>
                 <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
                   Historical ResNet-18 diagnostic observations with Grad-CAM heatmaps
                 </p>
@@ -300,7 +339,7 @@ export default function Profile() {
                 }`}
               >
                 <Camera className="w-4 h-4" />
-                <span>New Scan</span>
+                <span>{t('btn_new_scan')}</span>
               </button>
             </div>
 
@@ -336,7 +375,14 @@ export default function Profile() {
               ].map((scan, idx) => (
                 <div 
                   key={idx}
-                  onClick={() => navigate('/detect/result')}
+                  onClick={() => navigate('/detect/result', {
+                    state: {
+                      image: scan.img,
+                      crop: scan.crop,
+                      sampleId: scan.crop.toLowerCase(),
+                      isOod: false
+                    }
+                  })}
                   className={`border rounded-[14px] p-5 shadow-xs transition-all hover:-translate-y-1 hover:shadow-md cursor-pointer flex flex-col justify-between ${
                     isDark ? 'bg-[#12241A] border-[#1E3A2B] hover:border-[#22C55E]' : 'bg-white border-[#91BA94] hover:border-[#275637]'
                   }`}
@@ -385,8 +431,8 @@ export default function Profile() {
                 </p>
               </div>
               <button 
-                onClick={() => alert('Add Listing Modal')}
-                className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 ${
+                onClick={() => setShowListingModal(true)}
+                className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 ${
                   isDark ? 'bg-[#22C55E] text-[#0B1712]' : 'bg-[#275637] text-white'
                 }`}
               >
@@ -396,22 +442,7 @@ export default function Profile() {
             </div>
 
             <div className="space-y-4">
-              {[
-                { 
-                  title: '500L High-Pressure Power Sprayer for Rent', 
-                  category: 'Equipment Rental',
-                  rate: '₹800 / day', 
-                  status: 'Available Now',
-                  contact: 'Contact Ramesh (Self)'
-                },
-                { 
-                  title: 'URGENT: 2 Palm Climbers Needed for Koleroga Spraying', 
-                  category: 'Labour Request',
-                  rate: '₹700 / day', 
-                  status: 'Active Request (Rain in 28h)',
-                  contact: '2 young farmers responded'
-                }
-              ].map((listing, idx) => (
+              {listings.map((listing, idx) => (
                 <div 
                   key={idx}
                   className={`border rounded-[14px] p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
@@ -551,6 +582,78 @@ export default function Profile() {
         )}
 
       </main>
+
+      {/* ── CREATE LISTING MODAL ── */}
+      {showListingModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`max-w-md w-full rounded-[18px] border p-6 shadow-2xl animate-card-in ${
+            isDark ? 'bg-[#102217] border-[#1E3A2B] text-white' : 'bg-white border-[#91BA94] text-[#275637]'
+          }`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-extrabold text-base">
+                Create Equipment or Labour Listing
+              </h3>
+              <button 
+                onClick={() => setShowListingModal(false)}
+                className="text-xs font-bold opacity-70 hover:opacity-100 cursor-pointer"
+              >
+                ✕ Cancel
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateListing} className="space-y-4 text-xs font-semibold">
+              <div>
+                <label className="block mb-1 text-[#8BA695]">Listing Type</label>
+                <select 
+                  value={listingCategory}
+                  onChange={(e) => setListingCategory(e.target.value)}
+                  className={`w-full h-10 px-3 rounded-xl border text-xs ${
+                    isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
+                  }`}
+                >
+                  <option value="Equipment Rental">Equipment Rental (Power Sprayer, Drones, Tools)</option>
+                  <option value="Labour Request">Labour Request (Urgent Palm Climber, Harvester)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-1 text-[#8BA695]">Title / Description</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. 500L High-Pressure Power Sprayer for Rent"
+                  value={listingTitle}
+                  onChange={(e) => setListingTitle(e.target.value)}
+                  className={`w-full h-10 px-3 rounded-xl border text-xs ${
+                    isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-[#8BA695]">Rate / Price</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. ₹500 / day or ₹700 / acre"
+                  value={listingRate}
+                  onChange={(e) => setListingRate(e.target.value)}
+                  className={`w-full h-10 px-3 rounded-xl border text-xs ${
+                    isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
+                  }`}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full h-12 rounded-[14px] bg-[#275637] hover:bg-[#1E462B] text-white font-extrabold text-xs transition-all cursor-pointer shadow-md"
+              >
+                Publish to Local Farm Network
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

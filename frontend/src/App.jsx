@@ -17,6 +17,36 @@ import Community from './pages/Community';
 import Risk from './pages/Risk';
 import Wallet from './pages/Wallet';
 import SurveillanceMap from './pages/SurveillanceMap';
+import ExpertQueue from './pages/ExpertQueue';
+
+// Admin & Operations Portal Pages
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminOverview from './pages/admin/AdminOverview';
+import AdminQueue from './pages/admin/AdminQueue';
+import AdminReviewDetail from './pages/admin/AdminReviewDetail';
+import AdminFarmers from './pages/admin/AdminFarmers';
+import AdminFarmerDetail from './pages/admin/AdminFarmerDetail';
+import AdminAnalytics from './pages/admin/AdminAnalytics';
+import AdminAnalyticsSubmissions from './pages/admin/AdminAnalyticsSubmissions';
+import AdminAnalyticsVerification from './pages/admin/AdminAnalyticsVerification';
+import AdminAnalyticsModel from './pages/admin/AdminAnalyticsModel';
+import AdminAnalyticsGates from './pages/admin/AdminAnalyticsGates';
+import AdminAnalyticsBounty from './pages/admin/AdminAnalyticsBounty';
+import AdminAnalyticsCommunity from './pages/admin/AdminAnalyticsCommunity';
+import AdminModeration from './pages/admin/AdminModeration';
+import AdminExperts from './pages/admin/AdminExperts';
+import AdminExport from './pages/admin/AdminExport';
+import AdminAudit from './pages/admin/AdminAudit';
+
+// Admin Protected Route wrapper
+function AdminProtectedRoute({ children }) {
+  const isAdminAuthed = sessionStorage.getItem('sasya_admin_auth') === 'true';
+  if (!isAdminAuthed) {
+    return <Navigate to="/admin/login" replace />;
+  }
+  return <AdminLayout>{children}</AdminLayout>;
+}
 
 // Protected Route wrapper
 function ProtectedRoute({ children, requireConsent = true }) {
@@ -75,6 +105,42 @@ function MainApp() {
         
         {/* Epidemic Surveillance Map */}
         <Route path="/map" element={<ProtectedRoute><SurveillanceMap /></ProtectedRoute>} />
+        
+        {/* Agricultural Scientist & Expert Pathology Review Desk */}
+        <Route path="/expert/queue" element={<ProtectedRoute><ExpertQueue /></ProtectedRoute>} />
+        <Route path="/expert" element={<Navigate to="/expert/queue" replace />} />
+
+        {/* ── ICAR-CPCRI ADMIN & OPERATIONS CONSOLE (17 Exact Routes) ── */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminProtectedRoute><AdminOverview /></AdminProtectedRoute>} />
+        <Route path="/admin/queue" element={<AdminProtectedRoute><AdminQueue /></AdminProtectedRoute>} />
+        <Route path="/admin/review" element={<Navigate to="/admin/queue" replace />} />
+        <Route path="/admin/review/:submissionId" element={<AdminProtectedRoute><AdminReviewDetail /></AdminProtectedRoute>} />
+        <Route path="/admin/farmers" element={<AdminProtectedRoute><AdminFarmers /></AdminProtectedRoute>} />
+        <Route path="/admin/farmers/:farmerId" element={<AdminProtectedRoute><AdminFarmerDetail /></AdminProtectedRoute>} />
+        
+        {/* Analytics Sub-Routes */}
+        <Route path="/admin/analytics" element={<AdminProtectedRoute><AdminAnalytics /></AdminProtectedRoute>} />
+        <Route path="/admin/analytics/submissions" element={<AdminProtectedRoute><AdminAnalyticsSubmissions /></AdminProtectedRoute>} />
+        <Route path="/admin/analytics/verification" element={<AdminProtectedRoute><AdminAnalyticsVerification /></AdminProtectedRoute>} />
+        <Route path="/admin/analytics/model" element={<AdminProtectedRoute><AdminAnalyticsModel /></AdminProtectedRoute>} />
+        <Route path="/admin/analytics/gates" element={<AdminProtectedRoute><AdminAnalyticsGates /></AdminProtectedRoute>} />
+        <Route path="/admin/analytics/bounty" element={<AdminProtectedRoute><AdminAnalyticsBounty /></AdminProtectedRoute>} />
+        <Route path="/admin/analytics/community" element={<AdminProtectedRoute><AdminAnalyticsCommunity /></AdminProtectedRoute>} />
+        
+        {/* Governance & Operations */}
+        <Route path="/admin/moderation" element={<AdminProtectedRoute><AdminModeration /></AdminProtectedRoute>} />
+        <Route path="/admin/experts" element={<AdminProtectedRoute><AdminExperts /></AdminProtectedRoute>} />
+        <Route path="/admin/export" element={<AdminProtectedRoute><AdminExport /></AdminProtectedRoute>} />
+        <Route path="/admin/audit" element={<AdminProtectedRoute><AdminAudit /></AdminProtectedRoute>} />
+
+        {/* Convenient Route Aliases */}
+        <Route path="/scan" element={<Navigate to="/detect" replace />} />
+        <Route path="/weather" element={<Navigate to="/risk" replace />} />
+        <Route path="/bounty" element={<Navigate to="/wallet" replace />} />
+        <Route path="/settings" element={<Navigate to="/profile?tab=settings" replace />} />
+        <Route path="/scans" element={<Navigate to="/profile?tab=scans" replace />} />
+        <Route path="/listings" element={<Navigate to="/profile?tab=listings" replace />} />
         
         <Route path="/logout" element={<Logout />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
