@@ -1,0 +1,18 @@
+name: Render 24/7 Keepalive Ping
+
+on:
+  schedule:
+    # Run every 10 minutes to prevent Render free tier from sleeping
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    name: Ping Sasya Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Keepalive Ping to Render Backend
+        run: |
+          echo "Sending keepalive ping to Render backend..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 https://sasya-backend.onrender.com/api/health || true)
+          echo "Render Backend Health Status: $STATUS"

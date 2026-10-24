@@ -64,9 +64,23 @@ app.add_middleware(
 # Singleton vision engine (lazy loaded)
 _vision_engine = None
 
+def ensure_models_downloaded():
+    models_dir = os.path.join(database.PROJECT_ROOT, "models")
+    gatekeeper_path = os.path.join(models_dir, "crop_gatekeeper.pth")
+    if not os.path.exists(gatekeeper_path):
+        try:
+            from huggingface_hub import snapshot_download
+            logger.info("Downloading models from Hugging Face hub (kritika67/sasya)...")
+            os.makedirs(models_dir, exist_ok=True)
+            snapshot_download("kritika67/sasya", local_dir=models_dir)
+            logger.info("Models successfully downloaded into models/!")
+        except Exception as e:
+            logger.warning(f"Could not auto-download model weights: {e}")
+
 def get_engine() -> engine.CropVisionEngine:
     global _vision_engine
     if _vision_engine is None:
+        ensure_models_downloaded()
         _vision_engine = engine.CropVisionEngine()
     return _vision_engine
 
@@ -1135,4 +1149,4 @@ def admin_audit_log(limit: int = Query(50)):
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run("app_api.py:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("app_api:app", host="0.0.0.0", port=port, reload=False)

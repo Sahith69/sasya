@@ -6,8 +6,8 @@ services:
   - type: web
     name: sasya-backend
     env: python
-    plan: starter # Dedicated compute, 2GB RAM, zero cold starts ($7/mo against $50 credit)
-    buildCommand: pip install -r requirements.txt
+    plan: free # 100% Free forever, no credit card required
+    buildCommand: pip install -r requirements.txt && python -c "from huggingface_hub import snapshot_download; snapshot_download('kritika67/sasya', local_dir='models')"
     startCommand: python -m uvicorn app_api:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
