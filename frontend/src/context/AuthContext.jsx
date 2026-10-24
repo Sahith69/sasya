@@ -1,4 +1,4 @@
-// src/context/AuthContext.jsx - Global Authentication & Language State Store
+// src/context/AuthContext.jsx - Global Authentication, Language, Theme & Typography Store
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { TRANSLATIONS } from '../locales/translations';
 
@@ -9,12 +9,15 @@ export const DEMO_ACCOUNTS = [
   {
     id: 'farmer_KA_101',
     username: 'farmer_KA_101',
-    name: 'Ramesh Poojary',
+    name: 'Ramesh Gowda',
     role: 'farmer',
-    phone: '0000010101',
+    phone: '00000 10101',
+    state: 'Karnataka',
     district: 'Dakshina Kannada',
     taluk: 'Belthangady',
     village: 'Venur',
+    landSize: '4.0 Acres',
+    upiId: 'ramesh@oksbi',
     crops: ['Arecanut', 'Paddy'],
     lang: 'en',
     consentGiven: true,
@@ -26,10 +29,13 @@ export const DEMO_ACCOUNTS = [
     username: 'farmer_HP_202',
     name: 'Kuldeep Sharma',
     role: 'farmer',
-    phone: '0000020202',
+    phone: '00000 20202',
+    state: 'Himachal Pradesh',
     district: 'Shimla',
     taluk: 'Theog',
     village: 'Fagu',
+    landSize: '3.5 Acres',
+    upiId: 'kuldeep@okicici',
     crops: ['Apple'],
     lang: 'en',
     consentGiven: true,
@@ -41,10 +47,13 @@ export const DEMO_ACCOUNTS = [
     username: 'admin_expert',
     name: 'Dr. Subrahmanya Bhat',
     role: 'expert',
-    phone: '0000099999',
+    phone: '00000 99999',
+    state: 'Karnataka',
     district: 'Dakshina Kannada',
     taluk: 'Mangaluru',
     village: 'ICAR-CPCRI',
+    landSize: 'Research Station',
+    upiId: 'cpcri@sbi',
     crops: ['Arecanut', 'Paddy', 'Apple', 'Tomato'],
     lang: 'en',
     consentGiven: true,
@@ -54,19 +63,63 @@ export const DEMO_ACCOUNTS = [
 ];
 
 export function AuthProvider({ children }) {
-  // Starting language is ALWAYS English ('en')
-  const [lang, setLang] = useState('en');
-  const [user, setUser] = useState(() => {
-    const cached = localStorage.getItem('sasya_user');
-    return cached ? JSON.parse(cached) : null;
+  // Global Language state (persisted)
+  const [lang, setLangState] = useState(() => {
+    return localStorage.getItem('sasya_lang') || 'en';
   });
 
-  // Track pending sign-up state during OTP verification
-  const [pendingSignup, setPendingSignup] = useState(null);
+  const setLang = (newLang) => {
+    setLangState(newLang);
+    localStorage.setItem('sasya_lang', newLang);
+  };
+
+  // Global Theme state (persisted)
+  const [theme, setThemeState] = useState(() => {
+    return localStorage.getItem('sasya_theme') || 'light';
+  });
+
+  const setTheme = (newTheme) => {
+    setThemeState(newTheme);
+    localStorage.setItem('sasya_theme', newTheme);
+  };
+
+  const isDark = theme === 'dark';
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+  };
+
+  // Global Text Size state (persisted)
+  const [textSize, setTextSizeState] = useState(() => {
+    return localStorage.getItem('sasya_text_size') || 'normal';
+  });
+
+  const setTextSize = (newSize) => {
+    setTextSizeState(newSize);
+    localStorage.setItem('sasya_text_size', newSize);
+  };
+
+  // Synchronize Theme & Text Size to document element immediately
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+    }
+  }, [theme]);
 
   useEffect(() => {
-    localStorage.setItem('sasya_lang', lang);
-  }, [lang]);
+    document.documentElement.setAttribute('data-text-size', textSize);
+  }, [textSize]);
+
+  // Global User state (persisted)
+  const [user, setUser] = useState(() => {
+    const cached = localStorage.getItem('sasya_user');
+    return cached ? JSON.parse(cached) : DEMO_ACCOUNTS[0]; // Defaults to Ramesh Gowda for instant pitch test
+  });
 
   useEffect(() => {
     if (user) {
@@ -76,6 +129,9 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
+  // Track pending sign-up state during OTP verification
+  const [pendingSignup, setPendingSignup] = useState(null);
+
   // Translation helper
   const t = (key) => {
     return TRANSLATIONS[lang]?.[key] || TRANSLATIONS['en']?.[key] || key;
@@ -83,22 +139,22 @@ export function AuthProvider({ children }) {
 
   // 1. Password-based Login (Existing Users)
   const login = (username, password) => {
-    // Check against demo accounts first
     const demo = DEMO_ACCOUNTS.find(
       (a) => a.username.toLowerCase() === username.trim().toLowerCase() && a.pass === password
     );
     if (demo) {
       setUser(demo);
+      if (demo.lang) setLang(demo.lang);
       return { success: true, user: demo };
     }
 
-    // Check against dynamically registered users in localStorage
     const storedUsers = JSON.parse(localStorage.getItem('sasya_custom_users') || '[]');
     const matched = storedUsers.find(
       (u) => u.username.toLowerCase() === username.trim().toLowerCase() && u.password === password
     );
     if (matched) {
       setUser(matched);
+      if (matched.lang) setLang(matched.lang);
       return { success: true, user: matched };
     }
 
@@ -134,19 +190,21 @@ export function AuthProvider({ children }) {
       id: `farmer_${pendingSignup?.phone?.slice(-4) || Math.floor(Math.random() * 9000 + 1000)}`,
       username: username.trim(),
       password: password,
-      phone: pendingSignup?.phone || '0000012345',
+      phone: pendingSignup?.phone || '00000 12345',
       role: 'farmer',
       name: username.trim(),
+      state: 'Karnataka',
       district: 'Dakshina Kannada',
       taluk: 'Belthangady',
       village: 'Venur',
+      landSize: '4.0 Acres',
+      upiId: `${username.trim()}@oksbi`,
       crops: ['Arecanut'],
       lang: lang,
       consentGiven: false,
       onboarded: false
     };
 
-    // Save to custom users list
     const storedUsers = JSON.parse(localStorage.getItem('sasya_custom_users') || '[]');
     storedUsers.push(newUser);
     localStorage.setItem('sasya_custom_users', JSON.stringify(storedUsers));
@@ -156,7 +214,16 @@ export function AuthProvider({ children }) {
     return { success: true, user: newUser };
   };
 
-  // 5. Update Farm Profile Onboarding
+  // 5. Update Profile
+  const updateProfile = (profileData) => {
+    setUser((prev) => {
+      const updated = { ...prev, ...profileData };
+      if (profileData.lang) setLang(profileData.lang);
+      return updated;
+    });
+  };
+
+  // 6. Update Farm Profile Onboarding
   const updateOnboarding = (data) => {
     setUser((prev) => {
       const updated = { ...prev, ...data };
@@ -165,12 +232,12 @@ export function AuthProvider({ children }) {
     });
   };
 
-  // 6. Grant Privacy Consent
+  // 7. Grant Privacy Consent
   const grantConsent = () => {
     setUser((prev) => ({ ...prev, consentGiven: true, onboarded: true }));
   };
 
-  // 7. Logout
+  // 8. Logout
   const logout = () => {
     setUser(null);
     setPendingSignup(null);
@@ -183,11 +250,18 @@ export function AuthProvider({ children }) {
         user,
         lang,
         setLang,
+        theme,
+        setTheme,
+        isDark,
+        toggleTheme,
+        textSize,
+        setTextSize,
         t,
         login,
         startPhoneSignup,
         verifyDummyOtp,
         completeAccountCreation,
+        updateProfile,
         updateOnboarding,
         grantConsent,
         logout,

@@ -9,6 +9,14 @@ import Onboarding from './pages/Onboarding';
 import Consent from './pages/Consent';
 import Home from './pages/Home';
 import Logout from './pages/Logout';
+import Profile from './pages/Profile';
+import EditProfile from './pages/EditProfile';
+import Detect from './pages/Detect';
+import DetectResult from './pages/DetectResult';
+import Community from './pages/Community';
+import Risk from './pages/Risk';
+import Wallet from './pages/Wallet';
+import SurveillanceMap from './pages/SurveillanceMap';
 
 // Protected Route wrapper
 function ProtectedRoute({ children, requireConsent = true }) {
@@ -43,9 +51,33 @@ function MainApp() {
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/onboarding" element={<ProtectedRoute requireConsent={false}><Onboarding /></ProtectedRoute>} />
         <Route path="/onboarding/consent" element={<ProtectedRoute requireConsent={false}><Consent /></ProtectedRoute>} />
+        
+        {/* Core Farm Dashboard */}
         <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+        
+        {/* Farmer Profile & Management Portal (profile, wallet, scans, listings, settings) */}
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+        
+        {/* Scan a leaf & Diagnostic Result */}
+        <Route path="/detect" element={<ProtectedRoute><Detect /></ProtectedRoute>} />
+        <Route path="/detect/result" element={<ProtectedRoute><DetectResult /></ProtectedRoute>} />
+        
+        {/* Young Farmer Crop Sub-Communities */}
+        <Route path="/c/:crop" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+        <Route path="/c" element={<Navigate to="/c/arecanut" replace />} />
+        
+        {/* 48-Hour Bioclimatic Spray Window */}
+        <Route path="/risk" element={<ProtectedRoute><Risk /></ProtectedRoute>} />
+        
+        {/* Digital Research Bounty Desk & Wallet */}
+        <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+        
+        {/* Epidemic Surveillance Map */}
+        <Route path="/map" element={<ProtectedRoute><SurveillanceMap /></ProtectedRoute>} />
+        
         <Route path="/logout" element={<Logout />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </>
   );

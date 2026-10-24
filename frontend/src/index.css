@@ -4,6 +4,19 @@
 
 :root {
   font-family: 'Plus Jakarta Sans', 'Noto Sans Kannada', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  transition: font-size 0.2s ease-in-out;
+}
+
+/* Global Font Scaling for Sunlight Readability */
+html[data-text-size="normal"], :root[data-text-size="normal"] {
+  font-size: 16px;
+}
+html[data-text-size="large"], :root[data-text-size="large"] {
+  font-size: 18.5px;
+}
+html[data-text-size="xlarge"], :root[data-text-size="xlarge"] {
+  font-size: 21px;
 }
 
 body {

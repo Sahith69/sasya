@@ -1,4 +1,4 @@
-// src/locales/translations.js - Bilingual English, Kannada & Hindi dictionary
+// src/locales/translations.js - Comprehensive Bilingual English, Kannada & Hindi dictionary
 
 export const TRANSLATIONS = {
   en: {
@@ -50,6 +50,19 @@ export const TRANSLATIONS = {
     logout_btn: "Sign Out",
     skip_intro: "Skip ➔",
 
+    // Navigation & Menus
+    nav_community: "Community",
+    nav_detect: "Detect",
+    nav_risk: "Risk",
+    nav_contribute: "Contribute",
+    nav_map: "Map",
+    menu_profile: "My profile",
+    menu_wallet: "Wallet (simulated)",
+    menu_scans: "My scans",
+    menu_listings: "My listings",
+    menu_settings: "Settings",
+    menu_signout: "Sign out",
+
     // Home Page Keys
     brand_badge: "",
     headline_line1: "Spot the disease early.",
@@ -63,15 +76,75 @@ export const TRANSLATIONS = {
     // Priority Cards
     card_community_title: "Ask the community",
     card_community_sub: "One space for each crop. Discuss symptoms with local growers.",
-    
     card_scan_title: "Scan a leaf",
     card_scan_sub: "Get an instant AI diagnosis and an expert check.",
-    
     card_weather_title: "Spray window",
     card_weather_sub: "Safe hours for the next 48 hours before rain washout.",
-    
     card_contribute_title: "Contribute",
-    card_contribute_sub: "Upload verified diseased leaf photos to train Karnataka's open crop AI."
+    card_contribute_sub: "Upload verified diseased leaf photos to train Karnataka's open crop AI.",
+
+    // Detect Page
+    detect_title: "Scan Leaf Pathology",
+    detect_sub: "Zero-latency multi-crop pathology with Mahalanobis OOD Rejection & Grad-CAM",
+    detect_open_camera: "Open Camera",
+    detect_upload_file: "Upload File",
+    detect_analyze_btn: "Analyze Leaf Specimen Now",
+    detect_quick_samples: "1-Click Test Samples",
+    detect_sample_desc: "Select any pre-calibrated sample to test instant diagnosis and OOD rejection:",
+    detect_ood_hint: "Tests Mahalanobis Distance out-of-distribution rejection",
+
+    // Results Page
+    result_title: "Diagnostic Report & Explainability",
+    result_gradcam: "Grad-CAM Explainability Heatmap",
+    result_treatment: "Agronomic Treatment Plan",
+    result_spray_window: "48-Hour Spray Window",
+    result_ask_farmers: "Ask Farmers for Advice",
+    result_claim_bounty: "Contribute to Dataset",
+
+    // Community Page
+    comm_title: "Young Farmer Crop Hubs",
+    comm_sub: "Peer-to-peer crop pathology advice, power equipment rental, and local spray alerts",
+    comm_ask_growers: "Ask Growers",
+    comm_all_posts: "All Posts",
+    comm_queries: "Disease Queries",
+    comm_alerts: "Weather Alerts",
+    comm_rentals: "Equipment Rental",
+
+    // Risk Page
+    risk_title: "48-Hour Bioclimatic Spray Window",
+    risk_sub: "Avoid rain washout losses with hour-by-hour pesticide adhesion telemetry",
+    risk_critical_open: "CRITICAL SPRAY WINDOW OPEN NOW",
+    risk_calc_title: "Chemical Adhesion & Sticker Adjuvant Calculator",
+    risk_audio_btn: "Audio Advisory",
+
+    // Wallet Page
+    wallet_title: "Research Bounty Desk & Wallet",
+    wallet_sub: "Earn micro-bounties for high-quality leaf pathology images to train Karnataka's open crop AI",
+    wallet_balance_label: "Simulated Research Bounty Balance",
+    wallet_withdraw_btn: "Simulate Instant UPI Withdrawal",
+    wallet_submit_title: "Contribute Diseased Leaf Specimen",
+
+    // Map Page
+    map_title: "Epidemic Surveillance & Outbreak Radar",
+    map_sub: "Centroid-aggregated crop pathology mapping preserving 100% farmer spatial confidentiality",
+    map_privacy_pill: "100% Spatial Anonymity (k ≥ 5) Guaranteed",
+
+    // Edit Profile Page
+    edit_profile_title: "Edit Farmer Profile",
+    edit_profile_sub: "Update your farm location, primary crops, and farmer credentials",
+    save_profile_btn: "Save Profile Changes",
+    cancel_btn: "Cancel",
+
+    // Settings
+    settings_title: "Accessibility & App Preferences",
+    settings_lang: "Language Preference",
+    settings_theme: "Display Mode",
+    settings_text_size: "Text Size for Field Readability",
+    settings_light: "White / Light Theme",
+    settings_dark: "Dark Forest Theme",
+    settings_size_normal: "Normal (16px)",
+    settings_size_large: "Large (18px)",
+    settings_size_xlarge: "Extra Large (21px)"
   },
   kn: {
     app_name: "ಸಸ್ಯ (Sasya)",
@@ -122,6 +195,19 @@ export const TRANSLATIONS = {
     logout_btn: "ಲಾಗ್‌ಔಟ್",
     skip_intro: "ಮುಂದೆ ಹೋಗಿ ➔",
 
+    // Navigation & Menus
+    nav_community: "ಸಮುದಾಯ",
+    nav_detect: "ರೋಗ ಪತ್ತೆ",
+    nav_risk: "ಹವಾಮಾನ & ಸ್ಪ್ರೇ",
+    nav_contribute: "ಕೊಡುಗೆ ನೀಡಿ",
+    nav_map: "ನಕ್ಷೆ",
+    menu_profile: "ನನ್ನ ಪ್ರೊಫೈಲ್",
+    menu_wallet: "ವಾಲೆಟ್ (ಡೆಮೊ)",
+    menu_scans: "ನನ್ನ ಸ್ಕ್ಯಾನ್‌ಗಳು",
+    menu_listings: "ನನ್ನ ಪ್ರಕಟಣೆಗಳು",
+    menu_settings: "ಸೆಟ್ಟಿಂಗ್ಸ್",
+    menu_signout: "ಲಾಗ್‌ಔಟ್",
+
     // Home Page Keys
     brand_badge: "ಸಸ್ಯ",
     headline_line1: "ರೋಗವನ್ನು ಮೊದಲೇ ಪತ್ತೆಹಚ್ಚಿ.",
@@ -134,15 +220,75 @@ export const TRANSLATIONS = {
     
     card_community_title: "ಸಮುದಾಯದಲ್ಲಿ ಕೇಳಿ",
     card_community_sub: "ಪ್ರತಿಯೊಂದು ಬೆಳೆಗೂ ಪ್ರತ್ಯೇಕ ವೇದಿಕೆ. ಸ್ಥಳೀಯ ರೈತರೊಂದಿಗೆ ಚರ್ಚಿಸಿ.",
-    
     card_scan_title: "ಎಲೆ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
     card_scan_sub: "ತ್ವರಿತ AI ರೋಗ ಪತ್ತೆ ಮತ್ತು ತಜ್ಞರ ಪರಿಶೀಲನೆ ಪಡೆಯಿರಿ.",
-    
     card_weather_title: "ಸ್ಪ್ರೇ ಕಿಟಕಿ",
     card_weather_sub: "ಮಳೆಯಿಂದ ಮದ್ದು ಕೊಚ್ಚಿಹೋಗುವುದನ್ನು ತಪ್ಪಿಸಲು ಮುಂದಿನ ೪೮ ಗಂಟೆಗಳ ಸುರಕ್ಷಿತ ಸಮಯ.",
-    
     card_contribute_title: "ಕೊಡುಗೆ ನೀಡಿ",
-    card_contribute_sub: "ಕೃಷಿ AI ಮಾದರಿ ತರಬೇತಿಗಾಗಿ ದೃಢೀಕರಿಸಿದ ರೋಗಗ್ರಸ್ತ ಎಲೆ ಫೋಟೋಗಳನ್ನು ನೀಡಿ."
+    card_contribute_sub: "ಕೃಷಿ AI ಮಾದರಿ ತರಬೇತಿಗಾಗಿ ದೃಢೀಕರಿಸಿದ ರೋಗಗ್ರಸ್ತ ಎಲೆ ಫೋಟೋಗಳನ್ನು ನೀಡಿ.",
+
+    // Detect Page
+    detect_title: "ಎಲೆಯ ರೋಗ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ",
+    detect_sub: "ತ್ವರಿತ ರೋಗ ಪತ್ತೆ, ಗಾರ್ಡ್ ಮತ್ತು ಗ್ರ್ಯಾಡ್-ಕ್ಯಾಮ್ ವಿವರಣೆ",
+    detect_open_camera: "ಕ್ಯಾಮೆರಾ ತೆರೆಯಿರಿ",
+    detect_upload_file: "ಫೈಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+    detect_analyze_btn: "ಈಗಲೇ ಎಲೆ ಪರೀಕ್ಷಿಸಿ",
+    detect_quick_samples: "೧-ಕ್ಲಿಕ್ ಪರೀಕ್ಷಾ ಮಾದರಿಗಳು",
+    detect_sample_desc: "ತಕ್ಷಣದ ರೋಗ ಪತ್ತೆ ಮತ್ತು ಗಾರ್ಡ್ ಪರೀಕ್ಷಿಸಲು ಯಾವುದೇ ಮಾದರಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ:",
+    detect_ood_hint: "ಬೆಳೆಯಲ್ಲದ ವಸ್ತುಗಳ ತಿರಸ್ಕಾರ ಪರೀಕ್ಷೆ (OOD Guard)",
+
+    // Results Page
+    result_title: "ರೋಗ ವರದಿ ಮತ್ತು ವಿವರಣೆ",
+    result_gradcam: "ಗ್ರ್ಯಾಡ್-ಕ್ಯಾಮ್ ವಿವರಣಾತ್ಮಕ ಹೀಟ್‌ಮ್ಯಾಪ್",
+    result_treatment: "ರೋಗ ನಿಯಂತ್ರಣ ಮಾರ್ಗಸೂಚಿ",
+    result_spray_window: "೪೮ ಗಂಟೆಗಳ ಸ್ಪ್ರೇ ಕಿಟಕಿ",
+    result_ask_farmers: "ರೈತರೊಂದಿಗೆ ಚರ್ಚಿಸಿ",
+    result_claim_bounty: "ಡೇಟಾಸೆಟ್‌ಗೆ ನೀಡಿ (+₹೧೨)",
+
+    // Community Page
+    comm_title: "ಯುವ ರೈತರ ಬೆಳೆ ಕೇಂದ್ರ",
+    comm_sub: "ರೈತರೊಂದಿಗೆ ರೋಗ ಚರ್ಚೆ, ಯಂತ್ರ ಬಾಡಿಗೆ ಮತ್ತು ಸ್ಥಳೀಯ ಸ್ಪ್ರೇ ಮುನ್ಸೂಚನೆ",
+    comm_ask_growers: "ರೈತರನ್ನು ಕೇಳಿ",
+    comm_all_posts: "ಎಲ್ಲಾ ಪೋಸ್ಟ್‌ಗಳು",
+    comm_queries: "ರೋಗ ಪ್ರಶ್ನೆಗಳು",
+    comm_alerts: "ಹವಾಮಾನ ಎಚ್ಚರಿಕೆಗಳು",
+    comm_rentals: "ಯಂತ್ರ ಬಾಡಿಗೆ",
+
+    // Risk Page
+    risk_title: "೪೮ ಗಂಟೆಗಳ ಹವಾಮಾನ & ಸ್ಪ್ರೇ ಕಿಟಕಿ",
+    risk_sub: "ಮಳೆಯಿಂದ ಮದ್ದು ನಷ್ಟ ತಪ್ಪಿಸಲು ಗಂಟೆಯ ಹವಾಮಾನ ಮಾಹಿತಿ ಮತ್ತು ಅಂಟುಕ ಗುಣ",
+    risk_critical_open: "ಸುರಕ್ಷಿತ ಸ್ಪ್ರೇ ಸಮಯ ಸಕ್ರಿಯವಾಗಿದೆ",
+    risk_calc_title: "ಕೀಟನಾಶಕ ಅಂಟುಕ ಗುಣ & ಸ್ಟಿಕ್ಕರ್ ಕ್ಯಾಲ್ಕುಲೇಟರ್",
+    risk_audio_btn: "ಧ್ವನಿ ಮಾರ್ಗದರ್ಶಿ",
+
+    // Wallet Page
+    wallet_title: "ಸಂಶೋಧನಾ ಬಹುಮಾನ ವಾಲೆಟ್",
+    wallet_sub: "ಕರ್ನಾಟಕದ ಮುಕ್ತ ಕೃಷಿ AI ಮಾದರಿ ತರಬೇತಿಗಾಗಿ ಎಲೆ ಫೋಟೋ ನೀಡಿ ಬಹುಮಾನ ಪಡೆಯಿರಿ",
+    wallet_balance_label: "ಸಂಶೋಧನಾ ಬಹುಮಾನ ಬ್ಯಾಲೆನ್ಸ್",
+    wallet_withdraw_btn: "ತ್ವರಿತ UPI ಹಣ ವರ್ಗಾವಣೆ",
+    wallet_submit_title: "ರೋಗಗ್ರಸ್ತ ಎಲೆ ಮಾದರಿ ನೀಡಿ",
+
+    // Map Page
+    map_title: "ರೋಗ ಹರಡುವಿಕೆ ಮುನ್ಸೂಚನೆ ನಕ್ಷೆ",
+    map_sub: "ರೈತರ ಗೌಪ್ಯತೆ ರಕ್ಷಿಸುವ ಜಿಲ್ಲಾ ಮಟ್ಟದ ರೋಗ ನಕ್ಷೆ",
+    map_privacy_pill: "೧೦೦% ಸ್ಥಳ ಗೌಪ್ಯತೆ (k ≥ 5) ಖಾತರಿ",
+
+    // Edit Profile Page
+    edit_profile_title: "ರೈತರ ಪ್ರೊಫೈಲ್ ಸಂಪಾದಿಸಿ",
+    edit_profile_sub: "ನಿಮ್ಮ ತೋಟದ ಸ್ಥಳ, ಮುಖ್ಯ ಬೆಳೆಗಳು ಮತ್ತು ಸಂಪರ್ಕ ವಿವರಗಳನ್ನು ನವೀಕರಿಸಿ",
+    save_profile_btn: "ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ",
+    cancel_btn: "ರದ್ದುಮಾಡಿ",
+
+    // Settings
+    settings_title: "ಆ್ಯಪ್ ಆದ್ಯತೆಗಳು & ಪ್ರವೇಶಿಸುವಿಕೆ",
+    settings_lang: "ಭಾಷಾ ಆದ್ಯತೆ",
+    settings_theme: "ಡಿಸ್ಪ್ಲೇ ಮೋಡ್",
+    settings_text_size: "ಅಕ್ಷರಗಳ ಗಾತ್ರ (ಹೊಲದಲ್ಲಿ ಓದಲು)",
+    settings_light: "ಬಿಳಿ / ಹಗಲಿನ ಥೀಮ್",
+    settings_dark: "ಡಾರ್ಕ್ ಫಾರೆಸ್ಟ್ ಥೀಮ್",
+    settings_size_normal: "ಸಾಮಾನ್ಯ (೧೬px)",
+    settings_size_large: "ದೊಡ್ಡದು (೧೮px)",
+    settings_size_xlarge: "ಅತಿ ದೊಡ್ಡದು (೨೧px)"
   },
   hi: {
     app_name: "सस्य (Sasya)",
@@ -193,6 +339,19 @@ export const TRANSLATIONS = {
     logout_btn: "लॉग आउट",
     skip_intro: "छोड़ें ➔",
 
+    // Navigation & Menus
+    nav_community: "समुदाय",
+    nav_detect: "रोग पहचान",
+    nav_risk: "मौसम एवं स्प्रे",
+    nav_contribute: "योगदान दें",
+    nav_map: "नक्शा",
+    menu_profile: "मेरी प्रोफाइल",
+    menu_wallet: "वॉलेट (डेमो)",
+    menu_scans: "मेरे स्कैन",
+    menu_listings: "मेरी लिस्टिंग",
+    menu_settings: "सेटिंग्स",
+    menu_signout: "लॉग आउट",
+
     // Home Page Keys
     brand_badge: "सस्य",
     headline_line1: "बीमारी को समय रहते पहचानें।",
@@ -205,14 +364,74 @@ export const TRANSLATIONS = {
     
     card_community_title: "समुदाय से पूछें",
     card_community_sub: "प्रत्येक फसल के लिए समर्पित मंच। स्थानीय किसानों से चर्चा करें।",
-    
     card_scan_title: "पत्ती स्कैन करें",
     card_scan_sub: "तुरंत AI रोग निदान और विशेषज्ञ समीक्षा प्राप्त करें।",
-    
     card_weather_title: "स्प्रे विंडो",
     card_weather_sub: "बारिश से पहले अगले 48 घंटों का सुरक्षित छिड़काव समय।",
-    
     card_contribute_title: "योगदान दें",
-    card_contribute_sub: "ओपन एग्रीकल्चरल AI ट्रेनिंग के लिए सत्यापित रोगग्रस्त पत्तियां सबमिट करें।"
+    card_contribute_sub: "ओपन एग्रीकल्चरल AI ट्रेनिंग के लिए सत्यापित रोगग्रस्त पत्तियां सबमिट करें।",
+
+    // Detect Page
+    detect_title: "पत्ती रोग स्कैन करें",
+    detect_sub: "त्वरित रोग पहचान, ओओडी गार्ड एवं ग्रैड-कैम विश्लेषण",
+    detect_open_camera: "कैमरा खोलें",
+    detect_upload_file: "फ़ाइल अपलोड करें",
+    detect_analyze_btn: "पत्ती का परीक्षण करें",
+    detect_quick_samples: "1-क्लिक टेस्ट सैंपल",
+    detect_sample_desc: "तुरंत रोग पहचान और गार्ड परीक्षण के लिए कोई भी सैंपल चुनें:",
+    detect_ood_hint: "गैर-फसल सामग्री अस्वीकृति परीक्षण (OOD Guard)",
+
+    // Results Page
+    result_title: "निदान रिपोर्ट एवं विश्लेषण",
+    result_gradcam: "ग्रैड-कैम विश्लेषण हीटमैप",
+    result_treatment: "कृषि उपचार योजना",
+    result_spray_window: "48 घंटे की स्प्रे विंडो",
+    result_ask_farmers: "किसानों से सलाह लें",
+    result_claim_bounty: "डेटासेट में योगदान दें (+₹12)",
+
+    // Community Page
+    comm_title: "युवा किसान मंच",
+    comm_sub: "फसल रोग सलाह, उपकरण किराया और स्थानीय स्प्रे मौसम अलर्ट",
+    comm_ask_growers: "किसानों से पूछें",
+    comm_all_posts: "सभी पोस्ट",
+    comm_queries: "रोग प्रश्न",
+    comm_alerts: "मौसम अलर्ट",
+    comm_rentals: "उपकरण किराया",
+
+    // Risk Page
+    risk_title: "48 घंटे की जैव-जलवायु स्प्रे विंडो",
+    risk_sub: "बारिश से होने वाले नुकसान से बचने के लिए प्रति घंटा मौसम जानकारी",
+    risk_critical_open: "सुरक्षित स्प्रे विंडो अभी खुली है",
+    risk_calc_title: "कीटनाशक चिपकने का समय एवं स्टीकर कैलकुलेटर",
+    risk_audio_btn: "ऑडियो सलाह",
+
+    // Wallet Page
+    wallet_title: "रिसर्च बाउंटी वॉलेट",
+    wallet_sub: "भारतीय फसलों के AI मॉडल के लिए पत्ती की फोटो अपलोड कर इनाम कमाएं",
+    wallet_balance_label: "रिसर्च बाउंटी बैलेंस",
+    wallet_withdraw_btn: "तुरंत UPI निकासी करें",
+    wallet_submit_title: "रोगग्रस्त पत्ती का नमूना सबमिट करें",
+
+    // Map Page
+    map_title: "महामारी निगरानी एवं प्रकोप रडार",
+    map_sub: "किसानों की गोपनीयता की रक्षा करने वाला ज़िला-स्तरीय मानचित्र",
+    map_privacy_pill: "100% स्थान गोपनीयता (k ≥ 5) की गारंटी",
+
+    // Edit Profile Page
+    edit_profile_title: "किसान प्रोफाइल संपादित करें",
+    edit_profile_sub: "अपने खेत, फसलों और संपर्क विवरण को अपडेट करें",
+    save_profile_btn: "बदलाव सहेजें",
+    cancel_btn: "रद्द करें",
+
+    // Settings
+    settings_title: "ऐप प्राथमिकताएं एवं पहुंच",
+    settings_lang: "भाषा प्राथमिकता",
+    settings_theme: "डिस्प्ले मोड",
+    settings_text_size: "अक्षर का आकार (खेत में पढ़ने के लिए)",
+    settings_light: "सफेद / लाइट थीम",
+    settings_dark: "डार्क फॉरेस्ट थीम",
+    settings_size_normal: "सामान्य (16px)",
+    settings_size_large: "बड़ा (18px)",
+    settings_size_xlarge: "अति बड़ा (21px)"
   }
 };

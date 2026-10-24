@@ -10,20 +10,11 @@ import {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user, lang, setLang, t, logout } = useAuth();
-  
-  // Theme state: 'light' (Hackathon #F9F9F6) or 'dark' (#0B1712)
-  const [theme, setTheme] = useState(() => localStorage.getItem('sasya_theme') || 'light');
+  const { user, lang, setLang, theme, toggleTheme, isDark, t, logout } = useAuth();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileDropdownRef = useRef(null);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    localStorage.setItem('sasya_theme', nextTheme);
-  };
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -40,8 +31,6 @@ export default function Home() {
     logout();
     navigate('/login');
   };
-
-  const isDark = theme === 'dark';
 
   return (
     <div className={`min-h-screen flex flex-col relative overflow-x-hidden transition-colors duration-300 ${
@@ -93,11 +82,11 @@ export default function Home() {
             {/* Nav Links with Expanding Underline & Bounce Micro-Animations */}
             <nav className="hidden md:flex items-center gap-1.5 text-sm font-semibold">
               {[
-                { label: 'Community', to: '/c/arecanut' },
-                { label: 'Detect', to: '/detect' },
-                { label: 'Risk', to: '/risk' },
-                { label: 'Contribute', to: '/wallet' },
-                { label: 'Map', to: '/map' }
+                { label: t('nav_community'), to: '/c/arecanut' },
+                { label: t('nav_detect'), to: '/detect' },
+                { label: t('nav_risk'), to: '/risk' },
+                { label: t('nav_contribute'), to: '/wallet' },
+                { label: t('nav_map'), to: '/map' }
               ].map((link) => (
                 <Link 
                   key={link.to}
@@ -204,11 +193,11 @@ export default function Home() {
 
                   <div className="py-2 text-xs font-semibold">
                     {[
-                      { icon: User, label: 'My profile', to: '/onboarding' },
-                      { icon: UploadCloud, label: 'Wallet (simulated)', to: '/wallet' },
-                      { icon: Camera, label: 'My scans', to: '/detect' },
-                      { icon: FileText, label: 'My listings', to: '/c/arecanut' },
-                      { icon: Settings, label: 'Settings', to: '/onboarding' },
+                      { icon: User, label: t('menu_profile'), to: '/profile?tab=profile' },
+                      { icon: UploadCloud, label: t('menu_wallet'), to: '/profile?tab=wallet' },
+                      { icon: Camera, label: t('menu_scans'), to: '/profile?tab=scans' },
+                      { icon: FileText, label: t('menu_listings'), to: '/profile?tab=listings' },
+                      { icon: Settings, label: t('menu_settings'), to: '/profile?tab=settings' },
                     ].map((item, idx) => (
                       <button 
                         key={idx}
@@ -235,7 +224,7 @@ export default function Home() {
                       }`}
                     >
                       <LogOut className="w-4 h-4" />
-                      <span>Sign out</span>
+                      <span>{t('menu_signout')}</span>
                     </button>
                   </div>
                 </div>
