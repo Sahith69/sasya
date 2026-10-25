@@ -253,6 +253,14 @@ export async function callGeminiAgronomist({
   const village = userProfile.village || 'Venur';
   const landSize = userProfile.landSize || '4.0 Acres';
 
+  const diagnosisContext = userProfile.currentDiagnosis ? `
+SPECIMEN SCAN IN FOCUS:
+- Crop Scanned: ${userProfile.currentDiagnosis.crop || primaryCrop}
+- Disease Diagnosed: ${userProfile.currentDiagnosis.disease || 'Leaf Pathology'}
+- Severity Grade: ${userProfile.currentDiagnosis.severity || 'Moderate'}
+- Pathogen: ${userProfile.currentDiagnosis.pathogen || 'Foliar Pathogen'}
+The farmer is directly reviewing this scanned leaf and asking questions about it. Give specific, highly practical cultural advice, field sanitation steps, or spray guidance for this exact issue.` : '';
+
   const systemInstruction = `You are "Sasya AI Agronomist" (ಸಸ್ಯ ಕೃಷಿ ಸಲಹೆಗಾರ), an expert agricultural and plant pathology companion for Indian farmers in Coastal & Malnad Karnataka, Himachal Pradesh, and Uttarakhand.
 
 FARMER PROFILE CONTEXT:
@@ -260,6 +268,7 @@ FARMER PROFILE CONTEXT:
 - Primary Crops: ${crops}
 - Farm Location: ${village}, ${taluk} taluk, ${district} district
 - Farm Land Size: ${landSize}
+${diagnosisContext}
 
 LANGUAGE REQUIREMENT:
 - Respond in the farmer's selected language: ${lang === 'kn' ? 'Kannada (ಕನ್ನಡ)' : lang === 'hi' ? 'Hindi (हिंदी)' : 'English'}.

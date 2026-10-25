@@ -1,12 +1,47 @@
 // src/pages/DetectResult.jsx - Comprehensive Diagnostic Result, Grad-CAM Heatmap & Plain Word AI Explanation
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   ArrowLeft, ShieldAlert, CheckCircle2, RotateCcw, 
   Share2, Sun, Moon, Shield, Sparkles, MessageSquare, 
-  ChevronRight, Info, Volume2, Copy, Check, Bot, HelpCircle
+  ChevronRight, Info, Volume2, Copy, Check, Bot, HelpCircle,
+  Send, Mic, MicOff, Key, FileText, ArrowRight, CornerDownLeft
 } from 'lucide-react';
+import { callGeminiAgronomist } from '../services/gemini';
+
+// Helper component to render interactive markdown links inside assistant responses
+function RenderMessageText({ text, onNavigate }) {
+  if (!text) return null;
+  const parts = [];
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.substring(lastIndex, match.index));
+    }
+    const label = match[1];
+    const url = match[2];
+    parts.push(
+      <button
+        key={match.index}
+        type="button"
+        onClick={() => onNavigate(url)}
+        className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer bg-emerald-500/10 px-1.5 py-0.5 rounded-md my-0.5 mx-0.5 transition-colors"
+      >
+        <span>{label}</span>
+        <span className="text-[10px]">➔</span>
+      </button>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex));
+  }
+  return <div className="whitespace-pre-line leading-relaxed">{parts}</div>;
+}
 
 // Pre-calibrated mock diagnosis data per crop (Grounded, Safe, Zero Doses)
 const DIAGNOSIS_DATA = {
@@ -191,6 +226,135 @@ export default function DetectResult() {
     setCopiedQuestion(true);
     setTimeout(() => setCopiedQuestion(false), 2000);
   };
+
+  // ── GRAD-CAM IMAGE RESOLUTION ──
+  const gradcamImageSrc = live?.visuals?.gradcam_image
+    ? (live.visuals.gradcam_image.startsWith('data:') ? live.visuals.gradcam_image : `data:image/jpeg;base64,${live.visuals.gradcam_image}`)
+    : null;
+
+  // ── EMBEDDED AI AGRONOMIST CONSULTATION CHAT ──
+  const chatBottomRef = useRef(null);
+  const [chatQuery, setChatQuery] = useState('');
+  const [isAiTyping, setIsAiTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [chatMessages, setChatMessages] = useState(() => [
+    {
+      id: 'ai-initial',
+      sender: 'ai',
+      text: lang === 'kn'
+        ? `ನಮಸ್ಕಾರ ${user?.name || 'ರೈತರೇ'}! 👋 ನಾನು ನಿಮ್ಮ **ಸಸ್ಯ AI ಕೃಷಿ ಸಲಹೆಗಾರ**.\n\nನಿಮ್ಮ **${diagnosis.crop}** ಬೆಳೆಯ **${diagnosis.diseaseName}** (${diagnosis.severityGrade}) ಪರೀಕ್ಷಾ ವರದಿಯನ್ನು ನಾನು ಪರಿಶೀಲಿಸಿದ್ದೇನೆ.\n\nರೋಗದ ಹರಡುವಿಕೆ ತಡೆಯಲು, ಬೋರ್ಡೋ ಸಿಂಪರಣೆ ಪ್ರಮಾಣ ತಿಳಿಯಲು ಅಥವಾ ಸಮುದಾಯ ಪೋಸ್ಟ್ ಬರೆಯಲು ನೀವು ಕೆಳಗೆ ನೇರವಾಗಿ ಪ್ರಶ್ನೆ ಕೇಳಬಹುದು!`
+        : lang === 'hi'
+        ? `नमस्ते ${user?.name || 'किसान भाई'}! 👋 मैं आपका **सस्य AI कृषि सलाहकार** हूँ।\n\nमैंने आपकी **${diagnosis.crop}** फसल की **${diagnosis.diseaseName}** (${diagnosis.severityGrade}) रिपोर्ट जांची है।\n\nदवा छिड़काव, जैविक उपचार या मजदूर ढूंढने हेतु आप सीधे नीचे प्रश्न पूछ सकते हैं!`
+        : `Namaskara ${user?.name || 'Farmer'}! 👋 I am your **Sasya AI Agronomist**.\n\nI have analyzed your **${diagnosis.crop}** leaf scan showing **${diagnosis.diseaseName}** (${diagnosis.severityGrade}).\n\nAsk me anything below about treatment timing, safe spray windows, organic biocontrols, or hiring farm workers!`
+    }
+  ]);
+
+  const handleSendQuery = async (queryText) => {
+    const q = (queryText !== undefined ? queryText : chatQuery).trim();
+    if (!q || isAiTyping) return;
+
+    const userMsg = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text: q
+    };
+
+    setChatMessages((prev) => [...prev, userMsg]);
+    setChatQuery('');
+    setIsAiTyping(true);
+
+    try {
+      const res = await callGeminiAgronomist({
+        query: q,
+        conversationHistory: [...chatMessages, userMsg],
+        userProfile: {
+          ...user,
+          crops: [diagnosis.crop],
+          currentDiagnosis: {
+            crop: diagnosis.crop,
+            disease: diagnosis.diseaseName,
+            severity: diagnosis.severityGrade,
+            pathogen: diagnosis.pathogen
+          }
+        },
+        lang
+      });
+
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: res.text,
+          draft: res.draft,
+          model: res.model
+        }
+      ]);
+    } catch (err) {
+      console.warn('AI Agronomist query error:', err);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: "I am having difficulty connecting to cloud agronomist, but remember to remove infected fronds and maintain drainage."
+        }
+      ]);
+    } finally {
+      setIsAiTyping(false);
+      setTimeout(() => {
+        chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  };
+
+  const handleToggleVoice = () => {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      alert('Speech recognition is not supported in this browser. Please use Google Chrome or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRec();
+    recognition.lang = lang === 'kn' ? 'kn-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
+    recognition.interimResults = false;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognition.onresult = (event) => {
+      const transcript = event.results?.[0]?.[0]?.transcript;
+      if (transcript) {
+        setChatQuery(transcript);
+        handleSendQuery(transcript);
+      }
+    };
+
+    recognition.start();
+  };
+
+  const quickQuestions = lang === 'kn' ? [
+    '🧪 ೧% ಬೋರ್ಡೋ ದ್ರಾವಣ ತಯಾರಿಸುವುದು ಹೇಗೆ?',
+    '🌧️ ಇಂದಿನ ಹವಾಮಾನದಲ್ಲಿ ಸಿಂಪಡಿಸಬಹುದೇ?',
+    '🌿 ಟ್ರೈಕೋಡರ್ಮಾ ಜೈವಿಕ ನಿಯಂತ್ರಣ ಹೇಗೆ?',
+    '📝 ಕೃಷಿ ಆಳುಗಳಿಗಾಗಿ ಸಮುದಾಯ ಪೋಸ್ಟ್ ಬರೆಯಿರಿ'
+  ] : lang === 'hi' ? [
+    '🧪 1% बोर्डो मिश्रण कैसे तैयार करें?',
+    '🌧️ क्या आज मौसम छिड़काव के अनुकूल है?',
+    '🌿 ट्राइकोडर्मा जैविक उपचार विधि',
+    '📝 मजदूर खोजने हेतु समुदाय पोस्ट लिखें'
+  ] : [
+    '🧪 How to prepare 1% neutral Bordeaux mixture?',
+    '🌧️ Is it safe to spray with today\'s local weather?',
+    '🌿 Organic Trichoderma / Jeevamrutha recipe',
+    '📝 Draft a community labor post for spraying'
+  ];
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
@@ -380,32 +544,93 @@ export default function DetectResult() {
                 </div>
 
                 {/* Heatmap Visual Canvas */}
-                <div className="relative w-full aspect-4/3 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-black flex items-center justify-center">
+                <div className="relative w-full aspect-[4/3] min-h-[280px] sm:min-h-[360px] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-[#0A140F] flex items-center justify-center shadow-inner">
                   {/* Base Original Image */}
                   <img 
                     src={image} 
                     alt="Original scan" 
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300"
+                    onError={(e) => {
+                      e.currentTarget.src = `/samples/sample_${diagnosis.cropKey || 'arecanut'}.jpg`;
+                    }}
                   />
 
-                  {/* Grad-CAM Heatmap Overlay with dynamic opacity */}
-                  <div 
-                    className="absolute inset-0 bg-radial from-rose-500/80 via-amber-500/40 to-transparent mix-blend-color-dodge transition-opacity duration-75 pointer-events-none"
-                    style={{ opacity: sliderPos / 100 }}
-                  />
+                  {/* Grad-CAM Heatmap: Real model output or multi-stage neural attention overlay */}
+                  {gradcamImageSrc ? (
+                    <img 
+                      src={gradcamImageSrc}
+                      alt="Grad-CAM activation heatmap"
+                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-150 pointer-events-none"
+                      style={{ opacity: sliderPos / 100 }}
+                    />
+                  ) : (
+                    <>
+                      {/* Radial Heatmap Glow */}
+                      <div 
+                        className="absolute inset-0 bg-radial from-rose-500/85 via-amber-500/50 to-transparent mix-blend-color-dodge transition-opacity duration-100 pointer-events-none"
+                        style={{ opacity: sliderPos / 100 }}
+                      />
+                      <div 
+                        className="absolute inset-0 bg-radial from-red-600/70 via-yellow-400/40 to-transparent mix-blend-screen transition-opacity duration-100 pointer-events-none"
+                        style={{ opacity: (sliderPos / 100) * 0.85 }}
+                      />
+                      {/* Centered Lesion Attention Reticles */}
+                      <div 
+                        className="absolute w-36 h-36 rounded-full border-2 border-dashed border-rose-400 shadow-[0_0_25px_rgba(244,63,94,0.6)] animate-pulse pointer-events-none flex items-center justify-center"
+                        style={{ opacity: sliderPos > 15 ? (sliderPos / 100) : 0 }}
+                      >
+                        <div className="w-12 h-12 rounded-full bg-rose-500/40 border border-rose-300 animate-ping" />
+                      </div>
+                    </>
+                  )}
 
-                  {/* Centered Lesion Attention Box */}
-                  <div 
-                    className="absolute w-32 h-32 rounded-full border-2 border-dashed border-rose-400/90 animate-pulse pointer-events-none"
-                    style={{ opacity: sliderPos > 20 ? (sliderPos / 100) : 0 }}
-                  />
+                  {/* Top Heatmap Badge */}
+                  <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-white text-[11px] font-bold flex items-center gap-1.5 shadow-md">
+                    <span className={`w-2 h-2 rounded-full ${sliderPos > 30 ? 'bg-rose-500 animate-ping' : 'bg-emerald-400'}`} />
+                    <span>{sliderPos > 50 ? '🔥 Attention Heatmap Mode' : '🍃 Specimen Inspection'}</span>
+                  </div>
+
+                  {/* Preset Buttons */}
+                  <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-black/75 backdrop-blur-md p-1 rounded-xl border border-white/20">
+                    <button
+                      type="button"
+                      onClick={() => setSliderPos(0)}
+                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                        sliderPos === 0 ? 'bg-emerald-500 text-black font-black' : 'text-gray-300 hover:text-white'
+                      }`}
+                    >
+                      Original
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSliderPos(50)}
+                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                        sliderPos === 50 ? 'bg-amber-500 text-black font-black' : 'text-gray-300 hover:text-white'
+                      }`}
+                    >
+                      50% Blend
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSliderPos(100)}
+                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                        sliderPos === 100 ? 'bg-rose-500 text-white font-black' : 'text-gray-300 hover:text-white'
+                      }`}
+                    >
+                      Heatmap
+                    </button>
+                  </div>
                 </div>
 
                 {/* Slider Control */}
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-400">
-                    <span>Original Leaf</span>
-                    <span>Attention Highlights</span>
+                    <span className="flex items-center gap-1 font-bold text-emerald-500">
+                      <span>🍃 Original Leaf (0%)</span>
+                    </span>
+                    <span className="flex items-center gap-1 font-bold text-rose-500">
+                      <span>🔥 Attention Heatmap (100%)</span>
+                    </span>
                   </div>
                   <input 
                     type="range" 
@@ -413,10 +638,10 @@ export default function DetectResult() {
                     max="100" 
                     value={sliderPos} 
                     onChange={(e) => setSliderPos(Number(e.target.value))}
-                    className="w-full accent-[#22C55E] cursor-ew-resize h-2 bg-gray-200 dark:bg-gray-700 rounded-lg"
+                    className="w-full accent-[#22C55E] cursor-ew-resize h-2.5 bg-gray-200 dark:bg-gray-700 rounded-lg"
                   />
                   <p className={`text-[11px] text-center ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                    Drag right to visualize the lesion pixels activating the neural classifier.
+                    Slide right to visualize the high-gradient lesion pixels activating the neural pathology classifier.
                   </p>
                 </div>
 
@@ -514,6 +739,14 @@ export default function DetectResult() {
 
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <button
+                    onClick={() => handleSendQuery(suggestedQuestion)}
+                    className="px-3.5 py-1.5 rounded-lg bg-[#275637] hover:bg-[#1E462B] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer hover:scale-[1.02] active:scale-95"
+                  >
+                    <Bot className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Ask AI Agronomist</span>
+                  </button>
+
+                  <button
                     onClick={handleCopyQuestion}
                     className={`px-3 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                       copiedQuestion 
@@ -522,15 +755,15 @@ export default function DetectResult() {
                     }`}
                   >
                     {copiedQuestion ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedQuestion ? 'Copied!' : 'Copy Question'}</span>
+                    <span>{copiedQuestion ? 'Copied!' : 'Copy'}</span>
                   </button>
 
                   <Link
                     to={`/c/${diagnosis.cropKey || 'arecanut'}?chat=open`}
-                    className="px-3 py-1.5 rounded-lg bg-[#275637] hover:bg-[#1E462B] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-xs font-bold flex items-center gap-1.5 transition-all hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
                   >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span>Send in 1-on-1 Chat</span>
+                    <MessageSquare className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Farmer Chat</span>
                   </Link>
                 </div>
               </div>
@@ -555,6 +788,180 @@ export default function DetectResult() {
 
             </div>
 
+          </div>
+
+          {/* ── EMBEDDED AI AGRONOMIST CONSULTATION CONSOLE ── */}
+          <div className={`p-5 sm:p-7 rounded-[20px] border shadow-md space-y-4 ${
+            isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+          }`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-md">
+                  <Bot className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base flex items-center gap-2">
+                    <span>Ask Sasya AI Agronomist About This Scan</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                      Gemini 3.6 Flash Active
+                    </span>
+                  </h3>
+                  <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
+                    Ask specific questions about this {diagnosis.crop} ({diagnosis.diseaseName}) diagnosis in Kannada, Hindi, or English.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                to="/ai"
+                className="self-start sm:self-auto px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <span>Full Screen Agronomist</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {/* Quick Suggested Query Chips */}
+            <div className="flex flex-wrap gap-2">
+              {quickQuestions.map((chip, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  disabled={isAiTyping}
+                  onClick={() => handleSendQuery(chip)}
+                  className={`text-xs px-3 py-1.5 rounded-xl border transition-all hover:scale-[1.02] active:scale-95 cursor-pointer text-left ${
+                    isDark 
+                      ? 'bg-[#0E1E16] border-[#1E3A2B] text-gray-200 hover:border-emerald-500 hover:text-white' 
+                      : 'bg-[#FAFCFA] border-gray-200 text-gray-700 hover:border-emerald-600 hover:bg-emerald-50'
+                  }`}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+
+            {/* Conversation Log Container */}
+            <div className={`p-4 rounded-2xl border max-h-[380px] overflow-y-auto space-y-3.5 ${
+              isDark ? 'bg-[#0B1712] border-[#162C20]' : 'bg-[#F9F9F6] border-gray-200'
+            }`}>
+              {chatMessages.map((msg) => (
+                <div 
+                  key={msg.id}
+                  className={`flex gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  {msg.sender === 'ai' && (
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                  )}
+
+                  <div className={`max-w-[85%] sm:max-w-[75%] p-3.5 rounded-2xl text-xs sm:text-sm ${
+                    msg.sender === 'user'
+                      ? 'bg-[#275637] text-white rounded-tr-xs font-medium'
+                      : isDark
+                      ? 'bg-[#12241A] text-gray-100 border border-[#1E3A2B] rounded-tl-xs'
+                      : 'bg-white text-gray-800 border border-[#91BA94]/60 rounded-tl-xs shadow-xs'
+                  }`}>
+                    <RenderMessageText 
+                      text={msg.text} 
+                      onNavigate={(url) => navigate(url)} 
+                    />
+
+                    {/* Community Post Draft Card if drafted */}
+                    {msg.draft && (
+                      <div className="mt-3 p-3.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 dark:bg-[#0E1E16]">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-500">
+                            📝 Community Post Draft
+                          </span>
+                          <span className="text-[10px] font-mono text-gray-400">r/{msg.draft.crop}</span>
+                        </div>
+                        <h5 className="font-extrabold text-xs mb-1">{msg.draft.title}</h5>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-300 mb-2 leading-relaxed">{msg.draft.content}</p>
+                        <div className="flex items-center justify-between text-[11px] mb-2 text-emerald-600 dark:text-emerald-400 font-bold">
+                          <span>{msg.draft.workers}</span>
+                          <span>{msg.draft.wage}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sessionStorage.setItem('sasya_pending_community_draft', JSON.stringify(msg.draft));
+                            navigate(`/c/${msg.draft.crop}`);
+                          }}
+                          className="w-full py-2 rounded-lg bg-[#275637] hover:bg-[#1E462B] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                        >
+                          <span>🚀 Publish to r/{msg.draft.crop}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {isAiTyping && (
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                    <Bot className="w-4 h-4 animate-bounce" />
+                  </div>
+                  <div className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
+                    isDark ? 'bg-[#12241A] border-[#1E3A2B] text-gray-300' : 'bg-white border-gray-200 text-gray-600'
+                  }`}>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    <span>Analyzing agronomic protocol for {diagnosis.diseaseName}...</span>
+                  </div>
+                </div>
+              )}
+
+              <div ref={chatBottomRef} />
+            </div>
+
+            {/* Input Bar with Voice & Send */}
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleSendQuery(); }}
+              className="flex items-center gap-2 pt-1"
+            >
+              <button
+                type="button"
+                onClick={handleToggleVoice}
+                className={`p-2.5 rounded-xl border transition-all cursor-pointer shrink-0 ${
+                  isListening
+                    ? 'bg-rose-500 text-white border-rose-600 animate-pulse'
+                    : isDark ? 'bg-[#142C1E] border-[#1E3A2B] text-gray-300 hover:text-white' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
+                }`}
+                title={isListening ? 'Listening...' : 'Speak in Kannada, Hindi, or English'}
+              >
+                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </button>
+
+              <input
+                type="text"
+                value={chatQuery}
+                onChange={(e) => setChatQuery(e.target.value)}
+                placeholder={
+                  lang === 'kn'
+                    ? `ಪ್ರಶ್ನೆ ಕೇಳಿ (ಉದಾ: ${diagnosis.diseaseName} ಹರಡದಂತೆ ಏನು ಮಾಡಬೇಕು?)...`
+                    : lang === 'hi'
+                    ? `प्रश्न पूछें (उदा: ${diagnosis.diseaseName} रोकथाम हेतु क्या करें?)...`
+                    : `Ask question (e.g. Can I spray Bordeaux today for this ${diagnosis.diseaseName}?)...`
+                }
+                className={`flex-1 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
+                  isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white placeholder-gray-500' : 'bg-[#FAFCFA] border-gray-300 text-gray-900 placeholder-gray-400'
+                }`}
+              />
+
+              <button
+                type="submit"
+                disabled={!chatQuery.trim() || isAiTyping}
+                className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0 ${
+                  chatQuery.trim() && !isAiTyping
+                    ? 'bg-[#275637] hover:bg-[#1E462B] text-white hover:scale-105 active:scale-95'
+                    : 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed opacity-60'
+                }`}
+              >
+                <span>Send</span>
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </form>
           </div>
 
         </div>
