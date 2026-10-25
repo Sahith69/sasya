@@ -189,7 +189,7 @@ def run_all_tests():
 
         r = client.post(f"/api/admin/review/{sub_id}/action", json={
             "action": "approve",
-            "expert_name": "Dr. Manjunath Bhat",
+            "expert_name": "Dr. Manjunath",
             "expert_notes": "Confirmed Koleroga symptoms on nut bunch."
         })
         assert r.status_code == 200 and r.json()["new_status"] == "verified"

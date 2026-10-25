@@ -11,7 +11,7 @@ import {
 const INITIAL_QUEUE = [
   {
     id: 'SUB-9402',
-    farmer: 'Ramesh Gowda',
+    farmer: 'Ramesh K',
     village: 'Venur, Dakshina Kannada',
     crop: 'Arecanut',
     suspectedDisease: 'Koleroga (Fruit Rot)',
@@ -26,7 +26,7 @@ const INITIAL_QUEUE = [
   },
   {
     id: 'SUB-9403',
-    farmer: 'Kuldeep Sharma',
+    farmer: 'Kuldeep S',
     village: 'Kotkhai, Shimla (HP)',
     crop: 'Apple',
     suspectedDisease: 'Apple Scab',
@@ -109,7 +109,7 @@ export default function ExpertQueue() {
               </span>
             </div>
             <p className={`text-[11px] hidden sm:block ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-              Logged in as: <strong>Dr. Subrahmanya Bhat</strong> • Senior Plant Pathologist
+              Logged in as: <strong>Dr. Subrahmanya K</strong> • Senior Plant Pathologist
             </p>
           </div>
         </div>

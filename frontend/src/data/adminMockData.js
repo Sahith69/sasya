@@ -4,7 +4,7 @@ export const ADMIN_SUBMISSIONS = [
   {
     id: 'SUB-9401',
     farmerId: 'farmer_KA_101',
-    farmerName: 'Ramesh Gowda',
+    farmerName: 'Ramesh K',
     village: 'Venur',
     district: 'Dakshina Kannada',
     state: 'Karnataka',
@@ -27,7 +27,7 @@ export const ADMIN_SUBMISSIONS = [
   {
     id: 'SUB-9402',
     farmerId: 'farmer_HP_202',
-    farmerName: 'Kuldeep Sharma',
+    farmerName: 'Kuldeep S',
     village: 'Kotkhai',
     district: 'Shimla',
     state: 'Himachal Pradesh',
@@ -50,7 +50,7 @@ export const ADMIN_SUBMISSIONS = [
   {
     id: 'SUB-9403',
     farmerId: 'farmer_KA_108',
-    farmerName: 'Ganesh Bhat',
+    farmerName: 'Ganesh M',
     village: 'Mandagadde',
     district: 'Shimoga',
     state: 'Karnataka',
@@ -73,7 +73,7 @@ export const ADMIN_SUBMISSIONS = [
   {
     id: 'SUB-9404',
     farmerId: 'farmer_KA_112',
-    farmerName: 'Suresh Rai',
+    farmerName: 'Suresh R',
     village: 'Belthangady',
     district: 'Dakshina Kannada',
     state: 'Karnataka',
@@ -90,13 +90,13 @@ export const ADMIN_SUBMISSIONS = [
     status: 'Approved',
     submittedAt: '2026-10-24 08:30',
     reviewerNotes: 'Concentric rings clearly visible on lower foliage. Approved for Karnataka Open Ag AI dataset.',
-    verifiedBy: 'Dr. Subrahmanya Bhat',
+    verifiedBy: 'Dr. Subrahmanya K',
     flagged: false
   },
   {
     id: 'SUB-9405',
     farmerId: 'farmer_KA_119',
-    farmerName: 'Praveen Shetty',
+    farmerName: 'Praveen K',
     village: 'Brahmavar',
     district: 'Udupi',
     state: 'Karnataka',
@@ -113,13 +113,13 @@ export const ADMIN_SUBMISSIONS = [
     status: 'Approved',
     submittedAt: '2026-10-23 16:50',
     reviewerNotes: 'Severe chlorosis extending along midrib. High research value for coastal variety resistance.',
-    verifiedBy: 'Dr. Rekha Hegde',
+    verifiedBy: 'Dr. Rekha M',
     flagged: false
   },
   {
     id: 'SUB-9406',
     farmerId: 'farmer_KA_130',
-    farmerName: 'Manjunath Poojary',
+    farmerName: 'Manjunath P',
     village: 'Sullia',
     district: 'Dakshina Kannada',
     state: 'Karnataka',
@@ -136,7 +136,7 @@ export const ADMIN_SUBMISSIONS = [
     status: 'Corrected',
     submittedAt: '2026-10-23 11:20',
     reviewerNotes: 'AI tagged as Bud Borer; manual inspection confirms early stage Koleroga water-soaking. Re-labeled to Koleroga.',
-    verifiedBy: 'Dr. Subrahmanya Bhat',
+    verifiedBy: 'Dr. Subrahmanya K',
     flagged: true
   },
   {
@@ -167,7 +167,7 @@ export const ADMIN_SUBMISSIONS = [
 export const ADMIN_FARMERS = [
   {
     id: 'farmer_KA_101',
-    name: 'Ramesh Gowda',
+    name: 'Ramesh K',
     phone: '00000 10101',
     district: 'Dakshina Kannada',
     taluk: 'Belthangady',
@@ -186,7 +186,7 @@ export const ADMIN_FARMERS = [
   },
   {
     id: 'farmer_HP_202',
-    name: 'Kuldeep Sharma',
+    name: 'Kuldeep S',
     phone: '00000 20202',
     district: 'Shimla',
     taluk: 'Theog',
@@ -205,7 +205,7 @@ export const ADMIN_FARMERS = [
   },
   {
     id: 'farmer_KA_108',
-    name: 'Ganesh Bhat',
+    name: 'Ganesh M',
     phone: '00000 10808',
     district: 'Shimoga',
     taluk: 'Tirthahalli',
@@ -224,7 +224,7 @@ export const ADMIN_FARMERS = [
   },
   {
     id: 'farmer_KA_112',
-    name: 'Suresh Rai',
+    name: 'Suresh R',
     phone: '00000 11212',
     district: 'Dakshina Kannada',
     taluk: 'Belthangady',
@@ -296,9 +296,9 @@ export const ADMIN_VERIFICATION_METRICS = {
   avgTurnaroundMinutes: 108, // 1.8 hrs
   slaCompliance4Hours: '98.4%',
   reviewerStats: [
-    { name: 'Dr. Subrahmanya Bhat', institution: 'Regional Agronomy Center', reviewed: 512, approvalRate: '91.2%', avgTime: '1.2h' },
-    { name: 'Dr. Rekha Hegde', institution: 'UAHS Shimoga', reviewed: 384, approvalRate: '88.5%', avgTime: '1.9h' },
-    { name: 'Dr. S. K. Nayak', institution: 'KVK Brahmavar', reviewed: 290, approvalRate: '87.1%', avgTime: '2.4h' }
+    { name: 'Dr. Subrahmanya K', institution: 'Regional Agronomy Center', reviewed: 512, approvalRate: '91.2%', avgTime: '1.2h' },
+    { name: 'Dr. Rekha M', institution: 'UAHS Shimoga', reviewed: 384, approvalRate: '88.5%', avgTime: '1.9h' },
+    { name: 'Dr. S. Kumar', institution: 'KVK Brahmavar', reviewed: 290, approvalRate: '87.1%', avgTime: '2.4h' }
   ]
 };
 
@@ -343,7 +343,7 @@ export const ADMIN_COMMUNITY_STATS = [
 export const ADMIN_MODERATION_ITEMS = [
   {
     id: 'MOD-101',
-    reportedBy: 'Ganesh Bhat',
+    reportedBy: 'Ganesh M',
     targetType: 'Community Post',
     targetTitle: 'Selling unauthorized chemical compound for Koleroga guarantee',
     author: 'Unknown Vendor #41',
@@ -353,7 +353,7 @@ export const ADMIN_MODERATION_ITEMS = [
   },
   {
     id: 'MOD-102',
-    reportedBy: 'Prashanth Hegde',
+    reportedBy: 'Prashanth P',
     targetType: 'Equipment Listing',
     targetTitle: 'Power Sprayer Rental ₹2500/day (Exorbitant rate)',
     author: 'Commercial Middleman',
@@ -366,7 +366,7 @@ export const ADMIN_MODERATION_ITEMS = [
 export const ADMIN_EXPERTS = [
   {
     id: 'EXP-01',
-    name: 'Dr. Subrahmanya Bhat',
+    name: 'Dr. Subrahmanya K',
     title: 'Senior Plant Pathologist',
     institution: 'Regional Agronomy Research Station, Vittal',
     specialty: 'Arecanut & Palms Pathology',
@@ -377,7 +377,7 @@ export const ADMIN_EXPERTS = [
   },
   {
     id: 'EXP-02',
-    name: 'Dr. Rekha Hegde',
+    name: 'Dr. Rekha M',
     title: 'Associate Director of Research',
     institution: 'University of Agricultural & Horticultural Sciences (UAHS), Shimoga',
     specialty: 'Paddy Blast & Fungal Epidemiology',
@@ -388,7 +388,7 @@ export const ADMIN_EXPERTS = [
   },
   {
     id: 'EXP-03',
-    name: 'Dr. S. K. Nayak',
+    name: 'Dr. S. Kumar',
     title: 'Plant Protection Specialist',
     institution: 'Krishi Vigyan Kendra (KVK), Brahmavar',
     specialty: 'Bioclimatic Weather Modeling & Adjuvants',
@@ -403,16 +403,16 @@ export const ADMIN_AUDIT_LOGS = [
   {
     id: 'AUD-8801',
     timestamp: '2026-10-24 15:45:12',
-    actor: 'Dr. Subrahmanya Bhat',
+    actor: 'Dr. Subrahmanya K',
     action: 'DISBURSE_BOUNTY',
     target: 'SUB-9404 (Tomato Early Blight)',
-    details: 'Approved ₹12.00 UPI payout to Suresh Rai. Validated for Dataset v2.4.',
+    details: 'Approved ₹12.00 UPI payout to Suresh R. Validated for Dataset v2.4.',
     ipHash: '117.214.xx.xx'
   },
   {
     id: 'AUD-8802',
     timestamp: '2026-10-24 14:30:05',
-    actor: 'Dr. Subrahmanya Bhat',
+    actor: 'Dr. Subrahmanya K',
     action: 'LABEL_CORRECTION',
     target: 'SUB-9406 (Arecanut)',
     details: 'Corrected prediction from Bud Borer to Koleroga Grade 1.',
@@ -430,7 +430,7 @@ export const ADMIN_AUDIT_LOGS = [
   {
     id: 'AUD-8804',
     timestamp: '2026-10-24 10:00:20',
-    actor: 'Dr. Rekha Hegde',
+    actor: 'Dr. Rekha M',
     action: 'CONFIG_UPDATE',
     target: 'Spray Window Bioclimatic Rule',
     details: 'Updated continuous humidity threshold from 90% to 92% for coastal monsoon season.',

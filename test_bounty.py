@@ -147,7 +147,7 @@ def run_bounty_verification():
     # Action 1: Expert Approves Submission #1 (Arecanut)
     ver_areca = verify_contribution(
         contrib_id=res_areca["id"],
-        verified_by="Dr. Subrahmanya Bhat (CPCRI Senior Pathologist)",
+        verified_by="Dr. Subrahmanya (CPCRI Senior Pathologist)",
         action="approve",
         expert_notes="Classic yellow leaf disease symptoms matching field survey protocol.",
         db_path=test_db

@@ -183,7 +183,7 @@ export default function EditProfile() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder={t('placeholder_full_name') || "e.g. Ramesh Gowda"}
+                    placeholder={t('placeholder_full_name') || "e.g. Ramesh"}
                     className={`w-full h-10 pl-9 pr-3 rounded-xl border text-xs focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
                       isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
                     }`}

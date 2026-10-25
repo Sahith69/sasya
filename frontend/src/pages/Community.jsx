@@ -235,8 +235,7 @@ export default function Community() {
       if (saved) return JSON.parse(saved);
     } catch {}
     return {
-      'Dr_Hegde': 'following',
-      'Suresh_Hegde': 'following'
+      'Dr_Agronomist': 'following'
     };
   });
 

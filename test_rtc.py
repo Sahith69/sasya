@@ -36,7 +36,7 @@ def test_rtc_pipeline():
     print(f"  Soil Type:      {rtc_data['soil_type']}")
     print(f"  Crop:           {rtc_data['registered_crop']}")
     print(f"  RTC Cert No:    {rtc_data['rtc_certificate_no']}")
-    assert rtc_data["owner_name"] == "Ramesh Poojary"
+    assert rtc_data["owner_name"] == "Ramesh K"
     assert rtc_data["registered_crop"] == "Arecanut"
     print("  ✅ Official Bhoomi RTC lookup verified!")
 

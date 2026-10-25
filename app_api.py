@@ -963,7 +963,7 @@ class AdminLoginRequest(BaseModel):
 
 class ExpertActionRequest(BaseModel):
     action: str
-    expert_name: str = "Dr. Manjunath Bhat"
+    expert_name: str = "Dr. Manjunath"
     corrected_label: Optional[str] = None
     expert_notes: Optional[str] = None
     expert_role: Optional[str] = "Chief Plant Pathologist"

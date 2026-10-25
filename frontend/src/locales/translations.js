@@ -254,9 +254,9 @@ export const TRANSLATIONS = {
 
     // Form Inputs, Placeholders, Buttons & Community Controls
     label_your_name: "Your Name",
-    placeholder_your_name: "e.g. Ramesh Gowda",
+    placeholder_your_name: "e.g. Ramesh",
     label_username: "Username *",
-    placeholder_username: "e.g. ramesh_gowda",
+    placeholder_username: "e.g. ramesh_k",
     label_mobile: "Mobile Number",
     placeholder_mobile: "98450 12345",
     label_password: "Password *",
@@ -336,7 +336,7 @@ export const TRANSLATIONS = {
     btn_open_camera: "Open Camera",
     btn_upload_image_file: "Upload Image File",
     label_full_name: "Full Name",
-    placeholder_full_name: "e.g. Ramesh Gowda",
+    placeholder_full_name: "e.g. Ramesh",
     label_phone_number: "Phone Number",
     placeholder_phone_number: "e.g. 98450 12345",
     label_land_size: "Land Holding Size",
@@ -603,9 +603,9 @@ export const TRANSLATIONS = {
 
     // Form Inputs, Placeholders, Buttons & Community Controls
     label_your_name: "ನಿಮ್ಮ ಹೆಸರು",
-    placeholder_your_name: "ಉದಾ: ರಮೇಶ್ ಗೌಡ",
+    placeholder_your_name: "ಉದಾ: ರಮೇಶ್",
     label_username: "ಬಳಕೆದಾರ ಹೆಸರು *",
-    placeholder_username: "ಉದಾ: ramesh_gowda",
+    placeholder_username: "ಉದಾ: ramesh_k",
     label_mobile: "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
     placeholder_mobile: "೯೮೪೫೦ ೧೨೩೪೫",
     label_password: "ಪಾಸ್‌ವರ್ಡ್ *",
@@ -685,7 +685,7 @@ export const TRANSLATIONS = {
     btn_open_camera: "ಕ್ಯಾಮೆರಾ ತೆರೆಯಿರಿ",
     btn_upload_image_file: "ಚಿತ್ರ ಫೈಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
     label_full_name: "ಪೂರ್ಣ ಹೆಸರು",
-    placeholder_full_name: "ಉದಾ: ರಮೇಶ್ ಗೌಡ",
+    placeholder_full_name: "ಉದಾ: ರಮೇಶ್",
     label_phone_number: "ದೂರವಾಣಿ ಸಂಖ್ಯೆ",
     placeholder_phone_number: "ಉದಾ: ೯೮೪೫೦ ೧೨೩೪೫",
     label_land_size: "ಜಮೀನಿನ ವಿಸ್ತೀರ್ಣ",
@@ -952,9 +952,9 @@ export const TRANSLATIONS = {
 
     // Form Inputs, Placeholders, Buttons & Community Controls
     label_your_name: "आपका नाम",
-    placeholder_your_name: "उदा: रमेश गौड़ा",
+    placeholder_your_name: "उदा: रमेश",
     label_username: "यूज़रनेम *",
-    placeholder_username: "उदा: ramesh_gowda",
+    placeholder_username: "उदा: ramesh_k",
     label_mobile: "मोबाइल नंबर",
     placeholder_mobile: "98450 12345",
     label_password: "पासवर्ड *",
@@ -1034,7 +1034,7 @@ export const TRANSLATIONS = {
     btn_open_camera: "कैमरा खोलें",
     btn_upload_image_file: "छवि फ़ाइल अपलोड करें",
     label_full_name: "पूरा नाम",
-    placeholder_full_name: "उदा: रमेश गौड़ा",
+    placeholder_full_name: "उदा: रमेश",
     label_phone_number: "फ़ोन नंबर",
     placeholder_phone_number: "उदा: 98450 12345",
     label_land_size: "जमीन का आकार",

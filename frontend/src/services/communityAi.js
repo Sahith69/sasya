@@ -136,9 +136,9 @@ export const COMMUNITY_POST_TRANSLATIONS = {
 
 export const COMMUNITY_COMMENT_TRANSLATIONS = {
   101: {
-    kn: "ರಮೇಶ್ ಅವರೇ, 1% ಬೋರ್ಡೋ ದ್ರಾವಣಕ್ಕೆ 100 ಲೀಟರ್‌ಗೆ 100 ಗ್ರಾಂ ರಾಸಿನ್ ಅಂಟು ಸೇರಿಸಿ. ನಾಳೆ ಮಧ್ಯಾಹ್ನ 14 ಮಿಮೀ ಮಳೆಯಾಗುವ ಮುನ್ಸೂಚನೆ ಇರುವುದರಿಂದ, ಅಂಟು ಇಲ್ಲದಿದ್ದರೆ ತಾಮ್ರದ ಕಣಗಳು 45 ನಿಮಿಷಗಳಲ್ಲಿ ತೊಳೆದುಹೋಗುತ್ತವೆ. ಎಲೆಗಳು ಒಣಗಿರುವಾಗ ಇಂದು ಮಧ್ಯಾಹ್ನ 3 ಗಂಟೆಯೊಳಗೆ ಸಿಂಪಡಣೆ ಮುಗಿಸಿ.",
-    hi: "रमेश जी, 1% बोर्डो मिश्रण में प्रति 100 लीटर 100 ग्राम रेज़िन स्टिकर जरूर मिलाएं। कल दोपहर 14 मिमी बारिश के पूर्वानुमान के कारण, बिना स्टिकर के दवा 45 मिनट में बह जाएगी। पत्तियां सूखी रहने पर आज दोपहर 3 बजे से पहले छिड़काव पूरा करें।",
-    en: "Ramesh, definitely add 100g Rosin sticker per 100L of 1% Bordeaux mixture. With the forecast predicting 14mm rain tomorrow afternoon, unbonded copper particles will wash off within 45 minutes. Complete spraying before 3 PM today while leaf surfaces are dry."
+    kn: "ರೈತರೇ, 1% ಬೋರ್ಡೋ ದ್ರಾವಣಕ್ಕೆ 100 ಲೀಟರ್‌ಗೆ 100 ಗ್ರಾಂ ರಾಸಿನ್ ಅಂಟು ಸೇರಿಸಿ. ನಾಳೆ ಮಧ್ಯಾಹ್ನ 14 ಮಿಮೀ ಮಳೆಯಾಗುವ ಮುನ್ಸೂಚನೆ ಇರುವುದರಿಂದ, ಅಂಟು ಇಲ್ಲದಿದ್ದರೆ ತಾಮ್ರದ ಕಣಗಳು 45 ನಿಮಿಷಗಳಲ್ಲಿ ತೊಳೆದುಹೋಗುತ್ತವೆ. ಎಲೆಗಳು ಒಣಗಿರುವಾಗ ಇಂದು ಮಧ್ಯಾಹ್ನ 3 ಗಂಟೆಯೊಳಗೆ ಸಿಂಪಡಣೆ ಮುಗಿಸಿ.",
+    hi: "किसान भाई, 1% बोर्डो मिश्रण में प्रति 100 लीटर 100 ग्राम रेज़िन स्टिकर जरूर मिलाएं। कल दोपहर 14 मिमी बारिश के पूर्वानुमान के कारण, बिना स्टिकर के दवा 45 मिनट में बह जाएगी। पत्तियां सूखी रहने पर आज दोपहर 3 बजे से पहले छिड़काव पूरा करें।",
+    en: "Definitely add 100g Rosin sticker per 100L of 1% Bordeaux mixture. With the forecast predicting 14mm rain tomorrow afternoon, unbonded copper particles will wash off within 45 minutes. Complete spraying before 3 PM today while leaf surfaces are dry."
   },
   102: {
     kn: "ಮುಂದಿನ ವಾರ ನಿರಂತರ ಮುಂಗಾರು ಮಳೆ ಮುಂದುವರಿದರೆ ಅಡಿಕೆ ಗೊನೆಗಳಿಗೆ ಪಾಲಿಥೀನ್ ಹೊದಿಕೆ (ಕೊಟ್ಟೆ) ಕಟ್ಟುವುದು ಸೂಕ್ತ. ಕೊಳೆತು ಉದುರಿದ ಅಡಿಕೆ ಹೆಕ್ಕುವುದಕ್ಕಿಂತ ಮುನ್ನೆಚ್ಚರಿಕೆಯೇ 10 ಪಟ್ಟು ಉತ್ತಮ.",

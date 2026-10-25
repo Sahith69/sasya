@@ -48,7 +48,7 @@ export default function AdminReviewDetail() {
     setSubmission(prev => ({
       ...prev,
       status: 'Approved',
-      verifiedBy: 'Dr. Subrahmanya Bhat',
+      verifiedBy: 'Dr. Subrahmanya',
       reviewerNotes: reviewerNote || 'Specimen verified for Karnataka Open Ag AI repository.'
     }));
     setBannerMessage(`Submission ${submission.id} approved! ₹${submission.bountyAmount.toFixed(2)} UPI transfer authorized.`);
@@ -63,7 +63,7 @@ export default function AdminReviewDetail() {
       status: 'Corrected',
       aiPrediction: selectedCorrection,
       pathogen: diseaseObj?.pathogen || prev.pathogen,
-      verifiedBy: 'Dr. Subrahmanya Bhat (Expert Override)',
+      verifiedBy: 'Dr. Subrahmanya (Expert Override)',
       reviewerNotes: reviewerNote ? `${reviewerNote} | Re-labeled to ${selectedCorrection}` : `Re-labeled to ${selectedCorrection}`
     }));
     setShowCorrectionModal(false);
@@ -75,7 +75,7 @@ export default function AdminReviewDetail() {
     setSubmission(prev => ({
       ...prev,
       status: 'Rejected',
-      verifiedBy: 'Dr. Subrahmanya Bhat',
+      verifiedBy: 'Dr. Subrahmanya',
       bountyAmount: 0.00,
       reviewerNotes: `Rejected: ${rejectionReason}`
     }));

@@ -235,23 +235,23 @@ def _seed_bhoomi_registry_if_empty(db_path: str = DB_PATH_DEFAULT) -> None:
         seed_records = [
             # Dakshina Kannada - Arecanut & Paddy
             ("Dakshina Kannada", "Belthangady", "Venur", "Kashipatna", "42", "1A", 
-             "Ramesh Poojary", "Santhappa Poojary", 3.0, 15, "Laterite Acidic Soil (ಲ್ಯಾಟರೈಟ್ / ಜಂಬಿಟ್ಟಿಗೆ ಮಣ್ಣು)", 
+             "Ramesh K", "Santhappa", 3.0, 15, "Laterite Acidic Soil (ಲ್ಯಾಟರೈಟ್ / ಜಂಬಿಟ್ಟಿಗೆ ಮಣ್ಣು)", 
              "Borewell + Micro-Drip Irrigation", "Arecanut", "KCC Crop Loan - Canara Bank Venur (₹1,50,000)"),
             ("Dakshina Kannada", "Mangaluru", "Gurupura", "Kaikamba", "88", "2", 
-             "Venkatesh Bhat", "Subrahmanya Bhat", 2.0, 20, "Laterite Acidic Soil (ಲ್ಯಾಟರೈಟ್ / ಜಂಬಿಟ್ಟಿಗೆ ಮಣ್ಣು)", 
+             "Venkatesh S", "Subrahmanya", 2.0, 20, "Laterite Acidic Soil (ಲ್ಯಾಟರೈಟ್ / ಜಂಬಿಟ್ಟಿಗೆ ಮಣ್ಣು)", 
              "Open Well / Farm Pond (ಬಾವಿ / ಕೃಷಿ ಹೊಂಡ)", "Paddy", "Clear / NIL Encumbrance"),
             
             # Shivamogga - Arecanut & Paddy
             ("Shivamogga", "Thirthahalli", "Agumbe", "Megaravalli", "104", "1", 
-             "Manjunatha Gowda", "Narayana Gowda", 4.0, 10, "Red Sandy Loam (ಅರೆ ಮರಳು ಕೆಂಪು ಮಣ್ಣು)", 
+             "Manjunatha N", "Narayana", 4.0, 10, "Red Sandy Loam (ಅರೆ ಮರಳು ಕೆಂಪು ಮಣ್ಣು)", 
              "Borewell + Micro-Drip Irrigation", "Arecanut", "SCDCC Bank Crop Loan (₹2,00,000)"),
             ("Shivamogga", "Kasaba", "Kasaba", "Savalanga", "15", "3B", 
-             "Shankarappa Patil", "Basappa Patil", 5.0, 0, "Black Cotton Clay Soil (ಕಪ್ಪು ಮಣ್ಣು)", 
+             "Shankarappa B", "Basappa", 5.0, 0, "Black Cotton Clay Soil (ಕಪ್ಪು ಮಣ್ಣು)", 
              "Canal / River Lift Irrigation (ನಾಲಾ / ನದಿ ನೀರಾವರಿ)", "Paddy", "Clear / NIL Encumbrance"),
             
             # Kolar - Tomato Capital
             ("Kolar", "Kolar", "Kasaba", "Huthur", "73", "1", 
-             "Srinivas Reddy", "Venkataswamy Reddy", 2.5, 30, "Red Sandy Loam (ಅರೆ ಮರಳು ಕೆಂಪು ಮಣ್ಣು)", 
+             "Srinivas V", "Venkataswamy", 2.5, 30, "Red Sandy Loam (ಅರೆ ಮರಳು ಕೆಂಪು ಮಣ್ಣು)", 
              "Borewell + Micro-Drip Irrigation", "Tomato", "PKGB Kisan Credit Card Active"),
             ("Kolar", "Srinivaspur", "Kasaba", "Yeldur", "112", "2A", 
              "Narayanaswamy", "Krishnappa", 3.0, 0, "Red Sandy Loam (ಅರೆ ಮರಳು ಕೆಂಪು ಮಣ್ಣು)", 
@@ -259,12 +259,12 @@ def _seed_bhoomi_registry_if_empty(db_path: str = DB_PATH_DEFAULT) -> None:
             
             # Shimla - Apple
             ("Shimla", "Theog", "Theog", "Fagu", "29", "1", 
-             "Kuldeep Sharma", "Mohan Lal Sharma", 4.0, 25, "Hilly Humus-Rich Brown Loam (ಪರ್ವತ ಮಣ್ಣು)", 
+             "Kuldeep M", "Mohan Lal", 4.0, 25, "Hilly Humus-Rich Brown Loam (ಪರ್ವತ ಮಣ್ಣು)", 
              "Rainfed (ಖುಷ್ಕಿ / ಮಳೆ ಆಶ್ರಿತ)", "Apple", "H.P. State Cooperative Bank Horticulture Credit"),
             
             # Udupi - Paddy & Arecanut
             ("Udupi", "Karkala", "Ajekar", "Marlupadavu", "67", "1B", 
-             "Anand Shetty", "Mahabala Shetty", 2.0, 10, "Laterite Acidic Soil (ಲ್ಯಾಟರೈಟ್ / ಜಂಬಿಟ್ಟಿಗೆ ಮಣ್ಣು)", 
+             "Anand M", "Mahabala", 2.0, 10, "Laterite Acidic Soil (ಲ್ಯಾಟರೈಟ್ / ಜಂಬಿಟ್ಟಿಗೆ ಮಣ್ಣು)", 
              "Open Well / Farm Pond (ಬಾವಿ / ಕೃಷಿ ಹೊಂಡ)", "Paddy", "Clear / NIL Encumbrance")
         ]
         with conn:

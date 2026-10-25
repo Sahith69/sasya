@@ -159,7 +159,7 @@ export default function AdminLogin() {
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>⚡ 1-Click Demo Gate (Dr. Subrahmanya Bhat)</span>
+                <span>⚡ 1-Click Demo Gate (Dr. Subrahmanya)</span>
               </button>
             </div>
           </form>

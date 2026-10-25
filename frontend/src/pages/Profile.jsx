@@ -31,8 +31,8 @@ export default function Profile() {
       if (saved) return JSON.parse(saved);
     } catch {}
     return [
-      { username: 'Dr_Hegde', name: 'Dr. Hegde', badge: 'Agronomy Specialist', location: 'Bantwal Centroid', avatar: 'DH', crop: 'Arecanut' },
-      { username: 'Ganesh_Bhat_Thalli', name: 'Ganesh Bhat', badge: 'Experienced Grower', location: 'Sullia Centroid', avatar: 'GB', crop: 'Arecanut' }
+      { username: 'Dr_Agronomist', name: 'Dr. Agronomist', badge: 'Agronomy Specialist', location: 'Bantwal Centroid', avatar: 'DA', crop: 'Arecanut' },
+      { username: 'Ganesh_T', name: 'Ganesh', badge: 'Experienced Grower', location: 'Sullia Centroid', avatar: 'GT', crop: 'Arecanut' }
     ];
   });
 
@@ -43,17 +43,16 @@ export default function Profile() {
       if (saved) return JSON.parse(saved);
     } catch {}
     return [
-      { username: 'Dr_Hegde', name: 'Dr. Hegde', badge: 'Agronomy Specialist', location: 'Bantwal Centroid', avatar: 'DH', crop: 'Arecanut' },
-      { username: 'Suresh_Hegde', name: 'Suresh Hegde', badge: 'Arecanut Cultivator', location: 'Belthangady Centroid', avatar: 'SH', crop: 'Arecanut' },
-      { username: 'Suresh_Rai_Koppa', name: 'Suresh Rai', badge: 'Grower', location: 'Koppa Centroid', avatar: 'SR', crop: 'Paddy' }
+      { username: 'Dr_Agronomist', name: 'Dr. Agronomist', badge: 'Agronomy Specialist', location: 'Bantwal Centroid', avatar: 'DA', crop: 'Arecanut' },
+      { username: 'Suresh_K', name: 'Suresh', badge: 'Arecanut Cultivator', location: 'Belthangady Centroid', avatar: 'SK', crop: 'Arecanut' }
     ];
   });
 
   // Suggested Growers in Network
   const SUGGESTED_GROWERS = [
-    { username: 'Prashanth_Hegde', name: 'Prashanth Hegde', badge: 'Young Farmer Club', location: 'Tirthahalli Centroid', avatar: 'PH', crop: 'Arecanut' },
-    { username: 'Dr_S_K_Nayak', name: 'Dr. S. K. Nayak', badge: 'KVK Agronomist', location: 'Brahmavar Centroid', avatar: 'SN', crop: 'Paddy' },
-    { username: 'Anand_Kolar', name: 'Anand Kolar', badge: 'Tomato Farmer', location: 'Bangarapet Centroid', avatar: 'AK', crop: 'Tomato' }
+    { username: 'Prashanth_P', name: 'Prashanth', badge: 'Young Farmer Club', location: 'Tirthahalli Centroid', avatar: 'PP', crop: 'Arecanut' },
+    { username: 'Dr_S_Kumar', name: 'Dr. S. Kumar', badge: 'KVK Agronomist', location: 'Brahmavar Centroid', avatar: 'SK', crop: 'Paddy' },
+    { username: 'Anand_Kolar', name: 'Anand', badge: 'Tomato Farmer', location: 'Bangarapet Centroid', avatar: 'AK', crop: 'Tomato' }
   ];
 
   // Persist followers

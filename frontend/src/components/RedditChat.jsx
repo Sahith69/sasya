@@ -11,12 +11,12 @@ import { sendChatMessage, getChatMessages } from '../services/api';
 
 const INITIAL_CONVERSATIONS = [
   {
-    id: 'dr_hegde',
-    username: 'Dr_Hegde_Agronomist',
-    displayName: 'Dr. Hegde',
+    id: 'dr_agronomist',
+    username: 'Dr_Agronomist',
+    displayName: 'Dr. Agronomist',
     badge: 'Agronomy Specialist',
     badgeColor: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
-    avatar: 'DH',
+    avatar: 'DA',
     crop: 'Arecanut Pathology',
     location: 'Bantwal Centroid',
     online: true,
@@ -24,7 +24,7 @@ const INITIAL_CONVERSATIONS = [
     messages: [
       {
         id: 1,
-        sender: 'Dr_Hegde_Agronomist',
+        sender: 'Dr_Agronomist',
         text: 'Namaskara! Saw your post regarding Koleroga in Venur. What is the current bunch age in that north-slope block?',
         time: '10:14 AM',
         isMe: false
@@ -38,7 +38,7 @@ const INITIAL_CONVERSATIONS = [
       },
       {
         id: 3,
-        sender: 'Dr_Hegde_Agronomist',
+        sender: 'Dr_Agronomist',
         text: 'Good catch early. Stick to 1% neutral Bordeaux mixture + rosin sticker before 3 PM today. If rain starts tonight, hold off on chemical sprays until the canopy is dry.',
         time: '10:28 AM',
         isMe: false
@@ -46,12 +46,12 @@ const INITIAL_CONVERSATIONS = [
     ]
   },
   {
-    id: 'prashanth_hegde',
-    username: 'Prashanth_Hegde',
-    displayName: 'Prashanth Hegde',
+    id: 'prashanth',
+    username: 'Prashanth_P',
+    displayName: 'Prashanth',
     badge: 'Young Farmer Club',
     badgeColor: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    avatar: 'PH',
+    avatar: 'PP',
     crop: 'Arecanut (12ac)',
     location: 'Tirthahalli Centroid',
     online: true,
@@ -59,7 +59,7 @@ const INITIAL_CONVERSATIONS = [
     messages: [
       {
         id: 1,
-        sender: 'Prashanth_Hegde',
+        sender: 'Prashanth_P',
         text: 'Hey! Are you still looking to rent the 50ft power sprayer tomorrow morning? Another grower from Sullia asked for the afternoon slot.',
         time: '9:05 AM',
         isMe: false
@@ -73,7 +73,7 @@ const INITIAL_CONVERSATIONS = [
       },
       {
         id: 3,
-        sender: 'Prashanth_Hegde',
+        sender: 'Prashanth_P',
         text: 'Done, reserved for you. Let us coordinate equipment pickup here on chat.',
         time: '9:15 AM',
         isMe: false
@@ -81,12 +81,12 @@ const INITIAL_CONVERSATIONS = [
     ]
   },
   {
-    id: 'suresh_rai',
-    username: 'Suresh_Rai_Koppa',
-    displayName: 'Suresh Rai',
+    id: 'suresh',
+    username: 'Suresh_Koppa',
+    displayName: 'Suresh',
     badge: 'Grower',
     badgeColor: 'bg-amber-500/20 text-amber-500 border-amber-500/30',
-    avatar: 'SR',
+    avatar: 'SK',
     crop: 'Arecanut & Paddy',
     location: 'Koppa Centroid',
     online: false,
@@ -94,7 +94,7 @@ const INITIAL_CONVERSATIONS = [
     messages: [
       {
         id: 1,
-        sender: 'Suresh_Rai_Koppa',
+        sender: 'Suresh_Koppa',
         text: 'How is the fruit rot situation on your hill slope? We had 18mm rain yesterday in Koppa and humidity is above 94%.',
         time: 'Yesterday',
         isMe: false
@@ -124,7 +124,7 @@ export default function RedditChat({
     }
   });
 
-  const [activeConvId, setActiveConvId] = useState('dr_hegde');
+  const [activeConvId, setActiveConvId] = useState('dr_agronomist');
   const [inputText, setInputText] = useState('');
   const [isMinimized, setIsMinimized] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -275,7 +275,7 @@ export default function RedditChat({
 
   const getSimulatedReply = (partnerName, userMsg) => {
     const lower = userMsg.toLowerCase();
-    if (partnerName.includes('Hegde') || partnerName.includes('Doctor')) {
+    if (partnerName.includes('Agronomist') || partnerName.includes('Doctor') || partnerName.includes('Dr')) {
       if (lower.includes('bordeaux') || lower.includes('koleroga') || lower.includes('spray')) {
         return 'Neutralize the Bordeaux mix carefully (pH 7.0-7.2) and add 100g Rosin sticker per 100L. Spray before 3 PM while foliage is dry.';
       }
@@ -349,8 +349,8 @@ export default function RedditChat({
       console.info("Chat saved locally:", err);
     }
 
-    // AI Agronomist Simulation: Only auto-replies when messaging Dr_Hegde / Doctor persona
-    const isAiPersona = targetUsername.toLowerCase().includes('hegde') || targetUsername.toLowerCase().includes('doctor');
+    // AI Agronomist Simulation: Only auto-replies when messaging Dr_Agronomist / Doctor persona
+    const isAiPersona = targetUsername.toLowerCase().includes('agronomist') || targetUsername.toLowerCase().includes('doctor');
     if (isAiPersona) {
       setIsTyping(true);
       setTimeout(async () => {

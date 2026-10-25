@@ -136,7 +136,7 @@ export default function AdminLayout({ children }) {
         <div className={`p-4 border-t ${isDark ? 'border-[#1E3A2B] bg-[#0E1E16]' : 'border-[#91BA94]/40 bg-[#F9F9F6]'}`}>
           <div className="flex items-center justify-between mb-3 text-xs">
             <div>
-              <div className="font-bold">Dr. S. Bhat</div>
+              <div className="font-bold">Dr. Subrahmanya</div>
               <div className="text-[10px] text-[#8BA695]">Pathologist Admin</div>
             </div>
             <button

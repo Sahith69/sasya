@@ -50,7 +50,7 @@ export default function AdminQueue() {
     setSubmissions(prev => 
       prev.map(sub => 
         selectedIds.includes(sub.id) && sub.status === 'Pending' 
-          ? { ...sub, status: 'Approved', verifiedBy: 'Dr. Subrahmanya Bhat (Batch)' } 
+          ? { ...sub, status: 'Approved', verifiedBy: 'Dr. Subrahmanya (Batch)' } 
           : sub
       )
     );
