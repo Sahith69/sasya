@@ -5,8 +5,43 @@ import { useAuth } from '../context/AuthContext';
 import { 
   Bot, Sparkles, Send, Mic, MicOff, Volume2, ArrowLeft, 
   Sun, Moon, RotateCcw, Camera, ShieldCheck, CheckCircle2, 
-  AlertTriangle, Leaf, HelpCircle, ChevronRight, Copy, Check
+  AlertTriangle, Leaf, HelpCircle, ChevronRight, Copy, Check,
+  Key, Users, FileText
 } from 'lucide-react';
+import { callGeminiAgronomist, getGeminiApiKey, setGeminiApiKey, getDefaultGeminiKey } from '../services/gemini';
+
+// Helper component to render interactive markdown links inside assistant responses
+function RenderMessageText({ text, onNavigate }) {
+  if (!text) return null;
+  const parts = [];
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.substring(lastIndex, match.index));
+    }
+    const label = match[1];
+    const url = match[2];
+    parts.push(
+      <button
+        key={match.index}
+        type="button"
+        onClick={() => onNavigate(url)}
+        className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer bg-emerald-500/10 px-1.5 py-0.5 rounded-md my-0.5 mx-0.5 transition-colors"
+      >
+        <span>{label}</span>
+        <span className="text-[10px]">➔</span>
+      </button>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex));
+  }
+  return <div className="whitespace-pre-line leading-relaxed">{parts}</div>;
+}
 
 // Domain Knowledge Base for Karnataka Crops & Agronomic Solutions (Safe, Cultural, No Doses)
 const AGRONOMIC_KNOWLEDGE = [
@@ -230,17 +265,21 @@ export default function AIAssistant() {
   const { user, lang, setLang, toggleTheme, isDark, t } = useAuth();
 
   const [inputQuery, setInputQuery] = useState('');
-  const [messages, setMessages] = useState([
+  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState(() => getGeminiApiKey());
+  
+  const [messages, setMessages] = useState(() => [
     {
       id: 'welcome',
       sender: 'ai',
       text: lang === 'kn' 
-        ? "ನಮಸ್ಕಾರ! ನಾನು ಸಸ್ಯ AI ಕೃಷಿ ಸಲಹೆಗಾರ. ಅಡಿಕೆ ಕೊಳೆರೋಗ, ಭತ್ತದ ಬೆಂಕಿ ರೋಗ, ಟೊಮ್ಯಾಟೊ ರೋಗಗಳು, ಕೀಟನಾಶಕ ಪ್ರಮಾಣ ಮತ್ತು ಜೀವಾಮೃತ ತಯಾರಿಕೆಯ ಬಗ್ಗೆ ನೀವು ಕನ್ನಡ, ಹಿಂದಿ ಅಥವಾ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಯಾವುದೇ ಪ್ರಶ್ನೆ ಕೇಳಬಹುದು."
+        ? `ನಮಸ್ಕಾರ ${user?.name || user?.username || 'ರೈತ ಬಾಂಧವರೇ'}! 👋 ನಾನು ಸಸ್ಯ AI ಕೃಷಿ ಸಲಹೆಗಾರ. ನೀವು ${user?.district || 'ದಕ್ಷಿಣ ಕನ್ನಡ'} ಜಿಲ್ಲೆಯ ${user?.taluk || 'ಬೆಳ್ತಂಗಡಿ'}ದಲ್ಲಿ ${user?.crops?.[0] || 'ಅಡಿಕೆ'} ಬೆಳೆಯುತ್ತಿದ್ದೀರಿ ಎಂದು ನನಗೆ ತಿಳಿದಿದೆ. ಇಂದು ನಿಮ್ಮ ತೋಟದ ಪರಿಸ್ಥಿತಿ ಹೇಗಿದೆ? ರೋಗ ತಡೆಗಟ್ಟುವಿಕೆ, ಸಿಂಪಡಣೆ ಪ್ರಮಾಣ ಅಥವಾ ಸಮುದಾಯ ಪೋಸ್ಟ್ ರಚಿಸಲು ಯಾವುದೇ ಪ್ರಶ್ನೆ ಕೇಳಬಹುದು!`
         : lang === 'hi'
-        ? "नमस्ते! मैं सस्य AI कृषि सलाहकार हूँ। आप सुपारी के कोलेरोगा, धान के ब्लास्ट, टमाटर के रोगों, कीटनाशक मात्रा और जैविक जीवामृत के बारे में हिंदी, कन्नड़ या अंग्रेज़ी में कोई भी प्रश्न पूछ सकते हैं।"
-        : "Namaskara! I am Sasya AI Agronomist. Ask me anything about crop diseases (Arecanut Koleroga, Paddy Blast, Tomato Blight), chemical dosage calculations, or organic biocontrols in English, Kannada, or Hindi.",
+        ? `नमस्ते ${user?.name || user?.username || 'किसान भाई'}! 👋 मैं सस्य AI कृषि सलाहकार हूँ। मुझे ज्ञात है कि आप ${user?.district || 'दक्षिण कन्नड़'} के ${user?.taluk || 'बेलथंगडी'} में ${user?.crops?.[0] || 'सुपारी'} उगाते हैं। आज आपकी फसल कैसी है? रोग रोकथाम, छिड़काव या पोस्ट लिखवाने के लिए पूछ सकते हैं!`
+        : `Namaskara ${user?.name || user?.username || 'Farmer'}! 👋 I am your Sasya AI Agronomist companion. I see you cultivate ${user?.crops?.[0] || 'Arecanut'} in ${user?.taluk || 'Belthangady'}, ${user?.district || 'Dakshina Kannada'}. How can I assist your farm today? Ask me about disease defense, spray calculation, or community post drafting!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      structured: null
+      structured: null,
+      draft: null
     }
   ]);
   const [isTyping, setIsTyping] = useState(false);
@@ -306,8 +345,7 @@ export default function AIAssistant() {
     window.speechSynthesis.cancel();
     setSpeakingId(id);
 
-    // Strip markdown formatting for cleaner audio
-    const cleanText = text.replace(/[*_#•]/g, '');
+    const cleanText = text.replace(/[*_#•]/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = lang === 'kn' ? 'kn-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
     utterance.rate = 0.95;
@@ -325,68 +363,8 @@ export default function AIAssistant() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // Generate Smart Agronomic Response
-  const generateResponse = (query) => {
-    const q = query.toLowerCase();
-
-    // Check knowledge base
-    for (const item of AGRONOMIC_KNOWLEDGE) {
-      if (item.keywords.some(k => q.includes(k.toLowerCase()))) {
-        const localized = item[lang] || item.en;
-        return {
-          structured: localized,
-          text: `${localized.title}\n\n${localized.summary}\n\n${localized.prescription.join('\n')}\n\n🌿 Organic Option: ${localized.organic}\n⏱️ Application: ${localized.timing}\n💡 Tip: ${localized.tip}`
-        };
-      }
-    }
-
-    // Dynamic Acreage Calculation response
-    const acreMatch = q.match(/(\d+)\s*(acre|acres|ಎಕರೆ|ಏಕರೆ|एकड़)/i);
-    if (acreMatch) {
-      const acres = parseInt(acreMatch[1], 10) || 1;
-      const waterLiters = acres * 250;
-      const cuso4Kg = (waterLiters / 100) * 1.0;
-      const limeKg = cuso4Kg;
-      const stickerGrams = (waterLiters / 100) * 100;
-
-      if (lang === 'kn') {
-        return {
-          structured: null,
-          text: `📊 **${acres} ಎಕರೆಗೆ ಬೋರ್ಡೋ ದ್ರಾವಣ ಮತ್ತು ಕೀಟನಾಶಕ ಅಳತೆ ವಿವರ:**\n\n• **ಒಟ್ಟು ಬೇಕಾಗುವ ನೀರು:** ${waterLiters} ಲೀಟರ್\n• **ಮೈಲುತುತ್ತ (Copper Sulphate):** ${cuso4Kg.toFixed(1)} ಕೆ.ಜಿ\n• **ಸುಣ್ಣ (Quicklime):** ${limeKg.toFixed(1)} ಕೆ.ಜಿ\n• **ಅಂಟುಕ (Rosin Sticker):** ${stickerGrams} ಗ್ರಾಂ ರಾಳ + ${stickerGrams} ಗ್ರಾಂ ಸೋಡಾ\n\n💡 *ಸಲಹೆ:* ಸಿಂಪಡಿಸುವಾಗ ಹೈ-ಪ್ರೆಶರ್ ಪವರ್ ಸ್ಪ್ರೇಯರ್ ಬಳಸಿ. ಪವರ್ ಸ್ಪ್ರೇಯರ್ ಲಭ್ಯವಿಲ್ಲದಿದ್ದರೆ [ಕೃಷಿ ಉಪಕರಣ ವಿನಿಮಯ ವೇದಿಕೆ](/c/arecanut) ಪರಿಶೀಲಿಸಿ.`
-        };
-      } else if (lang === 'hi') {
-        return {
-          structured: null,
-          text: `📊 **${acres} एकड़ हेतु बोर्डो मिश्रण और कीटनाशक गणना:**\n\n• **कुल आवश्यक पानी:** ${waterLiters} लीटर\n• **कॉपर सल्फेट (नीला थोथा):** ${cuso4Kg.toFixed(1)} किग्रा\n• **बुझा चूना (Lime):** ${limeKg.toFixed(1)} किग्रा\n• **रासिन स्टिकर:** ${stickerGrams} ग्राम राल + ${stickerGrams} ग्राम वाशिंग सोडा\n\n💡 *सलाह:* पत्तों के नीचे और गुच्छों पर तेज फुहार से छिड़काव करें।`
-        };
-      } else {
-        return {
-          structured: null,
-          text: `📊 **Dosage Calculation for ${acres} Acre(s):**\n\n• **Total Water Required:** ${waterLiters} Liters\n• **Copper Sulphate (CuSO4):** ${cuso4Kg.toFixed(1)} kg\n• **Slaked Quicklime:** ${limeKg.toFixed(1)} kg\n• **Rosin Sticker Adjuvant:** ${stickerGrams}g Rosin + ${stickerGrams}g Washing Soda\n\n💡 *Pro-Tip:* Apply using high-pressure power sprayers for complete canopy penetration. Need equipment? [Check Rural Equipment Exchange](/c/arecanut).`
-        };
-      }
-    }
-
-    // General fallback response
-    if (lang === 'kn') {
-      return {
-        structured: null,
-        text: `ಧನ್ಯವಾದಗಳು! ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ ಮುಖ್ಯ ಕೃಷಿ ಸಲಹೆಗಳು:\n\n1. **ರೋಗದ ಪರೀಕ್ಷೆ:** ನಿಮ್ಮ ಬೆಳೆಯ ಎಲೆಯ ಫೋಟೋ ತೆಗೆದು [ರೋಗ ಪತ್ತೆ ಪುಟದಲ್ಲಿ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ](/detect).\n2. **ಸಾವಯವ ಪರಿಹಾರ:** ತಕ್ಷಣಕ್ಕೆ ೫% ಬೇವಿನ ಎಣ್ಣೆ ಅಥವಾ ಟ್ರೈಕೋಡರ್ಮಾ ದ್ರಾವಣ ಸಿಂಪಡಿಸಿ.\n3. **ಸಮುದಾಯ ಚರ್ಚೆ:** ಈ ರೋಗದ ಬಗ್ಗೆ ಇತರ ಸ್ಥಳೀಯ ರೈತರ ಅನುಭವ ತಿಳಿಯಲು [ಬೆಳೆ ಸಮುದಾಯ ವೇದಿಕೆಯಲ್ಲಿ ಪ್ರಶ್ನೆ ಕೇಳಿ](/c/arecanut).`
-      };
-    } else if (lang === 'hi') {
-      return {
-        structured: null,
-        text: `धन्यवाद! कृषि विशेषज्ञों द्वारा अनुशंसित मुख्य दिशा-निर्देश:\n\n1. **रोग पहचान:** अपनी फसल की पत्ती की फोटो लेकर [पत्ती स्कैनिंग पेज](/detect) पर जांचें।\n2. **जैविक उपचार:** प्राथमिक रूप से 5% नीम तेल या ट्राइकोडर्मा का छिड़काव करें।\n3. **किसान समूह चर्चा:** अन्य किसानों से सलाह हेतु [फसल समुदाय मंच](/c/arecanut) पर पूछें।`
-      };
-    } else {
-      return {
-        structured: null,
-        text: `Thank you for your question! Here is the recommended agronomic guidance:\n\n1. **Visual Check:** Upload a photo to get an AI diagnosis on the [Detect Page](/detect).\n2. **Preventive Bio-control:** Apply 5% cold-pressed neem seed extract (NSKE) or Trichoderma harzianum.\n3. **Peer Advice:** Connect with local growers in your crop group on the [Community Forum](/c/arecanut).`
-      };
-    }
-  };
-
-  const handleSend = (textToSend = null) => {
+  // Send Message with Gemini 3.6 Flash + Local Fallback
+  const handleSend = async (textToSend = null) => {
     const query = (textToSend || inputQuery).trim();
     if (!query) return;
 
@@ -395,25 +373,60 @@ export default function AIAssistant() {
       sender: 'user',
       text: query,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      structured: null
+      structured: null,
+      draft: null
     };
 
     setMessages(prev => [...prev, userMsg]);
     setInputQuery('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const resp = generateResponse(query);
+    try {
+      const res = await callGeminiAgronomist({
+        query,
+        conversationHistory: messages,
+        userProfile: user,
+        lang
+      });
+
       const aiMsg = {
         id: 'ai_' + Date.now(),
         sender: 'ai',
-        text: resp.text,
-        structured: resp.structured,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        text: res.text,
+        draft: res.draft,
+        model: res.model,
+        isLocal: res.isLocal,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        structured: null
       };
+
       setMessages(prev => [...prev, aiMsg]);
+    } catch (e) {
+      console.warn('AI Agronomist processing fallback', e);
+      const fallback = generateResponse(query);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: 'ai_' + Date.now(),
+          sender: 'ai',
+          text: fallback.text,
+          structured: fallback.structured,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          draft: null
+        }
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 600);
+    }
+  };
+
+  const handlePublishDraft = (draft) => {
+    try {
+      sessionStorage.setItem('sasya_pending_community_draft', JSON.stringify(draft));
+      navigate(`/c/${draft.crop || 'arecanut'}`);
+    } catch (e) {
+      navigate('/c/arecanut');
+    }
   };
 
   const handleQuickPrompt = (promptText) => {
@@ -427,22 +440,43 @@ export default function AIAssistant() {
         id: 'welcome_' + Date.now(),
         sender: 'ai',
         text: lang === 'kn' 
-          ? "ಸಂಭಾಷಣೆ ಮರುಹೊಂದಿಸಲಾಗಿದೆ. ಹೊಸ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ!"
+          ? `ಸಂಭಾಷಣೆ ಮರುಹೊಂದಿಸಲಾಗಿದೆ. ನಮಸ್ಕಾರ ${user?.name || user?.username || 'ರೈತರೇ'}, ಹೊಸ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ!`
           : lang === 'hi'
-          ? "बातचीत रीसेट हो गई है। नया प्रश्न पूछें!"
-          : "Conversation refreshed. Ask me any agronomy question!",
+          ? `बातचीत रीसेट हो गई है। नमस्ते ${user?.name || user?.username || 'किसान भाई'}, नया प्रश्न पूछें!`
+          : `Conversation refreshed. Hello ${user?.name || user?.username || 'Farmer'}, ask me any agronomy or post drafting question!`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        structured: null
+        structured: null,
+        draft: null
       }
     ]);
   };
 
+  // Generate Static Knowledge Base Response (legacy fallback support)
+  const generateResponse = (query) => {
+    const q = query.toLowerCase();
+    for (const item of AGRONOMIC_KNOWLEDGE) {
+      if (item.keywords.some(k => q.includes(k.toLowerCase()))) {
+        const localized = item[lang] || item.en;
+        return {
+          structured: localized,
+          text: `${localized.title}\n\n${localized.summary}\n\n${localized.prescription.join('\n')}\n\n🌿 Organic Option: ${localized.organic}\n⏱️ Application: ${localized.timing}\n💡 Tip: ${localized.tip}`
+        };
+      }
+    }
+    return {
+      structured: null,
+      text: lang === 'kn'
+        ? "ಧನ್ಯವಾದಗಳು! ನಿಮ್ಮ ಕೃಷಿ ಸಲಹೆ ಸಿದ್ಧವಾಗಿದೆ. ಬೆಳೆ ಸಮುದಾಯದಲ್ಲಿ ಇತರ ರೈತರ ಜತೆ ಚರ್ಚಿಸಲು [r/arecanut ಫೀಡ್](/c/arecanut) ವೀಕ್ಷಿಸಿ."
+        : "Thank you! Check your crop community feed on [r/arecanut](/c/arecanut) to discuss with fellow growers."
+    };
+  };
+
   const QUICK_PROMPTS = [
-    { label: '🌴 Koleroga 1% Bordeaux', text: 'How to prepare 1% Bordeaux mixture with rosin sticker for Arecanut Koleroga?' },
-    { label: '🌾 Paddy Blast Cure', text: 'What is the immediate cure and Tricyclazole dosage for Paddy Blast?' },
-    { label: '🍅 Tomato Blight Control', text: 'How to control Tomato Late Blight and Early Blight?' },
-    { label: '⚖️ 3 Acres Dosage', text: 'Calculate Bordeaux mixture and water required for 3 acres of Arecanut' },
-    { label: '🌿 Organic Jeevamrutha', text: 'How to prepare organic Jeevamrutha microbial culture?' }
+    { label: `🌴 ${user?.crops?.[0] || 'Arecanut'} Koleroga 1% Bordeaux`, text: `How to prepare 1% Bordeaux mixture with rosin sticker for ${user?.crops?.[0] || 'Arecanut'} Koleroga?` },
+    { label: '📝 Draft Climber Request Post', text: `Draft a community post asking for 2 skilled tree climbers for spraying in ${user?.taluk || 'Belthangady'}` },
+    { label: `⚖️ Spray Dosage for ${user?.landSize || '4.0 Acres'}`, text: `Calculate 1% Bordeaux mixture and water required for my ${user?.landSize || '4.0 Acres'} of ${user?.crops?.[0] || 'Arecanut'}` },
+    { label: '🌿 Organic Jeevamrutha', text: 'How to prepare organic Jeevamrutha microbial culture?' },
+    { label: '🌾 Paddy Blast Cure', text: 'What is the immediate cure and Tricyclazole dosage for Paddy Blast?' }
   ];
 
   return (
@@ -476,12 +510,13 @@ export default function AIAssistant() {
                 <h1 className="font-extrabold text-base sm:text-lg tracking-tight">
                   {t('ai_page_title') || 'Sasya AI Agronomist'}
                 </h1>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
-                  Agronomy Guide
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Gemini 3.6 Flash Active</span>
                 </span>
               </div>
               <p className={`text-[11px] hidden sm:block ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                {t('ai_page_sub') || 'Instant diagnostics, dosages & organic solutions'}
+                {t('ai_page_sub') || 'Instant diagnostics, dosages, crop advice & post drafting'}
               </p>
             </div>
           </div>
@@ -489,6 +524,18 @@ export default function AIAssistant() {
 
         {/* Right Controls */}
         <div className="flex items-center gap-2">
+          {/* Gemini API Key Settings Button */}
+          <button
+            type="button"
+            onClick={() => setApiKeyModalOpen(true)}
+            className={`p-2 rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
+              isDark ? 'bg-[#12241A] border-[#1E3A2B] text-amber-400 hover:bg-[#183526]' : 'bg-white border-[#91BA94] text-amber-600 hover:bg-[#E8F2EA]'
+            }`}
+            title="Gemini API Key Settings"
+          >
+            <Key className="w-4 h-4" />
+          </button>
+
           {/* Clear Chat */}
           <button
             onClick={handleClearChat}
@@ -580,7 +627,7 @@ export default function AIAssistant() {
               )}
 
               {/* Message Bubble */}
-              <div className={`max-w-[88%] sm:max-w-[78%] rounded-2xl p-4 sm:p-5 shadow-xs border ${
+              <div className={`max-w-[88%] sm:max-w-[80%] rounded-2xl p-4 sm:p-5 shadow-xs border ${
                 msg.sender === 'user'
                   ? isDark 
                     ? 'bg-[#1A3828] border-[#22C55E]/40 text-white rounded-tr-xs' 
@@ -647,14 +694,71 @@ export default function AIAssistant() {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-line">
-                    {msg.text}
+                  <div className="text-xs sm:text-sm leading-relaxed">
+                    <RenderMessageText text={msg.text} onNavigate={(url) => navigate(url)} />
                   </div>
                 )}
 
-                {/* Footer Controls: Time, Audio Listen & Copy */}
+                {/* ── INTERACTIVE COMMUNITY POST DRAFT CARD (IF DRAFTED) ── */}
+                {msg.draft && (
+                  <div className={`mt-3.5 p-3.5 sm:p-4 rounded-xl border space-y-2.5 animate-fadeIn ${
+                    isDark ? 'bg-[#0E1E16] border-[#22C55E]/40' : 'bg-[#F4F8F5] border-[#91BA94]'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold text-emerald-500">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Community Post Draft (r/{msg.draft.crop || 'arecanut'})</span>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/25">
+                        {msg.draft.flair || 'Labour Request'}
+                      </span>
+                    </div>
+
+                    <h4 className="font-extrabold text-xs sm:text-sm text-gray-900 dark:text-white">
+                      {msg.draft.title}
+                    </h4>
+
+                    <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                      {msg.draft.content}
+                    </p>
+
+                    {(msg.draft.workers || msg.draft.wage) && (
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold pt-1">
+                        {msg.draft.workers && <span>👥 {msg.draft.workers}</span>}
+                        {msg.draft.wage && <span>💰 {msg.draft.wage}</span>}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-800">
+                      <button
+                        type="button"
+                        onClick={() => handlePublishDraft(msg.draft)}
+                        className="flex-1 py-2 px-3 rounded-xl bg-[#275637] hover:bg-[#1E462B] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                      >
+                        <span>🚀 Publish to r/{msg.draft.crop || 'arecanut'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(msg.draft.title + '\n\n' + msg.draft.content, 'draft_' + msg.id)}
+                        className="py-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        {copiedId === 'draft_' + msg.id ? 'Copied ✓' : 'Copy'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer Controls: Time, Audio Listen, Copy & Model Indicator */}
                 <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-800/80 flex items-center justify-between text-[11px] text-gray-400">
-                  <span>{msg.timestamp}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{msg.timestamp}</span>
+                    {msg.sender === 'ai' && msg.model && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-gray-500/10 text-gray-400">
+                        {msg.model}
+                      </span>
+                    )}
+                  </div>
 
                   {msg.sender === 'ai' && (
                     <div className="flex items-center gap-2">
@@ -708,7 +812,7 @@ export default function AIAssistant() {
                 isDark ? 'bg-[#102217] border-[#1E3A2B] text-gray-400' : 'bg-white border-[#91BA94] text-gray-500'
               }`}>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                <span>Searching agronomy guidelines...</span>
+                <span>Formulating personalized agronomic response...</span>
               </div>
             </div>
           )}
@@ -743,7 +847,7 @@ export default function AIAssistant() {
               type="text"
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
-              placeholder={lang === 'kn' ? "ಪ್ರಶ್ನೆ ಕೇಳಿ (ಉದಾ: ೩ ಎಕರೆಗೆ ಬೋರ್ಡೋ ಪ್ರಮಾಣ ಎಷ್ಟು?)..." : lang === 'hi' ? "प्रश्न पूछें (उदा: 3 एकड़ हेतु बोर्डो मात्रा)..." : "Ask agronomy question (e.g., Bordeaux formula for 3 acres)..."}
+              placeholder={lang === 'kn' ? "ಪ್ರಶ್ನೆ ಕೇಳಿ ಅಥವಾ 'ಪೋಸ್ಟ್ ಬರೆಯಿರಿ' ಎನ್ನಿ..." : lang === 'hi' ? "प्रश्न पूछें या 'पोस्ट लिखें' कहें..." : "Ask agronomy question or say 'help draft a post'..."}
               className={`flex-1 text-xs sm:text-sm px-3 py-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
                 isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white placeholder-gray-500' : 'bg-[#FAFCFA] border-gray-300 text-gray-800 placeholder-gray-400'
               }`}
@@ -752,9 +856,9 @@ export default function AIAssistant() {
             {/* Send Button */}
             <button
               type="submit"
-              disabled={!inputQuery.trim()}
+              disabled={!inputQuery.trim() || isTyping}
               className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0 ${
-                inputQuery.trim()
+                inputQuery.trim() && !isTyping
                   ? 'bg-[#275637] hover:bg-[#1E462B] text-white hover:scale-105 active:scale-95'
                   : 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed opacity-60'
               }`}
@@ -768,7 +872,7 @@ export default function AIAssistant() {
           <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-800/80 flex items-center justify-between text-[11px] text-gray-400 px-1">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Field-Tested Agronomic Guidelines</span>
+              <span>Certified Agronomic Protocols</span>
             </span>
 
             <Link
@@ -782,6 +886,70 @@ export default function AIAssistant() {
         </div>
 
       </main>
+
+      {/* ── GEMINI API KEY MODAL ── */}
+      {apiKeyModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`max-w-md w-full rounded-2xl border p-6 shadow-2xl animate-card-in ${
+            isDark ? 'bg-[#102217] border-[#1E3A2B] text-white' : 'bg-white border-[#91BA94] text-[#275637]'
+          }`}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Key className="w-5 h-5 text-amber-500" />
+                <h3 className="font-extrabold text-base">Gemini API Key Settings</h3>
+              </div>
+              <button 
+                onClick={() => setApiKeyModalOpen(false)}
+                className="text-xs font-bold opacity-70 hover:opacity-100 cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+              Sasya connects to Google Gemini (3.6 Flash) for natural language understanding, community drafting, and multilingual support.
+            </p>
+
+            <div className="space-y-3">
+              <input
+                type="password"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                placeholder="Paste Gemini API Key"
+                className={`w-full p-2.5 rounded-xl border text-xs font-mono outline-none ${
+                  isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-gray-50 border-gray-300 text-gray-900'
+                }`}
+              />
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGeminiApiKey(apiKeyInput);
+                    setApiKeyModalOpen(false);
+                  }}
+                  className="flex-1 py-2 rounded-xl bg-[#275637] hover:bg-[#1E462B] text-white font-bold text-xs cursor-pointer shadow-xs"
+                >
+                  Save API Key
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const defaultKey = getDefaultGeminiKey();
+                    setApiKeyInput(defaultKey);
+                    setGeminiApiKey(defaultKey);
+                    setApiKeyModalOpen(false);
+                  }}
+                  className="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white cursor-pointer"
+                >
+                  Reset Default
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

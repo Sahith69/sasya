@@ -477,6 +477,25 @@ export default function Community() {
   const [newImageUrl, setNewImageUrl] = useState('');
   const fileInputRef = useRef(null);
 
+  // Auto-fill draft if navigated from AI Agronomist with pending draft
+  useEffect(() => {
+    try {
+      const rawDraft = sessionStorage.getItem('sasya_pending_community_draft');
+      if (rawDraft) {
+        const draft = JSON.parse(rawDraft);
+        if (draft.title) setNewTitle(draft.title);
+        if (draft.content) setNewContent(draft.content);
+        if (draft.flair) setNewFlair(draft.flair);
+        if (draft.workers) setLabourWorkers(draft.workers);
+        if (draft.wage) setLabourWage(draft.wage);
+        setIsCreateModalOpen(true);
+        sessionStorage.removeItem('sasya_pending_community_draft');
+      }
+    } catch (e) {
+      console.warn('Error reading pending draft', e);
+    }
+  }, []);
+
   const handleImageFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;

@@ -17,6 +17,7 @@ data/*.db
 # Node & Frontend dependencies
 node_modules/
 dist/
+.env
 .env.local
 
 # Virtual environments
