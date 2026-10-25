@@ -291,7 +291,7 @@ const INITIAL_POSTS = [
 export default function Community() {
   const navigate = useNavigate();
   const { crop: cropParam } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, lang, setLang, toggleTheme, isDark, t } = useAuth();
 
   // Active Subreddit
@@ -321,7 +321,15 @@ export default function Community() {
 
   const [sortFilter, setSortFilter] = useState('hot'); // 'hot', 'new', 'top'
   const [flairFilter, setFlairFilter] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
+
+  // Synchronize searchQuery when URL query ?q= changes
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q !== null && q !== undefined) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
 
   // 1-on-1 Reddit Private Chat State
   const [isChatOpen, setIsChatOpen] = useState(() => searchParams.get('chat') === 'open');
@@ -548,7 +556,17 @@ export default function Community() {
   const filteredPosts = posts
     .filter(p => p.crop === activeCrop)
     .filter(p => flairFilter === 'All' || p.flair === flairFilter)
-    .filter(p => !searchQuery.trim() || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.content.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(p => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        p.title.toLowerCase().includes(q) ||
+        p.content.toLowerCase().includes(q) ||
+        p.flair.toLowerCase().includes(q) ||
+        p.village.toLowerCase().includes(q) ||
+        (p.aiBadge && p.aiBadge.toLowerCase().includes(q))
+      );
+    })
     .sort((a, b) => {
       // 1. Followed farmers' posts ALWAYS at the very top!
       const aFollowed = followingMap[a.author] === 'following';
@@ -797,6 +815,29 @@ export default function Community() {
               </button>
             ))}
           </div>
+
+          {/* Active Search Filter Banner */}
+          {searchQuery.trim() && (
+            <div className={`p-3 rounded-xl border flex items-center justify-between text-xs font-bold animate-fadeIn ${
+              isDark ? 'bg-[#102217] border-[#1E3A2B] text-emerald-400' : 'bg-[#EBF3ED] border-[#91BA94] text-[#275637]'
+            }`}>
+              <div className="flex items-center gap-2">
+                <Search className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>
+                  Filtering discussions for <strong className="underline">"{searchQuery}"</strong> ({filteredPosts.length} matching {filteredPosts.length === 1 ? 'post' : 'posts'})
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSearchParams({});
+                }}
+                className="text-xs hover:underline text-gray-400 hover:text-rose-500 cursor-pointer shrink-0"
+              >
+                Clear Search ✕
+              </button>
+            </div>
+          )}
 
           {/* Reddit Posts List */}
           {filteredPosts.length === 0 ? (

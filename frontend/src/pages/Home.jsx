@@ -32,6 +32,33 @@ export default function Home() {
     navigate('/login');
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const query = searchQuery.trim();
+    if (!query) {
+      navigate('/c/arecanut');
+      return;
+    }
+
+    const lower = query.toLowerCase();
+    let targetCrop = 'arecanut';
+
+    if (lower.includes('paddy') || lower.includes('rice') || lower.includes('blast') || lower.includes('ಭತ್ತ')) {
+      targetCrop = 'paddy';
+    } else if (lower.includes('tomato') || lower.includes('blight') || lower.includes('ಟೊಮೆಟೊ')) {
+      targetCrop = 'tomato';
+    } else if (lower.includes('apple') || lower.includes('scab') || lower.includes('ಸೇಬು')) {
+      targetCrop = 'apple';
+    } else if (
+      lower.includes('koleroga') || lower.includes('arecanut') || lower.includes('betel') || 
+      lower.includes('rot') || lower.includes('ಕೊಳೆರೋಗ') || lower.includes('ಅಡಿಕೆ')
+    ) {
+      targetCrop = 'arecanut';
+    }
+
+    navigate(`/c/${targetCrop}?q=${encodeURIComponent(query)}`);
+  };
+
   return (
     <div className={`min-h-screen flex flex-col relative overflow-x-hidden transition-colors duration-300 ${
       isDark 
@@ -282,7 +309,7 @@ export default function Home() {
         {/* ── SEARCH BAR ── */}
         <div className="w-full max-w-2xl mt-8">
           <form 
-            onSubmit={(e) => { e.preventDefault(); navigate('/detect'); }}
+            onSubmit={handleSearchSubmit}
             className="relative flex items-center"
           >
             <div className={`absolute left-4 pointer-events-none ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
@@ -314,9 +341,9 @@ export default function Home() {
           {/* Quick Action Chips with Tactile Hover Animations */}
           <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs">
             {[
-              { label: '🍃 Koleroga Spray Alert', to: '/detect' },
-              { label: '🌾 Paddy Blast: High Risk', to: '/detect' },
-              { label: '📤 Open Dataset Upload', to: '/wallet' }
+              { label: '🍃 Koleroga Spray Alert', to: '/c/arecanut?q=Koleroga' },
+              { label: '🌾 Paddy Blast: High Risk', to: '/c/paddy?q=Blast' },
+              { label: '📤 Open Dataset Upload', to: '/contribute' }
             ].map((chip, idx) => (
               <button 
                 key={idx}
