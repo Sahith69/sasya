@@ -156,22 +156,26 @@ export default function Detect() {
 
     const stepInterval = setInterval(() => {
       setScanStep((prev) => (prev < scanSteps.length - 1 ? prev + 1 : prev));
-    }, 450);
+    }, 380);
 
     let liveDiag = null;
     try {
-      liveDiag = await runCropDiagnosis({
+      // 7.5s maximum safety ceiling: guarantees diagnosis navigation even on erratic networks
+      const safetyTimeout = new Promise((resolve) => setTimeout(() => resolve(null), 7500));
+      const diagnosisPromise = runCropDiagnosis({
         file: uploadedFile,
         imageBase64: selectedImage,
         cropHint: selectedCrop,
         district: user?.district || 'Dakshina Kannada'
       });
+
+      liveDiag = await Promise.race([diagnosisPromise, safetyTimeout]);
     } catch (err) {
       console.warn('Pathology diagnosis error:', err);
+    } finally {
+      clearInterval(stepInterval);
+      setIsScanning(false);
     }
-
-    clearInterval(stepInterval);
-    setIsScanning(false);
 
     const isOod = liveDiag?.is_ood === true || 
                   liveDiag?.is_valid_crop === false || 

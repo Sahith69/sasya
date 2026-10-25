@@ -4,135 +4,195 @@ import { getGeminiApiKey } from './gemini.js';
 /**
  * Perform instant client-side pixel analysis on an image to catch obvious non-plants
  * (e.g. blank images, solid black/white screens, zero vegetation variance).
+ * Protected with a 500ms safety timeout to prevent any promise hang.
  */
 export async function performClientGatekeeperCheck(imageSource) {
   if (typeof Image === 'undefined') {
     return { is_valid_crop: true };
   }
   return new Promise((resolve) => {
+    const safetyTimer = setTimeout(() => {
+      resolve({ is_valid_crop: true });
+    }, 500);
+
     try {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const w = 120;
-        const h = 120;
-        canvas.width = w;
-        canvas.height = h;
-        ctx.drawImage(img, 0, 0, w, h);
+        clearTimeout(safetyTimer);
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const w = 120;
+          const h = 120;
+          canvas.width = w;
+          canvas.height = h;
+          ctx.drawImage(img, 0, 0, w, h);
 
-        const imgData = ctx.getImageData(0, 0, w, h);
-        const data = imgData.data;
-        const count = w * h;
+          const imgData = ctx.getImageData(0, 0, w, h);
+          const data = imgData.data;
+          const count = w * h;
 
-        let sumR = 0, sumG = 0, sumB = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          sumR += data[i];
-          sumG += data[i + 1];
-          sumB += data[i + 2];
-        }
-
-        const avgR = sumR / count;
-        const avgG = sumG / count;
-        const avgB = sumB / count;
-
-        let varR = 0, varG = 0, varB = 0;
-        let greenDominanceCount = 0;
-
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-
-          varR += Math.pow(r - avgR, 2);
-          varG += Math.pow(g - avgG, 2);
-          varB += Math.pow(b - avgB, 2);
-
-          // Plant vegetation index (Excess Green: 2*G - R - B)
-          if ((2 * g - r - b) > 15 || (g > 60 && g > r * 0.95 && g > b * 1.1)) {
-            greenDominanceCount++;
+          let sumR = 0, sumG = 0, sumB = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            sumR += data[i];
+            sumG += data[i + 1];
+            sumB += data[i + 2];
           }
-        }
 
-        const totalStd = Math.sqrt((varR + varG + varB) / (3 * count));
-        const greenRatio = greenDominanceCount / count;
+          const avgR = sumR / count;
+          const avgG = sumG / count;
+          const avgB = sumB / count;
 
-        // 1. Solid or blank image check (very low standard deviation)
-        if (totalStd < 7.0) {
-          return resolve({
-            is_valid_crop: false,
-            is_ood: true,
-            rejection_reason: 'Gatekeeper AI rejected image: Low variance solid or blank frame detected (not an agricultural crop leaf).',
-            confidence: 0.0
+          let varR = 0, varG = 0, varB = 0;
+          let greenDominanceCount = 0;
+
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+
+            varR += Math.pow(r - avgR, 2);
+            varG += Math.pow(g - avgG, 2);
+            varB += Math.pow(b - avgB, 2);
+
+            // Plant vegetation index (Excess Green: 2*G - R - B)
+            if ((2 * g - r - b) > 15 || (g > 60 && g > r * 0.95 && g > b * 1.1)) {
+              greenDominanceCount++;
+            }
+          }
+
+          const totalStd = Math.sqrt((varR + varG + varB) / (3 * count));
+          const greenRatio = greenDominanceCount / count;
+
+          // 1. Solid or blank image check (very low standard deviation)
+          if (totalStd < 7.0) {
+            return resolve({
+              is_valid_crop: false,
+              is_ood: true,
+              rejection_reason: 'Gatekeeper AI rejected image: Low variance solid or blank frame detected (not an agricultural crop leaf).',
+              confidence: 0.0
+            });
+          }
+
+          // 2. Pure unnatural single-color blocks (e.g. deep blue box, neon purple)
+          if (avgB > 160 && avgB > (avgR + avgG) * 0.9) {
+            return resolve({
+              is_valid_crop: false,
+              is_ood: true,
+              rejection_reason: 'Gatekeeper AI rejected image: Identified as Non-Crop / Non-Plant (unnatural blue synthetic block).',
+              confidence: 0.0
+            });
+          }
+
+          resolve({
+            is_valid_crop: true,
+            greenRatio,
+            totalStd
           });
+        } catch {
+          resolve({ is_valid_crop: true });
         }
-
-        // 2. Pure unnatural single-color blocks (e.g. deep blue box, neon purple)
-        if (avgB > 160 && avgB > (avgR + avgG) * 0.9) {
-          return resolve({
-            is_valid_crop: false,
-            is_ood: true,
-            rejection_reason: 'Gatekeeper AI rejected image: Identified as Non-Crop / Non-Plant (unnatural blue synthetic block).',
-            confidence: 0.0
-          });
-        }
-
-        resolve({
-          is_valid_crop: true,
-          greenRatio,
-          totalStd
-        });
       };
 
       img.onerror = () => {
+        clearTimeout(safetyTimer);
         resolve({ is_valid_crop: true });
       };
 
       img.src = typeof imageSource === 'string' ? imageSource : URL.createObjectURL(imageSource);
     } catch {
+      clearTimeout(safetyTimer);
       resolve({ is_valid_crop: true });
     }
   });
 }
 
 /**
- * Convert File or Blob or dataURL to clean base64 string
+ * Ultra-fast client-side downsampling and compression.
+ * Converts raw mobile camera photos (5MB - 15MB) into a crisp 768px JPEG (~50KB - 80KB).
+ * Reduces upload time by 98% and prevents payload limits.
  */
-async function toCleanBase64(input) {
-  if (typeof input === 'string') {
-    if (input.startsWith('data:')) {
+async function toCleanBase64(input, maxDim = 768, quality = 0.82) {
+  // If running in an environment without DOM, handle raw base64 string
+  if (typeof document === 'undefined' || typeof Image === 'undefined') {
+    if (typeof input === 'string') {
       const parts = input.split(',');
-      const mimeMatch = parts[0].match(/:(.*?);/);
-      return {
-        base64: parts[1],
-        mimeType: mimeMatch ? mimeMatch[1] : 'image/jpeg'
-      };
+      return { base64: parts[1] || parts[0], mimeType: 'image/jpeg' };
     }
-    // If it is a URL, fetch it
-    const res = await fetch(input);
-    const blob = await res.blob();
-    return toCleanBase64(blob);
+    throw new Error('Unsupported image input type for Gemini Vision');
   }
 
-  if (input instanceof Blob || input instanceof File) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result;
+  return new Promise((resolve) => {
+    const safetyTimer = setTimeout(() => {
+      // Fallback: try raw reader
+      readRawBase64(input).then(resolve).catch(() => resolve({ base64: '', mimeType: 'image/jpeg' }));
+    }, 1200);
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      clearTimeout(safetyTimer);
+      try {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(width, 10);
+        canvas.height = Math.max(height, 10);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
         const parts = dataUrl.split(',');
-        const mimeMatch = parts[0].match(/:(.*?);/);
         resolve({
           base64: parts[1],
-          mimeType: mimeMatch ? mimeMatch[1] : input.type || 'image/jpeg'
+          mimeType: 'image/jpeg'
         });
+      } catch {
+        readRawBase64(input).then(resolve).catch(() => resolve({ base64: '', mimeType: 'image/jpeg' }));
+      }
+    };
+
+    img.onerror = () => {
+      clearTimeout(safetyTimer);
+      readRawBase64(input).then(resolve).catch(() => resolve({ base64: '', mimeType: 'image/jpeg' }));
+    };
+
+    if (typeof input === 'string') {
+      img.src = input;
+    } else if (input instanceof Blob || input instanceof File) {
+      img.src = URL.createObjectURL(input);
+    } else {
+      clearTimeout(safetyTimer);
+      resolve({ base64: '', mimeType: 'image/jpeg' });
+    }
+  });
+}
+
+function readRawBase64(input) {
+  if (typeof input === 'string') {
+    const parts = input.split(',');
+    return Promise.resolve({ base64: parts[1] || parts[0], mimeType: 'image/jpeg' });
+  }
+  if (input instanceof Blob || input instanceof File) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const parts = (reader.result || '').split(',');
+        resolve({ base64: parts[1] || '', mimeType: input.type || 'image/jpeg' });
       };
-      reader.onerror = reject;
+      reader.onerror = () => resolve({ base64: '', mimeType: 'image/jpeg' });
       reader.readAsDataURL(input);
     });
   }
-
-  throw new Error('Unsupported image input type for Gemini Vision');
+  return Promise.resolve({ base64: '', mimeType: 'image/jpeg' });
 }
 
 /**
@@ -239,22 +299,27 @@ If rejected by Gatekeeper:
       }
     ],
     generationConfig: {
-      temperature: 0.2,
-      maxOutputTokens: 2048,
+      temperature: 0.15,
+      maxOutputTokens: 1024,
       responseMimeType: 'application/json'
     }
   };
 
-  const candidateModels = ['gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest'];
+  const candidateModels = ['gemini-3.6-flash', 'gemini-3.7-flash'];
 
   for (const model of candidateModels) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5500);
+
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (res.ok) {
         const data = await res.json();
@@ -272,11 +337,13 @@ If rejected by Gatekeeper:
         }
       }
     } catch (e) {
-      console.warn(`[GeminiVision] Model ${model} failed, trying next`, e);
+      clearTimeout(timeoutId);
+      console.warn(`[SasyaVision] Model ${model} notice:`, e?.message || e);
     }
   }
 
-  // Graceful local fallback if Gemini is unreachable
+  // Graceful local fallback if Gemini is unreachable within timeout
+  console.info('[SasyaVision] Instant local optical pattern fallback activated');
   return fallbackLocalDiagnosis(cropHint, clientCheck);
 }
 
