@@ -23,3 +23,8 @@ dist/
 # Virtual environments
 .venv/
 venv/
+
+# Presentations & Pitch Decks
+*.pptx
+*.ppt
+
