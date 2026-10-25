@@ -54,6 +54,13 @@ export default function VerifyOtp() {
 
     const res = verifyDummyOtp(fullCode);
     if (res.success) {
+      if (pendingSignup?.username && pendingSignup?.password) {
+        const createRes = completeAccountCreation(pendingSignup.username, pendingSignup.password);
+        if (createRes.success) {
+          navigate('/home');
+          return;
+        }
+      }
       setStep('credentials');
     } else {
       setError(res.error);

@@ -929,7 +929,7 @@ export default function Community() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`Search ${currentSubreddit.name}...`}
+              placeholder={t('search_community_placeholder') || `Search ${currentSubreddit.name}...`}
               className={`w-full pl-9 pr-4 py-1.5 rounded-full text-xs font-medium border outline-none transition-all ${
                 isDark 
                   ? 'bg-[#12241A] border-[#1E3A2B] text-white focus:border-[#22C55E]' 
@@ -1022,7 +1022,7 @@ export default function Community() {
 
           <div className="flex items-center gap-2 mb-1">
             <button className="px-4 py-1.5 rounded-full font-bold text-xs bg-[#22C55E] text-[#0B1712] hover:bg-[#16A34A] cursor-pointer shadow-xs">
-              Joined ✓
+              {t('btn_joined') || 'Joined'} ✓
             </button>
           </div>
         </div>
@@ -1055,7 +1055,7 @@ export default function Community() {
             <input 
               type="text" 
               readOnly 
-              placeholder={`Create Post in ${currentSubreddit.name}...`}
+              placeholder={t('create_post_placeholder') || `Create Post in ${currentSubreddit.name}...`}
               className={`flex-1 px-3.5 py-1.5 rounded-lg text-xs font-medium border outline-none cursor-pointer ${
                 isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-gray-400' : 'bg-[#FAFCFA] border-[#D8E4DA] text-gray-500'
               }`}
@@ -1380,7 +1380,7 @@ export default function Community() {
                           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                         >
                           <MessageSquare className="w-4 h-4" />
-                          <span>{post.comments.length} Comments</span>
+                          <span>{post.comments.length} {t('comments_count_label') || 'Comments'}</span>
                         </button>
 
                         <button
@@ -1409,7 +1409,7 @@ export default function Community() {
                           title={`Open Reddit-style 1-on-1 private chat with u/${post.author}`}
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
-                          <span>Chat</span>
+                          <span>{t('btn_chat') || 'Chat'}</span>
                         </button>
 
                         <button
@@ -1417,7 +1417,7 @@ export default function Community() {
                           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                         >
                           <Share2 className="w-4 h-4" />
-                          <span>Share</span>
+                          <span>{t('btn_share') || 'Share'}</span>
                         </button>
 
                         <button
@@ -1427,7 +1427,7 @@ export default function Community() {
                           }`}
                         >
                           <Bookmark className={`w-4 h-4 ${post.saved ? 'fill-amber-500' : ''}`} />
-                          <span>{post.saved ? 'Saved' : 'Save'}</span>
+                          <span>{post.saved ? (t('btn_saved') || 'Saved') : (t('btn_save') || 'Save')}</span>
                         </button>
                       </div>
 
@@ -1444,7 +1444,7 @@ export default function Community() {
                               <textarea
                                 value={commentInputs[post.id] || ''}
                                 onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                                placeholder="What are your thoughts?"
+                                placeholder={t('placeholder_comment') || 'What are your thoughts?'}
                                 rows={2}
                                 className={`w-full p-2.5 rounded-xl border text-xs outline-none resize-none ${
                                   isDark ? 'bg-[#07100C] border-[#1E3A2B] text-white focus:border-[#22C55E]' : 'bg-[#FAFCFA] border-gray-300 text-gray-800 focus:border-[#275637]'
@@ -1457,7 +1457,7 @@ export default function Community() {
                                 className="px-4 py-1.5 rounded-full font-bold text-xs bg-[#275637] hover:bg-[#1E462B] text-white flex items-center gap-1 cursor-pointer shadow-xs"
                               >
                                 <Send className="w-3 h-3" />
-                                <span>Comment</span>
+                                <span>{t('btn_comment') || 'Comment'}</span>
                               </button>
                             </div>
                           </div>
@@ -1546,7 +1546,7 @@ export default function Community() {
                                         className="hover:underline cursor-pointer text-emerald-600 dark:text-emerald-400 font-semibold"
                                         title={`Chat privately with u/${comment.author}`}
                                       >
-                                        💬 Chat
+                                        💬 {t('btn_chat') || 'Chat'}
                                       </button>
                                       <button 
                                         type="button"
@@ -1564,7 +1564,7 @@ export default function Community() {
                                         onClick={() => setReplyingToCommentId(replyingToCommentId === comment.id ? null : comment.id)}
                                         className="hover:underline cursor-pointer hover:text-emerald-500 font-semibold flex items-center gap-0.5"
                                       >
-                                        ↩ Reply
+                                        ↩ {t('btn_reply') || 'Reply'}
                                       </button>
                                       <button 
                                         type="button"
@@ -1574,7 +1574,7 @@ export default function Community() {
                                         }}
                                         className="hover:underline cursor-pointer"
                                       >
-                                        Share
+                                        {t('btn_share') || 'Share'}
                                       </button>
                                     </div>
 
@@ -1596,7 +1596,7 @@ export default function Community() {
                                         <textarea
                                           value={replyInputs[comment.id] || ''}
                                           onChange={(e) => setReplyInputs({ ...replyInputs, [comment.id]: e.target.value })}
-                                          placeholder={`Add to discussion with u/${comment.author}...`}
+                                          placeholder={t('add_to_discussion') || `Add to discussion with u/${comment.author}...`}
                                           rows={2}
                                           className={`w-full p-2 rounded-lg border text-xs outline-none resize-none ${
                                             isDark 
@@ -1610,7 +1610,7 @@ export default function Community() {
                                             onClick={() => setReplyingToCommentId(null)}
                                             className="px-3 py-1 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer"
                                           >
-                                            Cancel
+                                            {t('btn_cancel') || 'Cancel'}
                                           </button>
                                           <button
                                             type="button"
@@ -1618,7 +1618,7 @@ export default function Community() {
                                             className="px-3.5 py-1 rounded-full font-bold text-xs bg-[#275637] hover:bg-[#1E462B] text-white flex items-center gap-1 cursor-pointer shadow-xs"
                                           >
                                             <Send className="w-3 h-3" />
-                                            <span>Reply</span>
+                                            <span>{t('btn_reply') || 'Reply'}</span>
                                           </button>
                                         </div>
                                       </div>
@@ -1792,7 +1792,7 @@ export default function Community() {
             </button>
 
             <h3 className="text-base font-bold mb-4 flex items-center gap-2">
-              <span>Create Post in {currentSubreddit.name}</span>
+              <span>{t('create_post_in') || 'Create Post in'} {currentSubreddit.name}</span>
             </h3>
 
             <form onSubmit={handleCreatePost} className="space-y-3.5 text-xs font-semibold">
@@ -1833,7 +1833,7 @@ export default function Community() {
                           handleApplyAiDraft();
                         }
                       }}
-                      placeholder="e.g. need 2 climbers Thursday, Venur or 2 ಜನ ಆಳುಗಳು ಬೇಕು..."
+                      placeholder={t('placeholder_voice_or_type') || "e.g. need 2 climbers Thursday, Venur or 2 ಜನ ಆಳುಗಳು ಬೇಕು..."}
                       className={`w-full pl-3 pr-24 py-2.5 rounded-xl border text-xs outline-none ${
                         isDark 
                           ? 'bg-[#07100C] border-[#1E3A2B] text-white placeholder-gray-500 focus:border-[#22C55E]' 
@@ -1862,7 +1862,7 @@ export default function Community() {
                         className="px-2.5 py-1.5 rounded-lg text-xs font-black bg-[#275637] hover:bg-[#1E462B] text-white flex items-center gap-1 cursor-pointer transition-transform active:scale-95 disabled:opacity-50 shadow-xs"
                       >
                         <Sparkles className="w-3 h-3 text-emerald-300" />
-                        <span>Draft</span>
+                        <span>{t('btn_voice_ai_draft') || 'Draft'}</span>
                       </button>
                     </div>
                   </div>
@@ -1910,7 +1910,7 @@ export default function Community() {
               </div>
 
               <div>
-                <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">Flair / Category</label>
+                <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">{t('label_category_flair') || 'Flair / Category'}</label>
                 <select
                   value={newFlair}
                   onChange={(e) => setNewFlair(e.target.value)}
@@ -1933,28 +1933,28 @@ export default function Community() {
                 }`}>
                   <div className="flex items-center gap-1.5 text-xs font-black text-purple-600 dark:text-purple-400">
                     <Users className="w-3.5 h-3.5" />
-                    <span>Labour Request Specifications</span>
+                    <span>{t('label_labour_specs') || 'Labour Request Specifications'}</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
-                      <label className="block mb-1 text-[10px] text-gray-400 font-bold uppercase">Workers Needed</label>
+                      <label className="block mb-1 text-[10px] text-gray-400 font-bold uppercase">{t('label_workers_needed') || 'Workers Needed'}</label>
                       <input
                         type="text"
                         value={labourWorkers}
                         onChange={(e) => setLabourWorkers(e.target.value)}
-                        placeholder="e.g. 3 Skilled Tree Climbers"
+                        placeholder={t('placeholder_workers_needed') || "e.g. 3 Skilled Tree Climbers"}
                         className={`w-full p-2 rounded-lg border text-xs outline-none ${
                           isDark ? 'bg-[#07100C] border-[#1E3A2B] text-white' : 'bg-white border-gray-300 text-gray-900'
                         }`}
                       />
                     </div>
                     <div>
-                      <label className="block mb-1 text-[10px] text-gray-400 font-bold uppercase">Daily Wage (₹)</label>
+                      <label className="block mb-1 text-[10px] text-gray-400 font-bold uppercase">{t('label_daily_wage') || 'Daily Wage (₹)'}</label>
                       <input
                         type="text"
                         value={labourWage}
                         onChange={(e) => setLabourWage(e.target.value)}
-                        placeholder="e.g. ₹900/day + food"
+                        placeholder={t('placeholder_daily_wage') || "e.g. ₹900/day + food"}
                         className={`w-full p-2 rounded-lg border text-xs outline-none ${
                           isDark ? 'bg-[#07100C] border-[#1E3A2B] text-white' : 'bg-white border-gray-300 text-gray-900'
                         }`}
@@ -1965,7 +1965,7 @@ export default function Community() {
               )}
 
               <div>
-                <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">Post Title *</label>
+                <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">{t('label_post_title') || 'Post Title *'}</label>
                 <input
                   type="text"
                   required
@@ -1973,8 +1973,8 @@ export default function Community() {
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder={
                     newFlair === 'Labour Request'
-                      ? "e.g. 3 Tree Climbers Needed for Arecanut Harvesting in Belthangady"
-                      : "Title: e.g. Yellow leaf spots appearing after yesterday's rain"
+                      ? (t('placeholder_workers_needed') || "e.g. 3 Tree Climbers Needed for Arecanut Harvesting in Belthangady")
+                      : (t('placeholder_post_title') || "Title: e.g. Yellow leaf spots appearing after yesterday's rain")
                   }
                   className={`w-full p-2.5 rounded-xl border text-xs outline-none ${
                     isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-gray-50 border-gray-300 text-gray-900'
@@ -1983,16 +1983,12 @@ export default function Community() {
               </div>
 
               <div>
-                <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">Text Content</label>
+                <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">{t('label_post_content') || 'Text Content'}</label>
                 <textarea
                   rows={4}
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
-                  placeholder={
-                    newFlair === 'Labour Request'
-                      ? "Specify work dates, location/taluk, lodging or food arrangements, contact preference..."
-                      : "Describe crop symptoms, spray details, or question..."
-                  }
+                  placeholder={t('placeholder_post_content') || "Describe crop symptoms, spray details, or question..."}
                   className={`w-full p-2.5 rounded-xl border text-xs outline-none resize-none ${
                     isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-gray-50 border-gray-300 text-gray-900'
                   }`}
@@ -2002,7 +1998,7 @@ export default function Community() {
               {/* Photo Attachment: From Device Camera or File or URL */}
               <div>
                 <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">
-                  Attach Photo (Camera / Device or URL)
+                  {t('label_attach_photo') || 'Attach Photo (Camera / Device or URL)'}
                 </label>
                 
                 {/* Hidden File Input */}
@@ -2025,7 +2021,7 @@ export default function Community() {
                     }`}
                   >
                     <Camera className="w-4 h-4 text-emerald-500" />
-                    <span>Upload Photo from Device</span>
+                    <span>{t('btn_upload_photo') || 'Upload Photo from Device'}</span>
                   </button>
                   {newImageUrl && (
                     <button
@@ -2034,7 +2030,7 @@ export default function Community() {
                       className="px-2.5 py-1.5 rounded-xl border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 text-xs font-bold flex items-center gap-1 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
-                      <span>Remove</span>
+                      <span>{t('btn_remove') || 'Remove'}</span>
                     </button>
                   )}
                 </div>
@@ -2050,7 +2046,7 @@ export default function Community() {
                   type="text"
                   value={newImageUrl.startsWith('data:') ? '' : newImageUrl}
                   onChange={(e) => setNewImageUrl(e.target.value)}
-                  placeholder="Or paste an image URL (/samples/sample_arecanut.jpg)"
+                  placeholder={t('placeholder_image_url') || "Or paste an image URL (/samples/sample_arecanut.jpg)"}
                   className={`w-full p-2.5 rounded-xl border text-xs outline-none ${
                     isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-gray-50 border-gray-300 text-gray-900'
                   }`}
@@ -2063,13 +2059,13 @@ export default function Community() {
                   onClick={() => setIsCreateModalOpen(false)}
                   className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white"
                 >
-                  Cancel
+                  {t('btn_cancel') || 'Cancel'}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 rounded-full font-bold text-xs bg-[#275637] hover:bg-[#1E462B] text-white shadow-xs cursor-pointer"
                 >
-                  Post
+                  {t('btn_post') || 'Post'}
                 </button>
               </div>
             </form>

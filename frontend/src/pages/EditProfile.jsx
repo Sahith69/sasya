@@ -175,7 +175,7 @@ export default function EditProfile() {
             {/* Full Name & Phone Number */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block mb-1.5 text-[#8BA695]">Farmer Full Name</label>
+                <label className="block mb-1.5 text-[#8BA695]">{t('label_full_name') || 'Farmer Full Name'}</label>
                 <div className="relative">
                   <User className="w-4 h-4 absolute left-3 top-3 text-[#22C55E]" />
                   <input 
@@ -183,7 +183,7 @@ export default function EditProfile() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Ramesh Gowda"
+                    placeholder={t('placeholder_full_name') || "e.g. Ramesh Gowda"}
                     className={`w-full h-10 pl-9 pr-3 rounded-xl border text-xs focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
                       isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
                     }`}
@@ -192,7 +192,7 @@ export default function EditProfile() {
               </div>
 
               <div>
-                <label className="block mb-1.5 text-[#8BA695]">Mobile Number</label>
+                <label className="block mb-1.5 text-[#8BA695]">{t('label_phone_number') || 'Mobile Number'}</label>
                 <div className="relative">
                   <Phone className="w-4 h-4 absolute left-3 top-3 text-[#22C55E]" />
                   <input 
@@ -200,7 +200,7 @@ export default function EditProfile() {
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="e.g. 00000 10101"
+                    placeholder={t('placeholder_phone_number') || "e.g. 98450 12345"}
                     className={`w-full h-10 pl-9 pr-3 rounded-xl border text-xs focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
                       isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
                     }`}
@@ -212,7 +212,7 @@ export default function EditProfile() {
             {/* Farm Land Size & Linked UPI ID */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block mb-1.5 text-[#8BA695]">Farm Land Size (Acres / Gunta)</label>
+                <label className="block mb-1.5 text-[#8BA695]">{t('label_land_size') || 'Farm Land Size (Acres / Gunta)'}</label>
                 <div className="relative">
                   <Sprout className="w-4 h-4 absolute left-3 top-3 text-[#22C55E]" />
                   <input 
@@ -220,7 +220,7 @@ export default function EditProfile() {
                     required
                     value={landSize}
                     onChange={(e) => setLandSize(e.target.value)}
-                    placeholder="e.g. 4.0 Acres"
+                    placeholder={t('placeholder_land_size') || "e.g. 4.0 Acres"}
                     className={`w-full h-10 pl-9 pr-3 rounded-xl border text-xs focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
                       isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
                     }`}
@@ -229,7 +229,7 @@ export default function EditProfile() {
               </div>
 
               <div>
-                <label className="block mb-1.5 text-[#8BA695]">Linked UPI ID (For Micro-Bounties)</label>
+                <label className="block mb-1.5 text-[#8BA695]">{t('label_upi_id') || 'Linked UPI ID (For Micro-Bounties)'}</label>
                 <div className="relative">
                   <Landmark className="w-4 h-4 absolute left-3 top-3 text-[#22C55E]" />
                   <input 
@@ -237,7 +237,7 @@ export default function EditProfile() {
                     required
                     value={upiId}
                     onChange={(e) => setUpiId(e.target.value)}
-                    placeholder="e.g. ramesh@oksbi"
+                    placeholder={t('placeholder_upi_id') || "e.g. ramesh@oksbi"}
                     className={`w-full h-10 pl-9 pr-3 rounded-xl border text-xs font-mono focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
                       isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
                     }`}
@@ -249,13 +249,13 @@ export default function EditProfile() {
             {/* Location (District, Taluk, Village) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block mb-1.5 text-[#8BA695]">District</label>
+                <label className="block mb-1.5 text-[#8BA695]">{t('label_district') || 'District'}</label>
                 <input 
                   type="text"
                   required
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
-                  placeholder="e.g. Dakshina Kannada"
+                  placeholder={t('placeholder_district') || "e.g. Dakshina Kannada"}
                   className={`w-full h-10 px-3 rounded-xl border text-xs focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
                     isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
                   }`}
@@ -263,13 +263,13 @@ export default function EditProfile() {
               </div>
 
               <div>
-                <label className="block mb-1.5 text-[#8BA695]">Taluk / Tehsil</label>
+                <label className="block mb-1.5 text-[#8BA695]">{t('label_taluk_village') || 'Taluk / Tehsil'}</label>
                 <input 
                   type="text"
                   required
                   value={taluk}
                   onChange={(e) => setTaluk(e.target.value)}
-                  placeholder="e.g. Belthangady"
+                  placeholder={t('placeholder_taluk') || "e.g. Belthangady"}
                   className={`w-full h-10 px-3 rounded-xl border text-xs focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
                     isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
                   }`}
@@ -277,13 +277,13 @@ export default function EditProfile() {
               </div>
 
               <div>
-                <label className="block mb-1.5 text-[#8BA695]">Village / Panchayat</label>
+                <label className="block mb-1.5 text-[#8BA695]">{t('label_village') || 'Village / Panchayat'}</label>
                 <input 
                   type="text"
                   required
                   value={village}
                   onChange={(e) => setVillage(e.target.value)}
-                  placeholder="e.g. Venur"
+                  placeholder={t('placeholder_village') || "e.g. Venur"}
                   className={`w-full h-10 px-3 rounded-xl border text-xs focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
                     isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
                   }`}
@@ -293,7 +293,7 @@ export default function EditProfile() {
 
             {/* Primary Crops Selector */}
             <div>
-              <label className="block mb-2 text-[#8BA695]">Primary Crops Cultivated</label>
+              <label className="block mb-2 text-[#8BA695]">{t('label_what_you_grow') || 'Primary Crops Cultivated'}</label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {ALL_CROPS.map((c) => {
                   const isChecked = selectedCrops.includes(c.id);

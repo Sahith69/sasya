@@ -111,6 +111,7 @@ export default function RedditChat({
   currentUser = null
 }) {
   const auth = useAuth?.() || {};
+  const t = auth.t || ((k) => k);
   const currentLoggedInUser = currentUser || auth.user;
   const myUsername = currentLoggedInUser?.username || 'me';
 
@@ -494,7 +495,7 @@ export default function RedditChat({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search DMs..."
+                placeholder={t('placeholder_search_dms') || "Search DMs..."}
                 className={`w-full px-2.5 py-1 text-xs rounded-lg border outline-none ${
                   isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-white border-[#D8E4DA] text-gray-800'
                 }`}
@@ -675,7 +676,7 @@ export default function RedditChat({
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder={`Message u/${activeConv.username}...`}
+                  placeholder={t('placeholder_message_user') || `Message u/${activeConv.username}...`}
                   className={`flex-1 px-3 py-2 text-xs rounded-xl border outline-none font-medium ${
                     isDark ? 'bg-[#07100C] border-[#1E3A2B] text-white focus:border-[#22C55E]' : 'bg-white border-[#D8E4DA] text-gray-800 focus:border-[#275637]'
                   }`}

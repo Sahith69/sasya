@@ -1049,7 +1049,7 @@ export default function Profile() {
 
             <form onSubmit={handleCreateListing} className="space-y-4 text-xs font-semibold">
               <div>
-                <label className="block mb-1 text-[#8BA695]">Listing Type</label>
+                <label className="block mb-1 text-[#8BA695]">{t('label_listing_type') || 'Listing Type'}</label>
                 <select 
                   value={listingCategory}
                   onChange={(e) => setListingCategory(e.target.value)}
@@ -1057,13 +1057,13 @@ export default function Profile() {
                     isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
                   }`}
                 >
-                  <option value="Equipment Rental">Equipment Rental (Power Sprayer, Drones, Tools)</option>
-                  <option value="Labour Request">Labour Request (Urgent Palm Climber, Harvester)</option>
+                  <option value="Equipment Rental">{t('opt_equipment_rental') || 'Equipment Rental (Power Sprayer, Drones, Tools)'}</option>
+                  <option value="Labour Request">{t('opt_labour_request') || 'Labour Request (Urgent Palm Climber, Harvester)'}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block mb-1 text-[#8BA695]">Target Crop Community</label>
+                <label className="block mb-1 text-[#8BA695]">{t('label_target_crop') || 'Target Crop Community'}</label>
                 <select 
                   value={listingCrop}
                   onChange={(e) => setListingCrop(e.target.value)}
@@ -1077,16 +1077,16 @@ export default function Profile() {
                   <option value="apple">🍎 Apple (r/apple)</option>
                 </select>
                 <p className="text-[10px] text-emerald-500 mt-1 font-semibold">
-                  ✓ Automatically creates a public post in this community feed!
+                  {t('auto_post_hint') || '✓ Automatically creates a public post in this community feed!'}
                 </p>
               </div>
 
               <div>
-                <label className="block mb-1 text-[#8BA695]">Title / Description</label>
+                <label className="block mb-1 text-[#8BA695]">{t('label_listing_title') || 'Title / Description'}</label>
                 <input 
                   type="text" 
                   required
-                  placeholder="e.g. 500L High-Pressure Power Sprayer for Rent"
+                  placeholder={t('placeholder_listing_title') || "e.g. 500L High-Pressure Power Sprayer for Rent"}
                   value={listingTitle}
                   onChange={(e) => setListingTitle(e.target.value)}
                   className={`w-full h-10 px-3 rounded-xl border text-xs ${
@@ -1096,11 +1096,11 @@ export default function Profile() {
               </div>
 
               <div>
-                <label className="block mb-1 text-[#8BA695]">Rate / Price</label>
+                <label className="block mb-1 text-[#8BA695]">{t('label_listing_rate') || 'Rate / Price'}</label>
                 <input 
                   type="text" 
                   required
-                  placeholder="e.g. ₹800 / day or ₹700 / acre"
+                  placeholder={t('placeholder_listing_rate') || "e.g. ₹800 / day or ₹700 / acre"}
                   value={listingRate}
                   onChange={(e) => setListingRate(e.target.value)}
                   className={`w-full h-10 px-3 rounded-xl border text-xs ${
@@ -1133,14 +1133,14 @@ export default function Profile() {
                   {managingListing.category}
                 </span>
                 <h3 className="font-extrabold text-base mt-0.5">
-                  Manage Listing
+                  {t('manage_listing_title') || 'Manage Listing'}
                 </h3>
               </div>
               <button 
                 onClick={() => setManagingListing(null)}
                 className="text-xs font-bold opacity-70 hover:opacity-100 cursor-pointer"
               >
-                ✕ Close
+                ✕ {t('btn_close') || 'Close'}
               </button>
             </div>
 
@@ -1181,7 +1181,7 @@ export default function Profile() {
                   }`}
                 >
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span>{managingListing.status.includes('Completed') ? 'Mark as Available Again' : 'Mark as Fulfilled / Completed'}</span>
+                  <span>{managingListing.status.includes('Completed') ? (t('btn_mark_available') || 'Mark as Available Again') : (t('btn_mark_fulfilled') || 'Mark as Fulfilled / Completed')}</span>
                 </button>
 
                 <button
@@ -1190,7 +1190,7 @@ export default function Profile() {
                   className="w-full py-2.5 px-4 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>Delete Listing &amp; Remove from Community</span>
+                  <span>{t('btn_delete_listing') || 'Delete Listing & Remove from Community'}</span>
                 </button>
               </div>
             </div>

@@ -707,7 +707,7 @@ export default function Contribute() {
                   rows={2}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="e.g. Palm canopy facing north slope. Water-soaked rot appeared after 2 days of continuous mist."
+                  placeholder={t('placeholder_contribute_notes') || "e.g. Palm canopy facing north slope. Water-soaked rot appeared after 2 days of continuous mist."}
                   className={`w-full p-2.5 rounded-xl border text-xs outline-none resize-none ${
                     isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white focus:border-[#22C55E]' : 'bg-[#FAFCFA] border-[#D8E4DA] text-gray-800 focus:border-[#275637]'
                   }`}

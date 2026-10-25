@@ -13,20 +13,24 @@ const AVAILABLE_CROPS = [
   { id: 'Black Pepper', label: '🌿 Black Pepper (ಕಾಳುಮೆಣಸು)' }
 ];
 
-const DISTRICT_OPTIONS = [
-  'Dakshina Kannada',
-  'Udupi',
-  'Shivamogga',
-  'Chikkamagaluru',
-  'Mysuru',
-  'Shimla',
-  'Kullu',
-  'Dehradun'
-];
+const DISTRICT_TALUKS = {
+  'Dakshina Kannada': ['Belthangady (Venur)', 'Belthangady', 'Bantwal', 'Puttur', 'Sullia', 'Mangaluru', 'Moodabidri', 'Kadaba'],
+  'Udupi': ['Karkala', 'Kundapura', 'Udupi', 'Brahmavar', 'Hebri', 'Byndoor'],
+  'Shivamogga': ['Thirthahalli (Mandagadde)', 'Thirthahalli', 'Shivamogga', 'Sagara', 'Bhadravathi', 'Soraba', 'Hosanagara', 'Shikaripura'],
+  'Chikkamagaluru': ['Sringeri', 'Mudigere', 'Koppa', 'Chikkamagaluru', 'Narasimharajapura', 'Tarikere', 'Kadur'],
+  'Kolar': ['Kolar', 'Bangarapet', 'Srinivaspur', 'Malur', 'Mulbagal'],
+  'Mandya': ['Maddur', 'Mandya', 'Pandavapura', 'Malavalli', 'Nagamangala', 'Krishnarajpet', 'Srirangapatna'],
+  'Mysuru': ['Hunsur', 'Mysuru', 'Nanjangud', 'Periyapatna', 'T. Narasipura', 'H.D. Kote'],
+  'Shimla': ['Theog', 'Shimla', 'Rohru', 'Kotkhai', 'Rampur', 'Jubbal'],
+  'Kullu': ['Kullu', 'Manali', 'Banjar', 'Anni'],
+  'Dehradun': ['Dehradun', 'Rishikesh', 'Vikasnagar', 'Chakrata']
+};
+
+const DISTRICT_OPTIONS = Object.keys(DISTRICT_TALUKS);
 
 export default function Login() {
   const navigate = useNavigate();
-  const { lang, setLang, t, login, registerFarmer } = useAuth();
+  const { lang, setLang, t, login, startPhoneSignup } = useAuth();
 
   const [activeTab, setActiveTab] = useState('signin'); // 'signin' or 'signup'
   
@@ -42,10 +46,16 @@ export default function Login() {
   const [signUpPassword, setSignUpPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [signUpDistrict, setSignUpDistrict] = useState('Dakshina Kannada');
-  const [signUpTaluk, setSignUpTaluk] = useState('Belthangady, Venur');
+  const [signUpTaluk, setSignUpTaluk] = useState('Belthangady (Venur)');
   const [signUpCrops, setSignUpCrops] = useState(['Arecanut']);
   const [signUpError, setSignUpError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // When District changes, update Taluk options and default selection
+  const handleDistrictChange = (d) => {
+    setSignUpDistrict(d);
+    setSignUpTaluk(DISTRICT_TALUKS[d]?.[0] || '');
+  };
 
   // Toggle crop selection
   const toggleCrop = (cropId) => {
@@ -83,17 +93,17 @@ export default function Login() {
     }, 250);
   };
 
-  // Handle Sign Up submission with place & crops preferences
+  // Handle Sign Up submission: saves preferences & triggers OTP verification
   const handleSignUpSubmit = (e) => {
     e.preventDefault();
     setSignUpError('');
 
     if (!signUpUsername.trim()) {
-      setSignUpError('Please choose a username for your farmer profile.');
+      setSignUpError(t('enter_username') || 'Please choose a username for your farmer profile.');
       return;
     }
     if (!signUpPassword.trim()) {
-      setSignUpError('Please enter a password.');
+      setSignUpError(t('enter_password') || 'Please enter a password.');
       return;
     }
     if (signUpCrops.length === 0) {
@@ -102,25 +112,25 @@ export default function Login() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const res = registerFarmer({
-        username: signUpUsername.trim(),
-        password: signUpPassword.trim(),
-        phone: phone.trim() || '98450 12345',
-        name: signUpName.trim() || signUpUsername.trim(),
-        district: signUpDistrict,
-        taluk: signUpTaluk.trim(),
-        village: signUpTaluk.trim().split(',')[1]?.trim() || signUpTaluk.trim(),
-        crops: signUpCrops
-      });
-      setIsSubmitting(false);
+    const cleanPhone = phone.trim() || '98450 12345';
+    const res = startPhoneSignup(cleanPhone, {
+      username: signUpUsername.trim(),
+      password: signUpPassword.trim(),
+      phone: cleanPhone,
+      name: signUpName.trim() || signUpUsername.trim(),
+      district: signUpDistrict,
+      taluk: signUpTaluk,
+      crops: signUpCrops
+    });
 
+    setTimeout(() => {
+      setIsSubmitting(false);
       if (res.success) {
-        navigate('/home');
+        navigate('/verify-otp');
       } else {
-        setSignUpError(res.error || 'Registration failed. Please try again.');
+        setSignUpError(res.error || 'Failed to start verification.');
       }
-    }, 300);
+    }, 250);
   };
 
   return (
@@ -254,7 +264,7 @@ export default function Login() {
 
               {/* Quick Fill Test Account Link */}
               <div className="pt-3 border-t border-[#E8F0E9] mt-4 flex items-center justify-between text-xs text-[#556B5C]">
-                <span>Default credentials:</span>
+                <span>{t('default_creds')}</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -283,26 +293,26 @@ export default function Login() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-[11px] font-bold text-[#275637] uppercase tracking-wider mb-1">
-                    Your Name
+                    {t('label_your_name')}
                   </label>
                   <input
                     type="text"
                     value={signUpName}
                     onChange={(e) => setSignUpName(e.target.value)}
-                    placeholder="Ramesh Gowda"
+                    placeholder={t('placeholder_your_name')}
                     className="w-full px-3 py-2 bg-[#FAFCFA] border border-[#91BA94] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#275637]/25 font-medium"
                   />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-[#275637] uppercase tracking-wider mb-1">
-                    Username *
+                    {t('label_username')}
                   </label>
                   <input
                     type="text"
                     required
                     value={signUpUsername}
                     onChange={(e) => setSignUpUsername(e.target.value)}
-                    placeholder="ramesh_gowda"
+                    placeholder={t('placeholder_username')}
                     className="w-full px-3 py-2 bg-[#FAFCFA] border border-[#91BA94] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#275637]/25 font-medium"
                   />
                 </div>
@@ -312,26 +322,26 @@ export default function Login() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-[11px] font-bold text-[#275637] uppercase tracking-wider mb-1">
-                    Mobile Number
+                    {t('label_mobile')}
                   </label>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="98450 12345"
+                    placeholder={t('placeholder_mobile')}
                     className="w-full px-3 py-2 bg-[#FAFCFA] border border-[#91BA94] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#275637]/25 font-medium"
                   />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-[#275637] uppercase tracking-wider mb-1">
-                    Password *
+                    {t('label_password')}
                   </label>
                   <input
                     type="password"
                     required
                     value={signUpPassword}
                     onChange={(e) => setSignUpPassword(e.target.value)}
-                    placeholder="farmer123"
+                    placeholder={t('placeholder_password')}
                     className="w-full px-3 py-2 bg-[#FAFCFA] border border-[#91BA94] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#275637]/25 font-medium"
                   />
                 </div>
@@ -341,17 +351,17 @@ export default function Login() {
               <div className="p-3 rounded-xl bg-[#F4F8F5] border border-[#91BA94]/60 space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-black text-[#275637]">
                   <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Farmer's Place (Location Preference)</span>
+                  <span>{t('label_location_pref')}</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[10px] font-bold text-[#556B5C] uppercase tracking-wider mb-1">
-                      District
+                      {t('label_district')}
                     </label>
                     <select
                       value={signUpDistrict}
-                      onChange={(e) => setSignUpDistrict(e.target.value)}
+                      onChange={(e) => handleDistrictChange(e.target.value)}
                       className="w-full px-2.5 py-1.5 bg-white border border-[#91BA94] rounded-lg text-xs font-bold text-[#275637] focus:outline-none cursor-pointer"
                     >
                       {DISTRICT_OPTIONS.map((d) => (
@@ -361,15 +371,17 @@ export default function Login() {
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-[#556B5C] uppercase tracking-wider mb-1">
-                      Taluk / Village
+                      {t('label_taluk_village')}
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={signUpTaluk}
                       onChange={(e) => setSignUpTaluk(e.target.value)}
-                      placeholder="Belthangady, Venur"
-                      className="w-full px-2.5 py-1.5 bg-white border border-[#91BA94] rounded-lg text-xs font-medium focus:outline-none"
-                    />
+                      className="w-full px-2.5 py-1.5 bg-white border border-[#91BA94] rounded-lg text-xs font-bold text-[#275637] focus:outline-none cursor-pointer"
+                    >
+                      {(DISTRICT_TALUKS[signUpDistrict] || []).map((tVal) => (
+                        <option key={tVal} value={tVal}>{tVal}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -377,8 +389,8 @@ export default function Login() {
               {/* ── PREFERENCE: WHAT THEY GROW ── */}
               <div className="p-3 rounded-xl bg-[#F4F8F5] border border-[#91BA94]/60 space-y-2">
                 <div className="flex items-center justify-between text-xs font-black text-[#275637]">
-                  <span>What You Grow (Primary Crops)</span>
-                  <span className="text-[10px] text-gray-400 font-normal">Select all that apply</span>
+                  <span>{t('label_what_you_grow')}</span>
+                  <span className="text-[10px] text-gray-400 font-normal">{t('sub_select_all')}</span>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5">
@@ -408,7 +420,7 @@ export default function Login() {
                 disabled={isSubmitting}
                 className="w-full py-3 px-4 bg-[#275637] hover:bg-[#1E462B] active:scale-[0.99] text-white font-bold rounded-xl text-sm transition-all duration-200 shadow-xs flex items-center justify-center gap-2 group cursor-pointer mt-2"
               >
-                <span>{isSubmitting ? 'Setting Up Farm Profile...' : 'Register Farm Profile & Enter Sasya ➔'}</span>
+                <span>{isSubmitting ? (t('signing_in') || 'Verifying...') : t('btn_verify_mobile_otp')}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </form>

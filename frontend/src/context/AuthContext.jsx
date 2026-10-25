@@ -161,13 +161,17 @@ export function AuthProvider({ children }) {
     return { success: false, error: 'Invalid username or password. For demo use farmer_KA_101 / farmer123' };
   };
 
-  // 2. Step 1 of Sign Up: Start Dummy Phone OTP
-  const startPhoneSignup = (phone) => {
-    const cleanPhone = phone.trim();
-    if (!cleanPhone.startsWith('00000') && cleanPhone.length < 10) {
+  // 2. Step 1 of Sign Up: Start Dummy Phone OTP with Profile Preferences
+  const startPhoneSignup = (phone, profileDetails = {}) => {
+    const cleanPhone = (phone || '').trim();
+    if (!cleanPhone.startsWith('00000') && cleanPhone.replace(/\D/g, '').length < 10) {
       return { success: false, error: 'Please enter a valid 10-digit mobile number or demo number starting with 00000.' };
     }
-    setPendingSignup({ phone: cleanPhone, step: 'otp' });
+    setPendingSignup({
+      phone: cleanPhone,
+      ...profileDetails,
+      step: 'otp'
+    });
     return { success: true, demoOtp: '123456' };
   };
 
@@ -180,29 +184,31 @@ export function AuthProvider({ children }) {
     return { success: true };
   };
 
-  // 4. Step 3 of Sign Up: Save Username & Password
-  const completeAccountCreation = (username, password) => {
-    if (!username.trim() || !password.trim()) {
+  // 4. Step 3 of Sign Up: Complete Account Creation & Save Credentials
+  const completeAccountCreation = (chosenUsername, chosenPassword) => {
+    const finalUsername = (chosenUsername || pendingSignup?.username || '').trim();
+    const finalPassword = (chosenPassword || pendingSignup?.password || '').trim();
+    if (!finalUsername || !finalPassword) {
       return { success: false, error: 'Username and password cannot be empty.' };
     }
 
     const newUser = {
-      id: `farmer_${pendingSignup?.phone?.slice(-4) || Math.floor(Math.random() * 9000 + 1000)}`,
-      username: username.trim(),
-      password: password,
-      phone: pendingSignup?.phone || '00000 12345',
+      id: `farmer_${pendingSignup?.phone ? pendingSignup.phone.slice(-4) : Math.floor(Math.random() * 9000 + 1000)}`,
+      username: finalUsername,
+      password: finalPassword,
+      phone: pendingSignup?.phone || '98450 12345',
       role: 'farmer',
-      name: username.trim(),
-      state: 'Karnataka',
-      district: 'Dakshina Kannada',
-      taluk: 'Belthangady',
-      village: 'Venur',
-      landSize: '4.0 Acres',
-      upiId: `${username.trim()}@oksbi`,
-      crops: ['Arecanut'],
+      name: pendingSignup?.name || finalUsername,
+      state: pendingSignup?.state || 'Karnataka',
+      district: pendingSignup?.district || 'Dakshina Kannada',
+      taluk: pendingSignup?.taluk || 'Belthangady',
+      village: (pendingSignup?.taluk || 'Venur').replace(/\(.*\)/, '').trim(),
+      landSize: '3.5 Acres',
+      upiId: `${finalUsername}@oksbi`,
+      crops: pendingSignup?.crops && pendingSignup.crops.length > 0 ? pendingSignup.crops : ['Arecanut'],
       lang: lang,
-      consentGiven: false,
-      onboarded: false
+      consentGiven: true,
+      onboarded: true
     };
 
     const storedUsers = JSON.parse(localStorage.getItem('sasya_custom_users') || '[]');

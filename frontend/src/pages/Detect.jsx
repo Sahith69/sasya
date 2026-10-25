@@ -444,7 +444,7 @@ export default function Detect() {
           <label className={`block text-xs font-bold mb-2 uppercase tracking-wider ${
             isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'
           }`}>
-            Select Crop to Diagnose
+            {t('select_crop_diagnose') || 'Select Crop to Diagnose'}
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {SUPPORTED_CROPS.map((crop) => (
@@ -496,7 +496,7 @@ export default function Detect() {
                 {/* Viewfinder Targeting Reticle */}
                 <div className="absolute inset-6 border-2 border-dashed border-emerald-400/80 rounded-xl pointer-events-none flex items-center justify-center">
                   <span className="text-[11px] font-mono font-bold bg-black/60 px-2.5 py-1 rounded text-emerald-300">
-                    Align leaf lesion in center
+                    {t('align_leaf_center') || 'Align leaf lesion in center'}
                   </span>
                 </div>
 
@@ -518,7 +518,7 @@ export default function Detect() {
                   onClick={stopCamera}
                   className="px-4 py-2.5 rounded-xl border text-xs font-bold text-gray-400 hover:text-white cursor-pointer"
                 >
-                  Cancel
+                  {t('btn_cancel') || 'Cancel'}
                 </button>
 
                 <button
@@ -527,7 +527,7 @@ export default function Detect() {
                   className="px-7 py-3 rounded-full bg-emerald-500 hover:bg-emerald-600 text-[#0B1712] font-black text-sm flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 >
                   <Camera className="w-5 h-5" />
-                  <span>Snap Photo</span>
+                  <span>{t('btn_snap_photo') || 'Snap Photo'}</span>
                 </button>
 
                 <button
@@ -535,7 +535,7 @@ export default function Detect() {
                   onClick={() => fileInputRef.current?.click()}
                   className="px-4 py-2.5 rounded-xl border text-xs font-bold text-gray-400 hover:text-white cursor-pointer"
                 >
-                  Or Upload
+                  {t('btn_or_upload') || 'Or Upload'}
                 </button>
               </div>
             </div>
@@ -568,7 +568,7 @@ export default function Detect() {
                     
                     <Cpu className="w-9 h-9 text-[#22C55E] animate-spin mb-3" />
                     <p className="font-extrabold text-sm mb-1 text-[#22C55E]">
-                      AI Diagnosis In Progress
+                      {t('ai_diagnosis_progress') || 'AI Diagnosis In Progress'}
                     </p>
                     <p className="text-xs text-gray-200 min-h-[30px] font-medium">
                       {scanSteps[scanStep]}
@@ -597,7 +597,7 @@ export default function Detect() {
                   }`}
                 >
                   <Zap className="w-4 h-4 fill-current" />
-                  <span>Analyze {selectedCrop} Leaf</span>
+                  <span>{t('btn_analyze_leaf') || 'Analyze Leaf'}</span>
                 </button>
 
                 <div className="flex gap-2">
@@ -610,7 +610,7 @@ export default function Detect() {
                     }`}
                   >
                     <Camera className="w-3.5 h-3.5" />
-                    <span>Retake Photo</span>
+                    <span>{t('btn_retake_photo') || 'Retake Photo'}</span>
                   </button>
 
                   <button
@@ -622,7 +622,7 @@ export default function Detect() {
                     }`}
                   >
                     <Upload className="w-3.5 h-3.5" />
-                    <span>Upload Different</span>
+                    <span>{t('btn_upload_different') || 'Upload Different'}</span>
                   </button>
                 </div>
               </div>
@@ -639,12 +639,12 @@ export default function Detect() {
               </div>
 
               <h2 className="text-base font-extrabold mb-1">
-                Take or Upload Leaf Photo
+                {t('title_take_or_upload') || 'Take or Upload Leaf Photo'}
               </h2>
               <p className={`text-xs mb-6 ${
                 isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'
               }`}>
-                Focus on the dark calyx rot, leaf spots, or lesion margins.
+                {t('sub_focus_leaf') || 'Focus on the dark calyx rot, leaf spots, or lesion margins.'}
               </p>
 
               <div className="w-full space-y-2.5">
@@ -658,7 +658,7 @@ export default function Detect() {
                   }`}
                 >
                   <Camera className="w-4 h-4" />
-                  <span>Open Camera</span>
+                  <span>{t('btn_open_camera') || 'Open Camera'}</span>
                 </button>
 
                 <button
@@ -671,7 +671,7 @@ export default function Detect() {
                   }`}
                 >
                   <Upload className="w-4 h-4 text-[#22C55E]" />
-                  <span>Upload Image File</span>
+                  <span>{t('btn_upload_image_file') || 'Upload Image File'}</span>
                 </button>
               </div>
             </div>
