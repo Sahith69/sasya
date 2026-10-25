@@ -533,104 +533,74 @@ export default function DetectResult() {
               }`}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-emerald-500" />
-                    <span className="font-bold text-xs uppercase tracking-wider text-[#8BA695]">
-                      Visual Attention Heatmap
-                    </span>
+                    <Sparkles className="w-4 h-4 text-[#22C55E]" />
+                    <h3 className="font-extrabold text-sm">
+                      Grad-CAM Explainability Heatmap
+                    </h3>
                   </div>
-                  <span className="text-[11px] font-bold text-emerald-500">
-                    {sliderPos}% Attention
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    isDark ? 'bg-[#162F20] border-[#1E3A2B] text-[#8BA695]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
+                  }`}>
+                    Drag Slider Below
                   </span>
                 </div>
 
-                {/* Heatmap Visual Canvas */}
-                <div className="relative w-full aspect-[4/3] min-h-[280px] sm:min-h-[360px] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-[#0A140F] flex items-center justify-center shadow-inner">
-                  {/* Base Original Image */}
+                {/* Interactive Slider Viewport */}
+                <div className="relative aspect-square w-full max-w-md mx-auto rounded-[14px] overflow-hidden border border-[#91BA94]/40 shadow-inner select-none bg-black/10">
+                  {/* Base Original Leaf */}
                   <img 
                     src={image} 
-                    alt="Original scan" 
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300"
+                    alt="Original specimen" 
+                    className="absolute inset-0 w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.src = `/samples/sample_${diagnosis.cropKey || 'arecanut'}.jpg`;
                     }}
                   />
 
-                  {/* Grad-CAM Heatmap: Real model output or multi-stage neural attention overlay */}
+                  {/* Grad-CAM Heatmap Layer with variable opacity */}
                   {gradcamImageSrc ? (
                     <img 
                       src={gradcamImageSrc}
                       alt="Grad-CAM activation heatmap"
-                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-150 pointer-events-none"
+                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-75 pointer-events-none"
                       style={{ opacity: sliderPos / 100 }}
                     />
                   ) : (
                     <>
-                      {/* Radial Heatmap Glow */}
                       <div 
-                        className="absolute inset-0 bg-radial from-rose-500/85 via-amber-500/50 to-transparent mix-blend-color-dodge transition-opacity duration-100 pointer-events-none"
-                        style={{ opacity: sliderPos / 100 }}
+                        className="absolute inset-0 w-full h-full pointer-events-none mix-blend-color-dodge transition-opacity duration-75"
+                        style={{ 
+                          opacity: sliderPos / 100,
+                          background: 'radial-gradient(circle at 55% 45%, rgba(255,0,0,0.85) 0%, rgba(255,165,0,0.75) 30%, rgba(0,255,0,0.5) 55%, transparent 75%)'
+                        }}
                       />
+                      {/* Subtle thermal scan overlay */}
                       <div 
-                        className="absolute inset-0 bg-radial from-red-600/70 via-yellow-400/40 to-transparent mix-blend-screen transition-opacity duration-100 pointer-events-none"
-                        style={{ opacity: (sliderPos / 100) * 0.85 }}
+                        className="absolute inset-0 w-full h-full pointer-events-none mix-blend-overlay transition-opacity duration-75"
+                        style={{ 
+                          opacity: (sliderPos / 100) * 0.8,
+                          background: 'radial-gradient(ellipse at 50% 50%, rgba(255, 60, 0, 0.9) 15%, rgba(255, 230, 0, 0.6) 40%, transparent 70%)'
+                        }}
                       />
-                      {/* Centered Lesion Attention Reticles */}
-                      <div 
-                        className="absolute w-36 h-36 rounded-full border-2 border-dashed border-rose-400 shadow-[0_0_25px_rgba(244,63,94,0.6)] animate-pulse pointer-events-none flex items-center justify-center"
-                        style={{ opacity: sliderPos > 15 ? (sliderPos / 100) : 0 }}
-                      >
-                        <div className="w-12 h-12 rounded-full bg-rose-500/40 border border-rose-300 animate-ping" />
-                      </div>
                     </>
                   )}
 
-                  {/* Top Heatmap Badge */}
-                  <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-white text-[11px] font-bold flex items-center gap-1.5 shadow-md">
-                    <span className={`w-2 h-2 rounded-full ${sliderPos > 30 ? 'bg-rose-500 animate-ping' : 'bg-emerald-400'}`} />
-                    <span>{sliderPos > 50 ? '🔥 Attention Heatmap Mode' : '🍃 Specimen Inspection'}</span>
+                  {/* Top-Left Badge */}
+                  <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-md text-white text-[11px] font-semibold shadow-xs">
+                    {sliderPos < 20 ? 'Original Photo' : sliderPos > 80 ? 'Grad-CAM Attention' : `Blend: ${sliderPos}%`}
                   </div>
 
-                  {/* Preset Buttons */}
-                  <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-black/75 backdrop-blur-md p-1 rounded-xl border border-white/20">
-                    <button
-                      type="button"
-                      onClick={() => setSliderPos(0)}
-                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                        sliderPos === 0 ? 'bg-emerald-500 text-black font-black' : 'text-gray-300 hover:text-white'
-                      }`}
-                    >
-                      Original
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSliderPos(50)}
-                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                        sliderPos === 50 ? 'bg-amber-500 text-black font-black' : 'text-gray-300 hover:text-white'
-                      }`}
-                    >
-                      50% Blend
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSliderPos(100)}
-                      className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                        sliderPos === 100 ? 'bg-rose-500 text-white font-black' : 'text-gray-300 hover:text-white'
-                      }`}
-                    >
-                      Heatmap
-                    </button>
+                  {/* Bottom-Right Target Layer Badge */}
+                  <div className="absolute bottom-3 right-3 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-md text-white text-[10px] font-mono shadow-xs">
+                    Target: Conv_layer4.2
                   </div>
                 </div>
 
                 {/* Slider Control */}
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-semibold text-gray-400">
-                    <span className="flex items-center gap-1 font-bold text-emerald-500">
-                      <span>🍃 Original Leaf (0%)</span>
-                    </span>
-                    <span className="flex items-center gap-1 font-bold text-rose-500">
-                      <span>🔥 Attention Heatmap (100%)</span>
-                    </span>
+                <div className="mt-4 px-2 space-y-1.5">
+                  <div className="flex justify-between text-xs font-bold text-[#8BA695]">
+                    <span>📷 Original Specimen</span>
+                    <span>🔥 Grad-CAM Attention</span>
                   </div>
                   <input 
                     type="range" 
@@ -638,10 +608,10 @@ export default function DetectResult() {
                     max="100" 
                     value={sliderPos} 
                     onChange={(e) => setSliderPos(Number(e.target.value))}
-                    className="w-full accent-[#22C55E] cursor-ew-resize h-2.5 bg-gray-200 dark:bg-gray-700 rounded-lg"
+                    className="w-full accent-[#22C55E] cursor-ew-resize h-2 bg-gray-200 dark:bg-gray-700 rounded-lg"
                   />
                   <p className={`text-[11px] text-center ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                    Slide right to visualize the high-gradient lesion pixels activating the neural pathology classifier.
+                    Drag right to see the exact lesion pixels activating the ResNet-18 neural network.
                   </p>
                 </div>
 
