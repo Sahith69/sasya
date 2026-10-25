@@ -97,8 +97,9 @@ function MainApp() {
         <Route path="/chat" element={<Navigate to="/c/arecanut?chat=open" replace />} />
         <Route path="/messages" element={<Navigate to="/c/arecanut?chat=open" replace />} />
         
-        {/* Redirect removed 48-Hour Spray Window route */}
-        <Route path="/risk" element={<Navigate to="/home" replace />} />
+        {/* 48-Hour Bioclimatic Weather Defense & Safe Spray Window */}
+        <Route path="/risk" element={<ProtectedRoute><Risk /></ProtectedRoute>} />
+        <Route path="/spray" element={<Navigate to="/risk" replace />} />
         
         {/* Open Agronomy Dataset Contribution Desk */}
         <Route path="/contribute" element={<ProtectedRoute><Contribute /></ProtectedRoute>} />
