@@ -7,8 +7,9 @@ import {
   MapPin, Shield, CheckCircle2, AlertTriangle, ChevronRight,
   Plus, RotateCcw, Volume2, Sun, Moon, ArrowRight,
   Clock, Sparkles, MessageSquare, Lock, Unlock, Globe,
-  UserCheck, UserPlus, Users, Check, X, Bell
+  UserCheck, UserPlus, Users, Check, X, Bell, ExternalLink, Trash2
 } from 'lucide-react';
+import { createCommunityPost } from '../services/api';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -100,43 +101,176 @@ export default function Profile() {
     } catch {}
   };
 
-  // Listings State
-  const [listings, setListings] = useState([
-    { 
-      title: '500L High-Pressure Power Sprayer for Rent', 
-      category: 'Equipment Rental',
-      rate: '₹800 / day', 
-      status: 'Available Now',
-      contact: 'Contact Ramesh (Self)'
-    },
-    { 
-      title: 'URGENT: 2 Palm Climbers Needed for Koleroga Spraying', 
-      category: 'Labour Request',
-      rate: '₹700 / day', 
-      status: 'Active Request (Rain in 28h)',
-      contact: '2 young farmers responded'
-    }
-  ]);
+  // Listings State (Persisted across refreshes and synced with Community Feed)
+  const [listings, setListings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sasya_farmer_listings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [
+      { 
+        id: 1,
+        title: '500L High-Pressure Power Sprayer for Rent', 
+        category: 'Equipment Rental',
+        rate: '₹800 / day', 
+        crop: 'arecanut',
+        status: 'Available Now',
+        contact: 'Contact Ramesh (Self)'
+      },
+      { 
+        id: 2,
+        title: 'URGENT: 2 Palm Climbers Needed for Koleroga Spraying', 
+        category: 'Labour Request',
+        rate: '₹700 / day', 
+        crop: 'arecanut',
+        status: 'Active Request (Rain in 28h)',
+        contact: '2 young farmers responded'
+      }
+    ];
+  });
+
   const [showListingModal, setShowListingModal] = useState(false);
+  const [managingListing, setManagingListing] = useState(null);
   const [listingTitle, setListingTitle] = useState('');
   const [listingCategory, setListingCategory] = useState('Equipment Rental');
-  const [listingRate, setListingRate] = useState('₹500 / day');
+  const [listingCrop, setListingCrop] = useState(() => (user?.crops?.[0] || 'Arecanut').toLowerCase());
+  const [listingRate, setListingRate] = useState('₹800 / day');
 
-  const handleCreateListing = (e) => {
+  // Persist listings to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('sasya_farmer_listings', JSON.stringify(listings));
+    } catch (e) {
+      console.warn("Could not save listings:", e);
+    }
+  }, [listings]);
+
+  // Create Listing & Automatically Post to Community Feed
+  const handleCreateListing = async (e) => {
     e.preventDefault();
     if (!listingTitle.trim()) return;
-    setListings([
-      {
+
+    const listingId = Date.now();
+    const targetCrop = (listingCrop || user?.crops?.[0] || 'arecanut').toLowerCase();
+    const authorUsername = user?.username || user?.name?.replace(/\s+/g, '_') || 'Ramesh_Gowda';
+    const authorDisplay = user?.name || user?.username || 'Ramesh Gowda';
+    const villageText = `${user?.village || 'Venur'}, ${user?.district || 'Dakshina Kannada'}`;
+
+    const newListing = {
+      id: listingId,
+      title: listingTitle.trim(),
+      category: listingCategory,
+      rate: listingRate.trim(),
+      crop: targetCrop,
+      status: 'Available Now (Active in Community)',
+      contact: `Contact ${authorDisplay} (Self)`
+    };
+
+    const nextListings = [newListing, ...listings];
+    setListings(nextListings);
+    try {
+      localStorage.setItem('sasya_farmer_listings', JSON.stringify(nextListings));
+    } catch {}
+
+    // AUTOMATICALLY PUBLISH TO COMMUNITY FEED (r/{crop})
+    const flairColor = listingCategory === 'Labour Request'
+      ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30'
+      : 'bg-blue-500/15 text-blue-500 border-blue-500/30';
+
+    const newCommunityPost = {
+      id: listingId,
+      crop: targetCrop,
+      author: authorUsername,
+      village: villageText,
+      badge: listingCategory === 'Labour Request' ? 'Labour Request' : 'Equipment Rental',
+      timeAgo: 'Just now',
+      flair: listingCategory,
+      flairColor: flairColor,
+      title: listingCategory === 'Labour Request' 
+        ? `👥 ${listingTitle.trim()}` 
+        : `🚜 ${listingTitle.trim()}`,
+      content: `${listingTitle.trim()}\n\n• Rate / Daily Wage: ${listingRate.trim()}\n• Location: ${villageText}\n• Status: Available Now\n\nDirectly published from Rural Equipment & Labour Exchange. Click Chat below to coordinate pickup and work details!`,
+      image: null,
+      aiBadge: null,
+      upvotes: 1,
+      userVote: 1,
+      saved: false,
+      comments: []
+    };
+
+    try {
+      const savedPosts = localStorage.getItem('sasya_community_posts');
+      let currentPosts = [];
+      if (savedPosts) {
+        try {
+          const parsed = JSON.parse(savedPosts);
+          if (Array.isArray(parsed)) currentPosts = parsed;
+        } catch {}
+      }
+      const updatedPosts = [newCommunityPost, ...currentPosts];
+      localStorage.setItem('sasya_community_posts', JSON.stringify(updatedPosts));
+    } catch (err) {
+      console.warn("Could not save to local community posts", err);
+    }
+
+    // Sync to Render cloud backend
+    try {
+      await createCommunityPost({
+        crop: targetCrop,
+        author_id: user?.id || authorUsername,
+        author_name: authorUsername,
         title: listingTitle.trim(),
-        category: listingCategory,
-        rate: listingRate.trim(),
-        status: 'Available Now',
-        contact: `Contact ${user?.name || 'Ramesh'} (Self)`
-      },
-      ...listings
-    ]);
+        content: `${listingTitle.trim()} | Rate: ${listingRate.trim()} | Location: ${villageText}`,
+        audio_url: null
+      });
+    } catch (err) {
+      console.info("Listing post backed up locally");
+    }
+
     setListingTitle('');
     setShowListingModal(false);
+    showToast(`✓ Listing added & automatically posted in r/${targetCrop} community!`);
+  };
+
+  // Toggle listing status in Manage modal
+  const handleToggleListingStatus = (id) => {
+    const next = listings.map(l => {
+      if (l.id === id) {
+        const nextStatus = l.status.includes('Completed') ? 'Available Now' : 'Completed / Fulfilled';
+        return { ...l, status: nextStatus };
+      }
+      return l;
+    });
+    setListings(next);
+    if (managingListing?.id === id) {
+      setManagingListing({ 
+        ...managingListing, 
+        status: managingListing.status.includes('Completed') ? 'Available Now' : 'Completed / Fulfilled' 
+      });
+    }
+    showToast('Listing status updated');
+  };
+
+  // Delete listing from Profile & Community
+  const handleDeleteListing = (id) => {
+    const next = listings.filter(l => l.id !== id);
+    setListings(next);
+    setManagingListing(null);
+
+    // Also remove from community posts
+    try {
+      const saved = localStorage.getItem('sasya_community_posts');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const filtered = parsed.filter(p => p.id !== id);
+        localStorage.setItem('sasya_community_posts', JSON.stringify(filtered));
+      }
+    } catch {}
+
+    showToast('Listing and community post removed');
   };
 
   return (
@@ -750,11 +884,26 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  <button className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all hover:scale-105 active:scale-95 ${
-                    isDark ? 'bg-[#162C20] border-[#22C55E]/40 text-white' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
-                  }`}>
-                    Manage Listing
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => navigate(`/c/${listing.crop || 'arecanut'}`)}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 ${
+                        isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-emerald-400 hover:border-[#22C55E]' : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#FAFCFA]'
+                      }`}
+                      title="View this post in the community feed"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>View in Feed</span>
+                    </button>
+                    <button 
+                      onClick={() => setManagingListing(listing)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+                        isDark ? 'bg-[#162C20] border-[#22C55E]/40 text-white hover:border-[#22C55E]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637] hover:bg-[#D8E4DA]'
+                      }`}
+                    >
+                      Manage Listing
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -904,6 +1053,25 @@ export default function Profile() {
               </div>
 
               <div>
+                <label className="block mb-1 text-[#8BA695]">Target Crop Community</label>
+                <select 
+                  value={listingCrop}
+                  onChange={(e) => setListingCrop(e.target.value)}
+                  className={`w-full h-10 px-3 rounded-xl border text-xs ${
+                    isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
+                  }`}
+                >
+                  <option value="arecanut">🌴 Arecanut (r/arecanut)</option>
+                  <option value="paddy">🌾 Paddy (r/paddy)</option>
+                  <option value="tomato">🍅 Tomato (r/tomato)</option>
+                  <option value="apple">🍎 Apple (r/apple)</option>
+                </select>
+                <p className="text-[10px] text-emerald-500 mt-1 font-semibold">
+                  ✓ Automatically creates a public post in this community feed!
+                </p>
+              </div>
+
+              <div>
                 <label className="block mb-1 text-[#8BA695]">Title / Description</label>
                 <input 
                   type="text" 
@@ -922,7 +1090,7 @@ export default function Profile() {
                 <input 
                   type="text" 
                   required
-                  placeholder="e.g. ₹500 / day or ₹700 / acre"
+                  placeholder="e.g. ₹800 / day or ₹700 / acre"
                   value={listingRate}
                   onChange={(e) => setListingRate(e.target.value)}
                   className={`w-full h-10 px-3 rounded-xl border text-xs ${
@@ -933,11 +1101,91 @@ export default function Profile() {
 
               <button
                 type="submit"
-                className="w-full h-12 rounded-[14px] bg-[#275637] hover:bg-[#1E462B] text-white font-extrabold text-xs transition-all cursor-pointer shadow-md"
+                className="w-full h-12 rounded-[14px] bg-[#275637] hover:bg-[#1E462B] text-white font-extrabold text-xs transition-all cursor-pointer shadow-md flex items-center justify-center gap-2"
               >
-                Publish to Local Farm Network
+                <Plus className="w-4 h-4" />
+                <span>Publish Listing &amp; Post to Community</span>
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MANAGE LISTING MODAL ── */}
+      {managingListing && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`max-w-md w-full rounded-[18px] border p-6 shadow-2xl animate-card-in ${
+            isDark ? 'bg-[#102217] border-[#1E3A2B] text-white' : 'bg-white border-[#91BA94] text-[#275637]'
+          }`}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#22C55E]">
+                  {managingListing.category}
+                </span>
+                <h3 className="font-extrabold text-base mt-0.5">
+                  Manage Listing
+                </h3>
+              </div>
+              <button 
+                onClick={() => setManagingListing(null)}
+                className="text-xs font-bold opacity-70 hover:opacity-100 cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs font-semibold">
+              <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-gray-200'}`}>
+                <h4 className="font-extrabold text-sm">{managingListing.title}</h4>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="font-mono text-emerald-500 font-bold">{managingListing.rate}</span>
+                  <span>•</span>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                    managingListing.status.includes('Completed') 
+                      ? 'bg-gray-500/20 text-gray-400' 
+                      : 'bg-emerald-500/20 text-emerald-400'
+                  }`}>
+                    {managingListing.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="space-y-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate(`/c/${managingListing.crop || 'arecanut'}`);
+                  }}
+                  className={`w-full py-2.5 px-4 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    isDark ? 'bg-[#162C20] border-[#22C55E]/40 text-emerald-300 hover:bg-[#1E3D2C]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637] hover:bg-[#D8E4DA]'
+                  }`}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>View Post in Community (r/{managingListing.crop || 'arecanut'})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleToggleListingStatus(managingListing.id)}
+                  className={`w-full py-2.5 px-4 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:bg-[#183526]' : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#FAFCFA]'
+                  }`}
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span>{managingListing.status.includes('Completed') ? 'Mark as Available Again' : 'Mark as Fulfilled / Completed'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDeleteListing(managingListing.id)}
+                  className="w-full py-2.5 px-4 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete Listing &amp; Remove from Community</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
