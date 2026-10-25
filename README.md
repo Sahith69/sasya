@@ -123,7 +123,7 @@ To protect rural farmers from crop damage and eliminate liability, Sasya follows
 
 To provide full transparency for HackCache '26 judging:
 * **Real & Operational**: PyTorch ResNet-18 leaf pathology classification, Grad-CAM visual attention heatmaps, live Open-Meteo hourly bioclimatic weather telemetry, Web Speech voice quick draft, and trilingual translation (EN, KN, HI).
-* **Simulated for Demo**: Expert pathologist review queue & Bhoomi land registry records (backed by seeded realistic SQLite data), and 5 localized demonstration farmer profiles across Karnataka & Himachal Pradesh.
+* **Simulated for Demo**: 5 localized demonstration farmer accounts with pre-populated community discussions across Karnataka & Himachal Pradesh.
 
 ---
 
@@ -131,7 +131,7 @@ To provide full transparency for HackCache '26 judging:
 
 To clearly separate pre-existing assets from work built during HackCache '26:
 * **Pre-existing**: Offline PyTorch model weights for crop leaf pathology classification and preliminary dataset collection across Arecanut, Paddy, Tomato, and Apple.
-* **Built During HackCache '26**: The complete end-to-end platform was designed and built during the hackathon—including the trilingual React frontend (Sasya Groups, 1-on-1 Farmer Chat, voice Quick Draft via Web Speech API), the FastAPI cloud backend with 54 routes, live Open-Meteo bioclimatic risk engine, Bhoomi parcel simulation, expert review queue, and full cloud deployment on Vercel and Render.
+* **Built During HackCache '26**: The complete end-to-end platform was designed and built during the hackathon—including the trilingual React frontend (Sasya Groups, 1-on-1 Farmer Chat, voice Quick Draft via Web Speech API), the FastAPI cloud backend, live Open-Meteo bioclimatic risk engine, and full cloud deployment on Vercel and Render.
 
 ---
 
