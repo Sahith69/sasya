@@ -666,6 +666,12 @@ class ReportRequest(BaseModel):
     details: Optional[str] = None
 
 
+class ChatMessageRequest(BaseModel):
+    sender: str
+    recipient: str
+    text: str
+
+
 @app.get("/api/community/posts")
 def get_community_posts(crop: Optional[str] = Query(None)):
     conn = get_db()
@@ -740,6 +746,51 @@ def report_post(post_id: int, req: ReportRequest):
     conn.close()
     log_audit(req.reported_by, "POST_REPORTED", "MODERATION", str(post_id), req.reason)
     return {"success": True, "message": "Report submitted to admin moderation desk."}
+
+
+@app.post("/api/chat/send")
+def send_chat_message_endpoint(req: ChatMessageRequest):
+    conn = get_db()
+    now_ts = datetime.datetime.now().isoformat()
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO chat_messages (sender, recipient, text, created_at)
+            VALUES (?, ?, ?, ?)
+        """, (req.sender, req.recipient, req.text, now_ts))
+        msg_id = cursor.lastrowid
+    conn.close()
+    return {"success": True, "message_id": msg_id, "created_at": now_ts}
+
+
+@app.get("/api/chat/messages")
+def get_chat_messages_endpoint(user: str, partner: Optional[str] = Query(None)):
+    conn = get_db()
+    cursor = conn.cursor()
+    u = user.strip().lower()
+    if partner:
+        p = partner.strip().lower()
+        cursor.execute("""
+            SELECT * FROM chat_messages 
+            WHERE (LOWER(sender) = ? AND LOWER(recipient) = ?) 
+               OR (LOWER(sender) = ? AND LOWER(recipient) = ?)
+            ORDER BY id ASC
+        """, (u, p, p, u))
+    else:
+        cursor.execute("""
+            SELECT * FROM chat_messages 
+            WHERE LOWER(sender) = ? OR LOWER(recipient) = ?
+            ORDER BY id ASC
+        """, (u, u))
+    rows = cursor.fetchall()
+    messages = []
+    for r in rows:
+        d = dict(r)
+        d["isMe"] = d["sender"].strip().lower() == u
+        d["time"] = d.get("created_at", "")
+        messages.append(d)
+    conn.close()
+    return {"success": True, "messages": messages, "count": len(messages)}
 
 
 # ─────────────────────────────────────────────────────────────────────────────

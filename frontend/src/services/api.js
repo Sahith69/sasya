@@ -279,10 +279,18 @@ export async function upvoteCommunityPost(postId) {
 }
 
 export async function addCommunityComment(postId, commentData) {
+  const payload = {
+    post_id: Number(postId),
+    ...commentData
+  };
   return apiCall(`/community/posts/${postId}/comments`, {
     method: 'POST',
-    body: JSON.stringify(commentData)
+    body: JSON.stringify(payload)
   }, { success: true });
+}
+
+export async function getCommunityComments(postId) {
+  return apiCall(`/community/posts/${postId}/comments`, {}, { success: true, comments: [] });
 }
 
 export async function reportCommunityPost(postId, reportData) {
@@ -290,6 +298,103 @@ export async function reportCommunityPost(postId, reportData) {
     method: 'POST',
     body: JSON.stringify(reportData)
   }, { success: true, message: 'Report submitted.' });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7.5. REAL-TIME CROSS-USER FARMER MESSAGING (REDDITCHAT)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function sendChatMessage({ sender, recipient, text }) {
+  // First attempt dedicated chat API endpoint if backend supports it
+  const dedicatedRes = await apiCall('/chat/send', {
+    method: 'POST',
+    body: JSON.stringify({ sender, recipient, text })
+  }, null, 2500);
+
+  if (dedicatedRes?.success) {
+    return dedicatedRes;
+  }
+
+  // Resilient Cloud Relay via live Render backend (Stores cross-device messages)
+  const relayPayload = {
+    post_id: 999999,
+    author_id: sender,
+    author_name: recipient,
+    content: JSON.stringify({
+      text,
+      sender,
+      recipient,
+      timestamp: Date.now()
+    })
+  };
+
+  return apiCall('/community/posts/999999/comments', {
+    method: 'POST',
+    body: JSON.stringify(relayPayload)
+  }, { success: true });
+}
+
+export async function getChatMessages(user1, user2) {
+  if (!user1 || !user2) return [];
+
+  // First attempt dedicated chat API endpoint
+  const dedicatedRes = await apiCall(
+    `/chat/messages?user=${encodeURIComponent(user1)}&partner=${encodeURIComponent(user2)}`,
+    {},
+    null,
+    2500
+  );
+
+  if (dedicatedRes?.success && Array.isArray(dedicatedRes.messages)) {
+    return dedicatedRes.messages;
+  }
+
+  // Cloud Relay retrieval via live Render backend
+  const res = await apiCall('/community/posts/999999/comments', {}, { success: true, comments: [] });
+  if (!res?.success || !Array.isArray(res.comments)) return [];
+
+  const u1 = (user1 || '').toLowerCase().trim();
+  const u2 = (user2 || '').toLowerCase().trim();
+
+  return res.comments
+    .filter((c) => {
+      let contentSender = '';
+      let contentRecipient = '';
+      try {
+        const parsed = JSON.parse(c.content);
+        contentSender = (parsed.sender || '').toLowerCase().trim();
+        contentRecipient = (parsed.recipient || '').toLowerCase().trim();
+      } catch {}
+
+      const s = contentSender || (c.author_id || '').toLowerCase().trim();
+      const r = contentRecipient || (c.author_name || '').toLowerCase().trim();
+
+      const match1 = (s === u1 && r === u2);
+      const match2 = (s === u2 && r === u1);
+      return match1 || match2;
+    })
+    .map((c) => {
+      let text = c.content;
+      let timestamp = c.created_at;
+      let actualSender = c.author_id;
+
+      try {
+        const parsed = JSON.parse(c.content);
+        if (parsed.text) text = parsed.text;
+        if (parsed.timestamp) timestamp = parsed.timestamp;
+        if (parsed.sender) actualSender = parsed.sender;
+      } catch {}
+
+      const isSenderMe = actualSender.toLowerCase().trim() === u1;
+
+      return {
+        id: `cloud_msg_${c.id}`,
+        sender: actualSender,
+        text: text,
+        time: timestamp ? new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
+        isMe: isSenderMe
+      };
+    });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

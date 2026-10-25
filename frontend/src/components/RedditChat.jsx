@@ -6,6 +6,8 @@ import {
   MessageSquare, User, Check, MoreVertical, Ban, Trash2, 
   Sparkles, CheckCircle2, Search, ArrowLeft
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { sendChatMessage, getChatMessages } from '../services/api';
 
 const INITIAL_CONVERSATIONS = [
   {
@@ -108,6 +110,10 @@ export default function RedditChat({
   isDark = false,
   currentUser = null
 }) {
+  const auth = useAuth?.() || {};
+  const currentLoggedInUser = currentUser || auth.user;
+  const myUsername = currentLoggedInUser?.username || 'me';
+
   const [conversations, setConversations] = useState(() => {
     try {
       const saved = localStorage.getItem('sasya_reddit_dms');
@@ -127,6 +133,51 @@ export default function RedditChat({
   const [isTyping, setIsTyping] = useState(false);
 
   const messagesEndRef = useRef(null);
+
+  // Live Cloud Synchronization (Fetches real messages sent by other devices / users)
+  const syncCloudMessages = async () => {
+    if (!activeConv?.username) return;
+    const partner = activeConv.username;
+    const me = myUsername;
+
+    try {
+      const cloudMsgs = await getChatMessages(me, partner);
+      if (Array.isArray(cloudMsgs) && cloudMsgs.length > 0) {
+        setConversations((prev) =>
+          prev.map((c) => {
+            if (c.username.toLowerCase() === partner.toLowerCase() || c.id === activeConvId) {
+              const currentMsgs = [...c.messages];
+              let hasNew = false;
+
+              for (const cm of cloudMsgs) {
+                const exists = currentMsgs.some(
+                  (m) => (m.text?.trim() === cm.text?.trim() && m.sender?.toLowerCase() === cm.sender?.toLowerCase()) || m.id === cm.id
+                );
+                if (!exists) {
+                  currentMsgs.push(cm);
+                  hasNew = true;
+                }
+              }
+
+              if (hasNew) {
+                return { ...c, messages: currentMsgs };
+              }
+            }
+            return c;
+          })
+        );
+      }
+    } catch (err) {
+      console.warn("Could not sync cloud chat:", err);
+    }
+  };
+
+  // Poll cloud messages on active conversation change and every 3.5 seconds
+  useEffect(() => {
+    syncCloudMessages();
+    const interval = setInterval(syncCloudMessages, 3500);
+    return () => clearInterval(interval);
+  }, [activeConvId, myUsername]);
 
   // Auto-scroll to bottom of conversation
   useEffect(() => {
@@ -241,7 +292,7 @@ export default function RedditChat({
     return `Namaskara! Received your message regarding ${activeConv?.crop || 'crop cultivation'}. Tracking field conditions here.`;
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     const text = inputText.trim();
     if (!text || !activeConv) return;
@@ -253,8 +304,8 @@ export default function RedditChat({
     }
 
     const newMsg = {
-      id: Date.now(),
-      sender: 'me',
+      id: `local_${Date.now()}`,
+      sender: myUsername,
       text: text,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isMe: true
@@ -275,49 +326,74 @@ export default function RedditChat({
 
     setConversations(nextConvs);
     setInputText('');
+    try {
+      localStorage.setItem('sasya_reddit_dms', JSON.stringify(nextConvs));
+    } catch {}
 
-    // Broadcast in real-time across open tabs / windows
+    // Broadcast across local browser tabs
     try {
       const channel = new BroadcastChannel('sasya_reddit_farmer_chat');
       channel.postMessage({ type: 'CHAT_MESSAGE', convId: targetConvId, message: newMsg });
       channel.close();
     } catch {}
 
-    // Responsive simulated reply
-    setIsTyping(true);
-    setTimeout(() => {
-      setIsTyping(false);
-      const replyText = getSimulatedReply(targetUsername, text);
-      const replyMsg = {
-        id: Date.now() + 1,
-        sender: targetUsername,
-        text: replyText,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isMe: false
-      };
-
-      setConversations(prev => {
-        const updated = prev.map(c => {
-          if (c.id === targetConvId) {
-            return {
-              ...c,
-              messages: [...c.messages, replyMsg]
-            };
-          }
-          return c;
-        });
-        try {
-          localStorage.setItem('sasya_reddit_dms', JSON.stringify(updated));
-        } catch {}
-        return updated;
+    // Transmit to Cloud Relay (Delivers in real time to other devices / phones)
+    try {
+      await sendChatMessage({
+        sender: myUsername,
+        recipient: targetUsername,
+        text: text
       });
+    } catch (err) {
+      console.info("Chat saved locally:", err);
+    }
 
-      try {
-        const channel = new BroadcastChannel('sasya_reddit_farmer_chat');
-        channel.postMessage({ type: 'CHAT_MESSAGE', convId: targetConvId, message: replyMsg });
-        channel.close();
-      } catch {}
-    }, 1300);
+    // AI Agronomist Simulation: Only auto-replies when messaging Dr_Hegde_CPCRI / Doctor persona
+    const isAiPersona = targetUsername.toLowerCase().includes('hegde') || targetUsername.toLowerCase().includes('doctor');
+    if (isAiPersona) {
+      setIsTyping(true);
+      setTimeout(async () => {
+        setIsTyping(false);
+        const replyText = getSimulatedReply(targetUsername, text);
+        const replyMsg = {
+          id: `bot_${Date.now()}`,
+          sender: targetUsername,
+          text: replyText,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isMe: false
+        };
+
+        setConversations(prev => {
+          const updated = prev.map(c => {
+            if (c.id === targetConvId) {
+              return {
+                ...c,
+                messages: [...c.messages, replyMsg]
+              };
+            }
+            return c;
+          });
+          try {
+            localStorage.setItem('sasya_reddit_dms', JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
+
+        try {
+          const channel = new BroadcastChannel('sasya_reddit_farmer_chat');
+          channel.postMessage({ type: 'CHAT_MESSAGE', convId: targetConvId, message: replyMsg });
+          channel.close();
+        } catch {}
+
+        try {
+          await sendChatMessage({
+            sender: targetUsername,
+            recipient: myUsername,
+            text: replyText
+          });
+        } catch {}
+      }, 1300);
+    }
   };
 
   const handleBlockUser = () => {

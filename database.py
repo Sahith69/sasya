@@ -147,6 +147,17 @@ def init_all_tables(db_path: str = SASYA_DB_PATH) -> None:
             );
         """)
 
+        # Farmer 1-on-1 Chat Messages
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS chat_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sender TEXT NOT NULL,
+                recipient TEXT NOT NULL,
+                text TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+        """)
+
     conn.close()
 
     # 3. Seed initial baseline records

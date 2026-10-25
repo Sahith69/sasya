@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { addCommunityComment, createCommunityPost } from '../services/api';
+import { addCommunityComment, createCommunityPost, getCommunityComments, upvoteCommunityPost } from '../services/api';
 import RedditChat from '../components/RedditChat';
 import { 
   ArrowLeft, MessageSquare, Share2, Bookmark, Flag, 
@@ -310,14 +310,72 @@ export default function Community() {
     return INITIAL_POSTS;
   });
 
-  // Sync posts to localStorage
-  useEffect(() => {
+  // Live Cloud Comment Synchronization (Fetches comments posted by other farmers/devices)
+  const syncCommentsFromBackend = async () => {
     try {
-      localStorage.setItem('sasya_community_posts', JSON.stringify(posts));
+      let anyNew = false;
+      const updatedPosts = await Promise.all(
+        posts.map(async (p) => {
+          try {
+            const res = await getCommunityComments(p.id);
+            if (res?.success && Array.isArray(res.comments) && res.comments.length > 0) {
+              const currentComments = [...p.comments];
+              let addedCount = 0;
+
+              for (const bc of res.comments) {
+                if (!bc.content || typeof bc.content !== 'string') continue;
+
+                // Match existing comment by content & author to prevent duplicates
+                const isAlreadyPresent = currentComments.some(
+                  (c) => c.content?.trim() === bc.content?.trim() && 
+                        (c.author?.toLowerCase() === (bc.author_name || bc.author_id || '').toLowerCase())
+                );
+
+                if (!isAlreadyPresent) {
+                  const isScientist = (bc.author_id || '').includes('cpcri') || (bc.author_name || '').includes('Dr_');
+                  currentComments.push({
+                    id: `cloud_${bc.id || Date.now() + Math.random()}`,
+                    author: bc.author_name || bc.author_id || 'Farmer',
+                    badge: isScientist ? 'Verified Scientist' : 'Grower (Verified)',
+                    badgeColor: isScientist 
+                      ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30' 
+                      : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
+                    content: bc.content,
+                    timeAgo: bc.created_at ? new Date(bc.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
+                    upvotes: 1,
+                    userVote: 0
+                  });
+                  addedCount++;
+                }
+              }
+
+              if (addedCount > 0) {
+                anyNew = true;
+                return { ...p, comments: currentComments };
+              }
+            }
+          } catch {}
+          return p;
+        })
+      );
+
+      if (anyNew) {
+        setPosts(updatedPosts);
+        try {
+          localStorage.setItem('sasya_community_posts', JSON.stringify(updatedPosts));
+        } catch {}
+      }
     } catch (e) {
-      console.warn("Could not save community posts", e);
+      console.warn("Could not sync comments:", e);
     }
-  }, [posts]);
+  };
+
+  // Sync comments on mount and continuously every 6 seconds
+  useEffect(() => {
+    syncCommentsFromBackend();
+    const interval = setInterval(syncCommentsFromBackend, 6000);
+    return () => clearInterval(interval);
+  }, [posts.length]);
 
   const [sortFilter, setSortFilter] = useState('hot'); // 'hot', 'new', 'top'
   const [flairFilter, setFlairFilter] = useState('All');
@@ -398,6 +456,8 @@ export default function Community() {
   // Comment Thread Expansion State
   const [expandedPostId, setExpandedPostId] = useState(1);
   const [commentInputs, setCommentInputs] = useState({});
+  const [replyingToCommentId, setReplyingToCommentId] = useState(null);
+  const [replyInputs, setReplyInputs] = useState({});
 
   // Toast State
   const [toastMessage, setToastMessage] = useState(null);
@@ -407,16 +467,56 @@ export default function Community() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Upvote / Downvote Handler (Reddit Style)
-  const handleVote = (postId, delta) => {
-    setPosts(posts.map(p => {
+  // Upvote / Downvote Handler (Reddit Style with Cloud Sync & Persistence)
+  const handleVote = async (postId, delta) => {
+    let newDelta = 0;
+    const nextPosts = posts.map(p => {
       if (p.id === postId) {
         const nextVote = p.userVote === delta ? 0 : delta;
-        const diff = nextVote - p.userVote;
-        return { ...p, upvotes: p.upvotes + diff, userVote: nextVote };
+        newDelta = nextVote;
+        const diff = nextVote - (p.userVote || 0);
+        return { ...p, upvotes: Math.max(0, p.upvotes + diff), userVote: nextVote };
       }
       return p;
-    }));
+    });
+
+    setPosts(nextPosts);
+    try {
+      localStorage.setItem('sasya_community_posts', JSON.stringify(nextPosts));
+    } catch {}
+
+    // Cloud sync upvote to Render backend
+    if (newDelta === 1) {
+      try {
+        await upvoteCommunityPost(postId);
+      } catch (e) {
+        console.info("Upvote persisted locally");
+      }
+    }
+  };
+
+  // Comment Upvote / Like Handler
+  const handleCommentVote = (postId, commentId) => {
+    const nextPosts = posts.map(p => {
+      if (p.id === postId) {
+        const nextComments = p.comments.map(c => {
+          if (c.id === commentId) {
+            const isUpvoted = c.userVote === 1;
+            const nextVote = isUpvoted ? 0 : 1;
+            const diff = nextVote - (c.userVote || 0);
+            return { ...c, upvotes: Math.max(0, (c.upvotes || 0) + diff), userVote: nextVote };
+          }
+          return c;
+        });
+        return { ...p, comments: nextComments };
+      }
+      return p;
+    });
+
+    setPosts(nextPosts);
+    try {
+      localStorage.setItem('sasya_community_posts', JSON.stringify(nextPosts));
+    } catch {}
   };
 
   // Save / Bookmark Toggle
@@ -477,8 +577,58 @@ export default function Community() {
         author_name: authorName,
         content: text
       });
+      setTimeout(syncCommentsFromBackend, 400);
     } catch (err) {
       console.info("Comment backed up locally");
+    }
+  };
+
+  // Reply to Specific Comment (Threaded Discussion)
+  const handleAddReply = async (postId, parentCommentId, parentAuthor) => {
+    const text = (replyInputs[parentCommentId] || '').trim();
+    if (!text) return;
+
+    const authorName = user?.username || user?.name?.replace(/\s+/g, '_') || 'Ramesh_Gowda';
+    const newReply = {
+      id: Date.now(),
+      parentId: parentCommentId,
+      replyTo: parentAuthor,
+      author: authorName,
+      badge: 'Grower (Verified)',
+      badgeColor: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
+      content: text,
+      timeAgo: 'Just now',
+      upvotes: 1,
+      userVote: 1
+    };
+
+    const nextPosts = posts.map(p => {
+      if (p.id === postId) {
+        return { ...p, comments: [...p.comments, newReply] };
+      }
+      return p;
+    });
+
+    setPosts(nextPosts);
+    try {
+      localStorage.setItem('sasya_community_posts', JSON.stringify(nextPosts));
+    } catch {}
+
+    setReplyInputs({ ...replyInputs, [parentCommentId]: '' });
+    setReplyingToCommentId(null);
+    showToast(`✓ Replied to u/${parentAuthor}`);
+
+    // Background sync to Render backend with thread attribution
+    try {
+      await addCommunityComment(postId, {
+        post_id: postId,
+        author_id: user?.id || user?.username || 'farmer_local',
+        author_name: authorName,
+        content: `↳ @${parentAuthor}: ${text}`
+      });
+      setTimeout(syncCommentsFromBackend, 400);
+    } catch (err) {
+      console.info("Reply backed up locally");
     }
   };
 
@@ -1075,9 +1225,24 @@ export default function Community() {
                             </div>
                           ) : (
                             <div className="space-y-3 pt-2">
-                              {post.comments.map((comment) => (
-                                <div key={comment.id} className="flex gap-2.5 pl-2 border-l-2 border-gray-200 dark:border-gray-800">
+                              {post.comments.map((comment) => {
+                                const isReply = comment.replyTo || (comment.content && comment.content.startsWith('↳'));
+                                return (
+                                <div 
+                                  key={comment.id} 
+                                  className={`flex gap-2.5 pl-2 border-l-2 transition-all ${
+                                    isReply 
+                                      ? 'ml-4 sm:ml-6 pl-3 border-emerald-500/50 bg-emerald-500/[0.03] py-2 rounded-r-xl' 
+                                      : 'border-gray-200 dark:border-gray-800'
+                                  }`}
+                                >
                                   <div className="flex-1 space-y-1">
+                                    {comment.replyTo && (
+                                      <div className="text-[10px] text-emerald-500 font-semibold mb-0.5 flex items-center gap-1">
+                                        <span>↳ replying to</span>
+                                        <span className="underline">u/{comment.replyTo}</span>
+                                      </div>
+                                    )}
                                     <div className="flex items-center gap-2 text-[11px] text-gray-400">
                                       <button
                                         type="button"
@@ -1106,8 +1271,20 @@ export default function Community() {
                                       {comment.content}
                                     </p>
                                     <div className="flex items-center gap-3 text-[10px] text-gray-400 pt-0.5">
-                                      <span className="font-mono font-bold text-emerald-500">▲ {comment.upvotes || 1}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleCommentVote(post.id, comment.id)}
+                                        className={`font-mono font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                                          comment.userVote === 1 
+                                            ? 'text-orange-500 scale-105' 
+                                            : 'text-emerald-500 hover:text-orange-400'
+                                        }`}
+                                        title="Upvote comment"
+                                      >
+                                        ▲ {comment.upvotes || 1}
+                                      </button>
                                       <button 
+                                        type="button"
                                         onClick={() => handleOpenChat({
                                           username: comment.author,
                                           name: comment.author.replace(/_/g, ' '),
@@ -1120,12 +1297,75 @@ export default function Community() {
                                       >
                                         💬 Chat
                                       </button>
-                                      <button className="hover:underline cursor-pointer">Reply</button>
-                                      <button className="hover:underline cursor-pointer">Share</button>
+                                      <button 
+                                        type="button"
+                                        onClick={() => setReplyingToCommentId(replyingToCommentId === comment.id ? null : comment.id)}
+                                        className="hover:underline cursor-pointer hover:text-emerald-500 font-semibold flex items-center gap-0.5"
+                                      >
+                                        ↩ Reply
+                                      </button>
+                                      <button 
+                                        type="button"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(window.location.href);
+                                          showToast('Link to comment thread copied!');
+                                        }}
+                                        className="hover:underline cursor-pointer"
+                                      >
+                                        Share
+                                      </button>
                                     </div>
+
+                                    {/* Inline Reply Box for this Comment Thread */}
+                                    {replyingToCommentId === comment.id && (
+                                      <div className={`mt-2 p-2.5 rounded-xl border space-y-2 animate-card-in ${
+                                        isDark ? 'bg-[#0B1812] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-gray-300'
+                                      }`}>
+                                        <div className="flex items-center justify-between text-[11px] text-gray-400">
+                                          <span>Replying to <strong className="text-emerald-500">u/{comment.author}</strong></span>
+                                          <button 
+                                            type="button" 
+                                            onClick={() => setReplyingToCommentId(null)}
+                                            className="hover:text-rose-400 cursor-pointer"
+                                          >
+                                            <X className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
+                                        <textarea
+                                          value={replyInputs[comment.id] || ''}
+                                          onChange={(e) => setReplyInputs({ ...replyInputs, [comment.id]: e.target.value })}
+                                          placeholder={`Add to discussion with u/${comment.author}...`}
+                                          rows={2}
+                                          className={`w-full p-2 rounded-lg border text-xs outline-none resize-none ${
+                                            isDark 
+                                              ? 'bg-[#07100C] border-[#1E3A2B] text-white focus:border-[#22C55E]' 
+                                              : 'bg-white border-gray-300 text-gray-800 focus:border-[#275637]'
+                                          }`}
+                                        />
+                                        <div className="flex justify-end gap-2">
+                                          <button
+                                            type="button"
+                                            onClick={() => setReplyingToCommentId(null)}
+                                            className="px-3 py-1 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer"
+                                          >
+                                            Cancel
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleAddReply(post.id, comment.id, comment.author)}
+                                            className="px-3.5 py-1 rounded-full font-bold text-xs bg-[#275637] hover:bg-[#1E462B] text-white flex items-center gap-1 cursor-pointer shadow-xs"
+                                          >
+                                            <Send className="w-3 h-3" />
+                                            <span>Reply</span>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+
                                   </div>
                                 </div>
-                              ))}
+                              );
+                              })}
                             </div>
                           )}
 
