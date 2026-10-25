@@ -20,7 +20,7 @@ export default function EditProfile() {
   const { user, updateProfile, lang, setLang, theme, toggleTheme, isDark, t } = useAuth();
 
   // Form state initialized from current user
-  const [name, setName] = useState(user?.name || 'Ramesh Gowda');
+  const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '00000 10101');
   const [landSize, setLandSize] = useState(user?.landSize || '4.0 Acres');
   const [stateName, setStateName] = useState(user?.state || 'Karnataka');
@@ -165,7 +165,7 @@ export default function EditProfile() {
                 {name || 'Farmer Profile'}
               </h2>
               <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                Farmer ID: <strong className="font-mono">{user?.username || 'farmer_KA_101'}</strong> • Centroid Privacy Active
+                Farmer ID: <strong className="font-mono">{user?.username || 'Grower'}</strong> • Centroid Privacy Active
               </p>
             </div>
           </div>

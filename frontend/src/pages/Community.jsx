@@ -76,224 +76,7 @@ const SUBREDDITS = {
   }
 };
 
-const INITIAL_POSTS = [
-  {
-    id: 1,
-    crop: 'arecanut',
-    author: 'Ramesh_Gowda',
-    village: 'Venur, Dakshina Kannada',
-    badge: 'Arecanut Cultivator (4ac)',
-    timeAgo: '2 hours ago',
-    flair: 'Disease Query',
-    flairColor: 'bg-rose-500/15 text-rose-500 border-rose-500/30',
-    title: 'Koleroga spotted after continuous mist. Is 1% Bordeaux mixture enough or should I add rosin sticker?',
-    content: 'Noticed dark water-soaked rot starting on 3-month-old nut calyxes on the north-facing slope. Sasya ResNet scan flagged 96.4% confidence Koleroga (Phytophthora meadii). With Open-Meteo forecasting rainfall in 22 hours, is standard neutral Bordeaux spray sufficient or is rosin sticker mandatory to stop wash-off?',
-    image: '/samples/sample_arecanut.jpg',
-    aiBadge: 'Sasya AI: Koleroga (Phytophthora meadii)',
-    upvotes: 34,
-    userVote: 1, // 1 for up, -1 for down, 0 for none
-    saved: false,
-    comments: [
-      {
-        id: 101,
-        author: 'Dr_Hegde',
-        badge: 'Agronomy Specialist',
-        badgeColor: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
-        content: 'Ramesh, definitely add 100g Rosin sticker per 100L of 1% Bordeaux mixture. With the forecast predicting 14mm rain tomorrow afternoon, unbonded copper particles will wash off within 45 minutes. Complete spraying before 3 PM today while leaf surfaces are dry.',
-        timeAgo: '1 hour ago',
-        upvotes: 18,
-        userVote: 0
-      },
-      {
-        id: 102,
-        author: 'Ganesh_Bhat_Thalli',
-        badge: 'Experienced Grower',
-        badgeColor: 'bg-amber-500/20 text-amber-500 border-amber-500/30',
-        content: 'Also make sure to tie polyethene hoods (kotte) over the developing crown bunches if continuous monsoon spells persist next week. Prevention is 10x cheaper than harvesting dropped rotten nuts.',
-        timeAgo: '42 mins ago',
-        upvotes: 9,
-        userVote: 0
-      }
-    ]
-  },
-  {
-    id: 2,
-    crop: 'arecanut',
-    author: 'Prashanth_Hegde',
-    village: 'Mandagadde, Tirthahalli',
-    badge: 'Young Farmer Club',
-    timeAgo: '4 hours ago',
-    flair: 'Equipment Rental',
-    flairColor: 'bg-blue-500/15 text-blue-500 border-blue-500/30',
-    title: 'High-pressure 50ft power sprayer available for rent today & tomorrow (Tirthahalli taluk)',
-    content: 'Reaches the highest palm tops from ground level without needing tree climbers. Includes 100m high-pressure braided hose and brass atomizing nozzle. Rent is ₹350/day. Cleaned and ready for Bordeaux application before the weekend monsoon front.',
-    image: null,
-    aiBadge: null,
-    upvotes: 21,
-    userVote: 0,
-    saved: false,
-    comments: [
-      {
-        id: 201,
-        author: 'Suresh_Rai_Koppa',
-        badge: 'Grower',
-        badgeColor: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
-        content: 'Prashanth, I need it tomorrow morning from 7 AM to 12 PM for 2 acres. DM me on WhatsApp!',
-        timeAgo: '3 hours ago',
-        upvotes: 4,
-        userVote: 0
-      }
-    ]
-  },
-  {
-    id: 3,
-    crop: 'arecanut',
-    author: 'Dr_S_K_Nayak',
-    village: 'Brahmavar, Udupi',
-    badge: 'Agronomy Specialist (KVK)',
-    timeAgo: '7 hours ago',
-    flair: 'Weather Advisory',
-    flairColor: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
-    title: 'Bioclimatic Alert: Relative Humidity > 92% sustained across Coastal Ghats',
-    content: 'Environmental station telemetry indicates 14 continuous hours above 90% RH with ambient temperatures between 21°C - 24°C. This is the exact epidemiological trigger for Phytophthora zoospore release. Complete all prophylactic canopy coverage during the morning dry window.',
-    image: null,
-    aiBadge: 'Open-Meteo High Bioclimatic Risk Verified',
-    upvotes: 72,
-    userVote: 0,
-    saved: true,
-    comments: []
-  },
-  {
-    id: 4,
-    crop: 'paddy',
-    author: 'Manjunath_Mandya',
-    village: 'Maddur, Mandya',
-    badge: 'Paddy Grower',
-    timeAgo: '3 hours ago',
-    flair: 'Disease Query',
-    flairColor: 'bg-rose-500/15 text-rose-500 border-rose-500/30',
-    title: 'Eye-shaped spindle blast lesions on nursery seedlings (variety Jyothi)',
-    content: 'Seedlings are 22 days old. Leaf blast lesions have greyish centers and dark brown margins. Should I drain the standing nursery water and apply Tricyclazole 75% WP @ 0.6g/L?',
-    image: null,
-    aiBadge: 'Sasya AI Verified: Magnaporthe oryzae (Leaf Blast)',
-    upvotes: 19,
-    userVote: 0,
-    saved: false,
-    comments: [
-      {
-        id: 401,
-        author: 'KVK_Agronomist',
-        badge: 'KVK Mandya',
-        badgeColor: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
-        content: 'Yes, drain stagnant water immediately to reduce microclimate humidity. Spray Tricyclazole in early morning before sunlight breaks spore adhesion.',
-        timeAgo: '2 hours ago',
-        upvotes: 7,
-        userVote: 0
-      }
-    ]
-  },
-  {
-    id: 5,
-    crop: 'tomato',
-    author: 'Anand_Kolar',
-    village: 'Bangarapet, Kolar',
-    badge: 'Tomato Farmer',
-    timeAgo: '5 hours ago',
-    flair: 'Disease Query',
-    flairColor: 'bg-rose-500/15 text-rose-500 border-rose-500/30',
-    title: 'Water-soaked greasy patches on tomato fruit after two nights of fog',
-    content: 'Rapid spreading observed on green fruits. Phytophthora infestans (Late Blight) suspected. What is the recommended curative tank mix before rain?',
-    image: null,
-    aiBadge: 'Sasya AI Verified: Phytophthora infestans (Late Blight)',
-    upvotes: 27,
-    userVote: 0,
-    saved: false,
-    comments: []
-  },
-  {
-    id: 6,
-    crop: 'apple',
-    author: 'Kuldeep_Sharma',
-    village: 'Theog, Shimla',
-    badge: 'Orchardist (HP)',
-    timeAgo: '6 hours ago',
-    flair: 'Weather Advisory',
-    flairColor: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
-    title: 'Post-harvest urea application timing for apple scab control',
-    content: 'Harvest complete in higher elevation blocks. Preparing 5% urea spray on fallen orchard leaves to accelerate decomposition and destroy overwintering pseudothecia.',
-    image: null,
-    aiBadge: null,
-    upvotes: 41,
-    userVote: 0,
-    saved: false,
-    comments: []
-  },
-  {
-    id: 7,
-    crop: 'arecanut',
-    author: 'Suresh_Hegde',
-    village: 'Belthangady, Dakshina Kannada',
-    badge: 'Arecanut Cultivator',
-    timeAgo: '1 hour ago',
-    flair: 'Labour Request',
-    flairColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
-    title: '👥 URGENT: 3 Skilled Arecanut Palm Climbers Needed for Koleroga Spraying (Belthangady)',
-    content: 'Need 3 experienced palm climbers for crown spraying and fungicide application across 6 acres in Belthangady taluk. Daily wage: ₹950/day + breakfast, lunch & travel allowance provided. Work starts this Thursday morning before monsoon showers resume.',
-    image: null,
-    aiBadge: null,
-    upvotes: 48,
-    userVote: 0,
-    saved: false,
-    comments: [
-      {
-        id: 701,
-        author: 'Manju_Climber_Team',
-        badge: 'Labour Group Lead',
-        badgeColor: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-        content: 'We are a crew of 4 trained palm climbers with safety harnesses. Available Thursday to Saturday. Sent you a DM on Reddit chat!',
-        timeAgo: '35 mins ago',
-        upvotes: 8,
-        userVote: 0
-      }
-    ]
-  },
-  {
-    id: 8,
-    crop: 'paddy',
-    author: 'Ganesh_Mandya',
-    village: 'Maddur, Mandya',
-    badge: 'Paddy Farmer',
-    timeAgo: '2 hours ago',
-    flair: 'Labour Request',
-    flairColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
-    title: '👥 Paddy Transplanting Labour Group (6-8 Workers) Needed for 2 Days (Maddur basin)',
-    content: 'Paddy nursery seedlings (Jyothi variety) are 22 days old and ready for field transplantation. Looking for a group of 6-8 experienced farm workers for 2 days. ₹650/day/worker with direct pickup from Maddur bus stand.',
-    image: null,
-    aiBadge: null,
-    upvotes: 31,
-    userVote: 0,
-    saved: false,
-    comments: []
-  },
-  {
-    id: 9,
-    crop: 'tomato',
-    author: 'Venkatesh_Kolar',
-    village: 'Bangarapet, Kolar',
-    badge: 'Commercial Grower',
-    timeAgo: '3 hours ago',
-    flair: 'Labour Request',
-    flairColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
-    title: '👥 4 Workers Needed for Bamboo Staking & Trellising Tomato Field (Bangarapet)',
-    content: 'Need 4 workers experienced in bamboo staking, trellis wiring and nylon twine tying for semi-determinate tomato crop. Starting tomorrow 8:00 AM. ₹600/day.',
-    image: null,
-    aiBadge: null,
-    upvotes: 22,
-    userVote: 0,
-    saved: false,
-    comments: []
-  }
-];
+const INITIAL_POSTS = [];
 
 export default function Community() {
   const navigate = useNavigate();
@@ -305,16 +88,20 @@ export default function Community() {
   const activeCrop = cropParam && SUBREDDITS[cropParam.toLowerCase()] ? cropParam.toLowerCase() : 'arecanut';
   const currentSubreddit = SUBREDDITS[activeCrop];
 
-  // Feed State - Persisted across refreshes in localStorage
+  // Feed State - Persisted across refreshes in localStorage (cleared demo posts)
   const [posts, setPosts] = useState(() => {
     try {
       const saved = localStorage.getItem('sasya_community_posts');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const isLegacy = parsed.every(p => typeof p.id === 'number' && p.id <= 10);
+          if (!isLegacy) return parsed;
+        }
+        localStorage.removeItem('sasya_community_posts');
       }
     } catch {}
-    return INITIAL_POSTS;
+    return [];
   });
 
   // Live Cloud Comment Synchronization (Fetches comments posted by other farmers/devices)
@@ -725,7 +512,7 @@ export default function Community() {
     const text = (commentInputs[postId] || '').trim();
     if (!text) return;
 
-    const authorName = user?.username || user?.name?.replace(/\s+/g, '_') || 'Ramesh_Gowda';
+    const authorName = user?.username || user?.name?.replace(/\s+/g, '_') || 'Farmer';
     const newC = {
       id: Date.now(),
       author: authorName,
@@ -771,7 +558,7 @@ export default function Community() {
     const text = (replyInputs[parentCommentId] || '').trim();
     if (!text) return;
 
-    const authorName = user?.username || user?.name?.replace(/\s+/g, '_') || 'Ramesh_Gowda';
+    const authorName = user?.username || user?.name?.replace(/\s+/g, '_') || 'Farmer';
     const newReply = {
       id: Date.now(),
       parentId: parentCommentId,
@@ -1281,7 +1068,7 @@ export default function Community() {
                         )}
 
                         {/* Follow / Unfollow Button (Direct 1-Click, Open Network) */}
-                        {post.author !== (user?.username || 'Ramesh_Gowda') && (
+                        {post.author !== (user?.username || 'Farmer') && (
                           <button
                             type="button"
                             onClick={() => handleToggleFollow(post.author)}
@@ -1460,7 +1247,7 @@ export default function Community() {
                           {/* New Comment Input Box */}
                           <div className="space-y-2">
                             <span className="text-[11px] text-gray-400">
-                              Comment as <strong className="text-emerald-500">u/{user?.username || 'Ramesh_Gowda'}</strong>
+                              Comment as <strong className="text-emerald-500">u/{user?.username || 'Farmer'}</strong>
                             </span>
                             <div className="flex gap-2">
                               <textarea

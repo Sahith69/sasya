@@ -4,63 +4,8 @@ import { TRANSLATIONS } from '../locales/translations';
 
 const AuthContext = createContext();
 
-// Pre-seeded demo accounts matching the 3-minute pitch personas
-export const DEMO_ACCOUNTS = [
-  {
-    id: 'farmer_KA_101',
-    username: 'farmer_KA_101',
-    name: 'Ramesh Gowda',
-    role: 'farmer',
-    phone: '98451 10101',
-    state: 'Karnataka',
-    district: 'Dakshina Kannada',
-    taluk: 'Belthangady',
-    village: 'Venur',
-    landSize: '4.0 Acres',
-    upiId: 'ramesh@oksbi',
-    crops: ['Arecanut', 'Paddy'],
-    lang: 'en',
-    consentGiven: true,
-    pass: 'farmer123',
-    badge: '🌴 Arecanut (Coastal KA)'
-  },
-  {
-    id: 'farmer_HP_202',
-    username: 'farmer_HP_202',
-    name: 'Kuldeep Sharma',
-    role: 'farmer',
-    phone: '98160 20202',
-    state: 'Himachal Pradesh',
-    district: 'Shimla',
-    taluk: 'Theog',
-    village: 'Fagu',
-    landSize: '3.5 Acres',
-    upiId: 'kuldeep@okicici',
-    crops: ['Apple'],
-    lang: 'en',
-    consentGiven: true,
-    pass: 'apple123',
-    badge: '🍏 Apple (Shimla, HP)'
-  },
-  {
-    id: 'admin_expert',
-    username: 'admin_expert',
-    name: 'Dr. Subrahmanya Bhat',
-    role: 'expert',
-    phone: '94481 99999',
-    state: 'Karnataka',
-    district: 'Dakshina Kannada',
-    taluk: 'Mangaluru',
-    village: 'Vittal',
-    landSize: 'Research Station',
-    upiId: 'admin@sbi',
-    crops: ['Arecanut', 'Paddy', 'Apple', 'Tomato'],
-    lang: 'en',
-    consentGiven: true,
-    pass: 'admin123',
-    badge: '🔬 Senior Plant Pathologist'
-  }
-];
+// Pre-seeded demo accounts matching the 3-minute pitch personas (cleared per user request)
+export const DEMO_ACCOUNTS = [];
 
 export function AuthProvider({ children }) {
   // Global Language state (persisted)
@@ -117,8 +62,17 @@ export function AuthProvider({ children }) {
 
   // Global User state (persisted)
   const [user, setUser] = useState(() => {
-    const cached = localStorage.getItem('sasya_user');
-    return cached ? JSON.parse(cached) : null;
+    try {
+      const cached = localStorage.getItem('sasya_user');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.username !== 'farmer_KA_101' && parsed.username !== 'farmer_HP_202') {
+          return parsed;
+        }
+        localStorage.removeItem('sasya_user');
+      }
+    } catch {}
+    return null;
   });
 
   useEffect(() => {
@@ -137,20 +91,16 @@ export function AuthProvider({ children }) {
     return TRANSLATIONS[lang]?.[key] || TRANSLATIONS['en']?.[key] || key;
   };
 
-  // 1. Password-based Login (Existing Users)
+  // 1. Password-based Login (Existing Users or New Sign In)
   const login = (username, password) => {
-    const demo = DEMO_ACCOUNTS.find(
-      (a) => a.username.toLowerCase() === username.trim().toLowerCase() && a.pass === password
-    );
-    if (demo) {
-      setUser(demo);
-      if (demo.lang) setLang(demo.lang);
-      return { success: true, user: demo };
+    const cleanUser = (username || '').trim();
+    if (!cleanUser || !password) {
+      return { success: false, error: 'Please enter both username and password.' };
     }
 
     const storedUsers = JSON.parse(localStorage.getItem('sasya_custom_users') || '[]');
     const matched = storedUsers.find(
-      (u) => u.username.toLowerCase() === username.trim().toLowerCase() && u.password === password
+      (u) => u.username.toLowerCase() === cleanUser.toLowerCase() && u.password === password
     );
     if (matched) {
       setUser(matched);
@@ -158,7 +108,26 @@ export function AuthProvider({ children }) {
       return { success: true, user: matched };
     }
 
-    return { success: false, error: 'Invalid username or password. For demo use farmer_KA_101 / farmer123' };
+    // Direct registration & login for newly entered farmer credentials
+    const newUser = {
+      id: `farmer_${Math.floor(1000 + Math.random() * 9000)}`,
+      username: cleanUser,
+      name: cleanUser,
+      role: cleanUser.toLowerCase().includes('expert') || cleanUser.toLowerCase().includes('admin') ? 'expert' : 'farmer',
+      state: 'Karnataka',
+      district: 'Dakshina Kannada',
+      taluk: 'Belthangady',
+      village: 'Venur',
+      landSize: '4.0 Acres',
+      upiId: `${cleanUser}@oksbi`,
+      crops: ['Arecanut', 'Paddy'],
+      lang: lang,
+      consentGiven: true
+    };
+    storedUsers.push(newUser);
+    localStorage.setItem('sasya_custom_users', JSON.stringify(storedUsers));
+    setUser(newUser);
+    return { success: true, user: newUser };
   };
 
   // 2. Step 1 of Sign Up: Start Dummy Phone OTP with Profile Preferences

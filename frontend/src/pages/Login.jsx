@@ -262,19 +262,14 @@ export default function Login() {
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
-              {/* Quick Fill Test Account Link */}
               <div className="pt-3 border-t border-[#E8F0E9] mt-4 flex items-center justify-between text-xs text-[#556B5C]">
-                <span>{t('default_creds')}</span>
+                <span>New to Sasya?</span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setUsername('farmer_KA_101');
-                    setPassword('farmer123');
-                    setSignInError('');
-                  }}
-                  className="font-mono font-bold text-[#275637] hover:underline cursor-pointer"
+                  onClick={() => setActiveTab('signup')}
+                  className="font-bold text-[#275637] hover:underline cursor-pointer"
                 >
-                  farmer_KA_101 / farmer123
+                  Create an account →
                 </button>
               </div>
             </form>

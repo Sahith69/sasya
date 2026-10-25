@@ -383,7 +383,7 @@ export default function Contribute() {
                   isDark ? 'bg-[#102217] border-[#1E3A2B] text-white' : 'bg-white border-[#91BA94] text-[#275637]'
                 }`}>
                   <div className={`px-4 pb-3 border-b ${isDark ? 'border-[#1A3324]' : 'border-[#E8F0E9]'}`}>
-                    <div className="text-xs font-bold">{user?.username || 'Ramesh_Gowda'}</div>
+                    <div className="text-xs font-bold">{user?.username || 'Farmer'}</div>
                     <div className={`text-[11px] flex items-center gap-1 mt-0.5 font-medium ${
                       isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'
                     }`}>

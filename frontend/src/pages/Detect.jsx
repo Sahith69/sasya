@@ -363,7 +363,7 @@ export default function Detect() {
                 }`}>
                   <div className={`px-4 pb-3 border-b ${isDark ? 'border-[#1A3324]' : 'border-[#E8F0E9]'}`}>
                     <div className="text-xs font-bold">
-                      {user?.username || 'Ramesh_Gowda'}
+                      {user?.username || 'Farmer'}
                     </div>
                     <div className={`text-[11px] flex items-center gap-1 mt-0.5 font-medium ${
                       isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'

@@ -46,7 +46,7 @@ export function setGeminiApiKey(key) {
  */
 export function generateLocalAgronomistResponse({ query, userProfile = {}, lang = 'en' }) {
   const q = (query || '').toLowerCase().trim();
-  const farmerName = userProfile.name || userProfile.username || 'Ramesh Gowda';
+  const farmerName = userProfile.name || userProfile.username || 'Farmer';
   const crops = Array.isArray(userProfile.crops) && userProfile.crops.length > 0 
     ? userProfile.crops 
     : ['Arecanut'];
@@ -241,7 +241,7 @@ export async function callGeminiAgronomist({
     };
   }
 
-  const farmerName = userProfile.name || userProfile.username || 'Ramesh Gowda';
+  const farmerName = userProfile.name || userProfile.username || 'Farmer';
   const crops = Array.isArray(userProfile.crops) && userProfile.crops.length > 0 
     ? userProfile.crops.join(', ') 
     : 'Arecanut';

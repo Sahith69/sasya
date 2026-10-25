@@ -119,7 +119,7 @@ export default function Profile() {
         rate: '₹800 / day', 
         crop: 'arecanut',
         status: 'Available Now',
-        contact: 'Contact Ramesh (Self)'
+        contact: 'Contact (Self)'
       },
       { 
         id: 2,
@@ -164,8 +164,8 @@ export default function Profile() {
 
     const listingId = Date.now();
     const targetCrop = (listingCrop || user?.crops?.[0] || 'arecanut').toLowerCase();
-    const authorUsername = user?.username || user?.name?.replace(/\s+/g, '_') || 'Ramesh_Gowda';
-    const authorDisplay = user?.name || user?.username || 'Ramesh Gowda';
+    const authorUsername = user?.username || user?.name?.replace(/\s+/g, '_') || 'Farmer';
+    const authorDisplay = user?.name || user?.username || 'Farmer';
     const villageText = `${user?.village || 'Venur'}, ${user?.district || 'Dakshina Kannada'}`;
 
     const newListing = {
@@ -307,7 +307,7 @@ export default function Profile() {
               {t('farmer_portal_title')}
             </h1>
             <p className={`text-[10px] hidden sm:block ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-              {user?.name || 'Ramesh Gowda'} • {user?.username || 'farmer_KA_101'}
+              {user?.name || 'Farmer'} • {user?.username || 'Grower'}
             </p>
           </div>
         </div>
@@ -416,7 +416,7 @@ export default function Profile() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="text-xl sm:text-2xl font-black">
-                        {user?.name || 'Ramesh Gowda'}
+                        {user?.name || 'Farmer'}
                       </h2>
                       <span className={`text-[11px] font-mono px-2 py-0.5 rounded-md font-bold ${
                         isDark ? 'bg-[#0D4A3E] text-[#34D399]' : 'bg-[#B1D27D] text-[#275637]'
@@ -535,7 +535,7 @@ export default function Profile() {
                     </span>
                   </h3>
                   <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                    Chat privately with fellow arecanut growers using Reddit-grade privacy (u/{user?.username || 'Ramesh_Gowda'}). Zero phone numbers or land records exposed.
+                    Chat privately with fellow growers using Reddit-grade privacy (u/{user?.username || 'Farmer'}). Zero phone numbers or land records exposed.
                   </p>
                 </div>
               </div>
