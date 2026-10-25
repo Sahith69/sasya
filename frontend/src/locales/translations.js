@@ -180,6 +180,12 @@ export const TRANSLATIONS = {
     verified_submission_history: "Verified Submission History",
     scan_diary_title: "Crop Pathology Scan Diary",
     btn_new_scan: "New Scan",
+    create_listing_btn: "Create Listing",
+    rural_exchange_title: "Rural Equipment & Labour Exchange",
+    rural_exchange_sub: "Share high-pressure power sprayers or request urgent tree climbers before rains",
+    view_in_feed: "View in Feed",
+    manage_listing: "Manage",
+    publish_listing_btn: "Publish Listing & Post to Community",
 
     // Settings
     settings_title: "Accessibility & App Preferences",
@@ -424,6 +430,12 @@ export const TRANSLATIONS = {
     verified_submission_history: "ದೃಢೀಕರಿಸಿದ ಸಲ್ಲಿಕೆಗಳ ಇತಿಹಾಸ",
     scan_diary_title: "ಬೆಳೆ ರೋಗ ಸ್ಕ್ಯಾನ್ ದಿನಚರಿ",
     btn_new_scan: "ಹೊಸ ಸ್ಕ್ಯಾನ್",
+    create_listing_btn: "ಹೊಸ ಜಾಹೀರಾತು ರಚಿಸಿ",
+    rural_exchange_title: "ಗ್ರಾಮೀಣ ಕೃಷಿ ಯಂತ್ರೋಪಕರಣ ಮತ್ತು ಕಾರ್ಮಿಕ ವಿನಿಮಯ",
+    rural_exchange_sub: "ಪವರ್ ಸ್ಪ್ರೇಯರ್ ಬಾಡಿಗೆಗೆ ನೀಡಿ ಅಥವಾ ಮಳೆಗೂ ಮುನ್ನ ಮರ ಹತ್ತುವ ಆಳುಗಳನ್ನು ಪಡೆಯಿರಿ",
+    view_in_feed: "ಫೀಡ್‌ನಲ್ಲಿ ನೋಡಿ",
+    manage_listing: "ನಿರ್ವಹಿಸಿ",
+    publish_listing_btn: "ಜಾಹೀರಾತು ಪ್ರಕಟಿಸಿ ಮತ್ತು ಸಮುದಾಯಕ್ಕೆ ಪೋಸ್ಟ್ ಮಾಡಿ",
 
     // Settings
     settings_title: "ಆ್ಯಪ್ ಆದ್ಯತೆಗಳು & ಪ್ರವೇಶಿಸುವಿಕೆ",
@@ -668,6 +680,12 @@ export const TRANSLATIONS = {
     verified_submission_history: "सत्यापित सबमिशन इतिहास",
     scan_diary_title: "फसल रोग स्कैन डायरी",
     btn_new_scan: "नया स्कैन",
+    create_listing_btn: "नया विज्ञापन बनाएं",
+    rural_exchange_title: "ग्रामीण कृषि उपकरण एवं श्रम विनिमय",
+    rural_exchange_sub: "पावर स्प्रेयर किराए पर दें या बारिश से पहले पेड़ चढ़ने वाले मजदूर खोजें",
+    view_in_feed: "फ़ीड में देखें",
+    manage_listing: "प्रबंधित करें",
+    publish_listing_btn: "विज्ञापन प्रकाशित करें और समुदाय में पोस्ट करें",
 
     // Settings
     settings_title: "ऐप प्राथमिकताएं एवं पहुंच",

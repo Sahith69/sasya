@@ -856,9 +856,9 @@ export default function Profile() {
           <div className="space-y-6 animate-card-in">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold">Rural Equipment &amp; Labour Exchange</h2>
+                <h2 className="text-xl font-bold">{t('rural_exchange_title') || 'Rural Equipment & Labour Exchange'}</h2>
                 <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                  Share high-pressure power sprayers or request urgent tree climbers before rains
+                  {t('rural_exchange_sub') || 'Share high-pressure power sprayers or request urgent tree climbers before rains'}
                 </p>
               </div>
               <button 
@@ -868,7 +868,7 @@ export default function Profile() {
                 }`}
               >
                 <Plus className="w-4 h-4" />
-                <span>+ Create Listing</span>
+                <span>{t('create_listing_btn') || 'Create Listing'}</span>
               </button>
             </div>
 
@@ -903,7 +903,7 @@ export default function Profile() {
                       title="View this post in the community feed"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
-                      <span>View in Feed</span>
+                      <span>{t('view_in_feed') || 'View in Feed'}</span>
                     </button>
                     <button 
                       onClick={() => setManagingListing(listing)}
@@ -911,7 +911,7 @@ export default function Profile() {
                         isDark ? 'bg-[#162C20] border-[#22C55E]/40 text-white hover:border-[#22C55E]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637] hover:bg-[#D8E4DA]'
                       }`}
                     >
-                      Manage Listing
+                      {t('manage_listing') || 'Manage'}
                     </button>
                   </div>
                 </div>
@@ -1114,7 +1114,7 @@ export default function Profile() {
                 className="w-full h-12 rounded-[14px] bg-[#275637] hover:bg-[#1E462B] text-white font-extrabold text-xs transition-all cursor-pointer shadow-md flex items-center justify-center gap-2"
               >
                 <Plus className="w-4 h-4" />
-                <span>Publish Listing &amp; Post to Community</span>
+                <span>{t('publish_listing_btn') || 'Publish Listing & Post to Community'}</span>
               </button>
             </form>
           </div>

@@ -56,15 +56,45 @@ export default function AdminLogin() {
           <span>{t('admin_farm_app_view')}</span>
         </Link>
 
-        <button
-          onClick={toggleTheme}
-          className={`p-2 rounded-xl border transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer ${
-            isDark ? 'bg-[#12241A] border-[#1E3A2B] text-[#FCD34D]' : 'bg-white border-[#91BA94] text-[#275637]'
-          }`}
-          title="Toggle Dark/Light"
-        >
-          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Trilingual Switcher */}
+          <div className={`flex items-center p-1 rounded-xl border text-xs shadow-xs ${
+            isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+          }`}>
+            {[
+              { code: 'en', label: 'EN' },
+              { code: 'kn', label: 'ಕನ್ನಡ' },
+              { code: 'hi', label: 'हिंदी' }
+            ].map((item) => (
+              <button
+                key={item.code}
+                type="button"
+                onClick={() => setLang(item.code)}
+                className={`px-2 py-0.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  lang === item.code
+                    ? isDark 
+                      ? 'bg-[#22C55E] text-[#0B1712] shadow-xs' 
+                      : 'bg-[#275637] text-white shadow-xs'
+                    : isDark 
+                      ? 'text-[#8BA695] hover:text-white' 
+                      : 'text-[#275637] hover:bg-[#E8F2EA]'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={toggleTheme}
+            className={`p-2 rounded-xl border transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer ${
+              isDark ? 'bg-[#12241A] border-[#1E3A2B] text-[#FCD34D]' : 'bg-white border-[#91BA94] text-[#275637]'
+            }`}
+            title="Toggle Dark/Light"
+          >
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+        </div>
       </header>
 
       {/* Main Login Card */}

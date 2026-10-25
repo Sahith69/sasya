@@ -6,7 +6,7 @@ import { ShieldCheck, ArrowRight, ArrowLeft, KeyRound, CheckCircle2 } from 'luci
 
 export default function VerifyOtp() {
   const navigate = useNavigate();
-  const { t, pendingSignup, verifyDummyOtp, completeAccountCreation } = useAuth();
+  const { lang, setLang, t, pendingSignup, verifyDummyOtp, completeAccountCreation } = useAuth();
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
@@ -79,6 +79,30 @@ export default function VerifyOtp() {
 
   return (
     <div className="min-h-screen bg-[#F9F9F6] text-[#275637] flex flex-col justify-center items-center px-4 py-8">
+      {/* Top Bar with Consistent Trilingual Switcher */}
+      <div className="w-full max-w-[460px] flex justify-end mb-3">
+        <div className="flex items-center p-1 rounded-xl border border-[#91BA94] bg-white text-xs shadow-xs">
+          {[
+            { code: 'en', label: 'EN' },
+            { code: 'kn', label: 'ಕನ್ನಡ' },
+            { code: 'hi', label: 'हिंदी' }
+          ].map((item) => (
+            <button
+              key={item.code}
+              type="button"
+              onClick={() => setLang(item.code)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                lang === item.code
+                  ? 'bg-[#275637] text-white shadow-xs'
+                  : 'text-[#275637] hover:bg-[#E8F2EA]'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="w-full max-w-[460px]">
         
         {/* Header */}
