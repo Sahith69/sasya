@@ -4,8 +4,117 @@ import { TRANSLATIONS } from '../locales/translations';
 
 const AuthContext = createContext();
 
-// Pre-seeded demo accounts matching the 3-minute pitch personas (cleared per user request)
-export const DEMO_ACCOUNTS = [];
+// Pre-seeded demo accounts matching the exact user specification
+export const DEMO_ACCOUNTS = [
+  {
+    id: 'farmer_ka_101',
+    username: 'ramesh_k',
+    name: 'Ramesh K',
+    role: 'farmer',
+    phone: '98451 10101',
+    state: 'Karnataka',
+    district: 'Dakshina Kannada',
+    taluk: 'Belthangady',
+    village: 'Venur',
+    landSize: '4.0 Acres',
+    upiId: 'ramesh@oksbi',
+    crops: ['Arecanut', 'Paddy'],
+    lang: 'en',
+    consentGiven: true,
+    pass: 'farmer123',
+    badge: '🌴 Arecanut & Paddy (Belthangady)'
+  },
+  {
+    id: 'farmer_ka_102',
+    username: 'manjunath_s',
+    name: 'Manjunath S',
+    role: 'farmer',
+    phone: '98450 98765',
+    state: 'Karnataka',
+    district: 'Shivamogga',
+    taluk: 'Thirthahalli',
+    village: 'Agumbe',
+    landSize: '5.0 Acres',
+    upiId: 'manjunath@oksbi',
+    crops: ['Arecanut', 'Paddy'],
+    lang: 'en',
+    consentGiven: true,
+    pass: 'farmer123',
+    badge: '🌴 Arecanut & Paddy (Thirthahalli)'
+  },
+  {
+    id: 'farmer_ka_103',
+    username: 'suresh_p',
+    name: 'Suresh P',
+    role: 'farmer',
+    phone: '98452 33445',
+    state: 'Karnataka',
+    district: 'Dakshina Kannada',
+    taluk: 'Sullia',
+    village: 'Sullia',
+    landSize: '3.5 Acres',
+    upiId: 'suresh@oksbi',
+    crops: ['Arecanut'],
+    lang: 'en',
+    consentGiven: true,
+    pass: 'farmer123',
+    badge: '🌴 Arecanut Cultivator (Sullia)'
+  },
+  {
+    id: 'farmer_ka_104',
+    username: 'anand_m',
+    name: 'Anand M',
+    role: 'farmer',
+    phone: '97410 23456',
+    state: 'Karnataka',
+    district: 'Kolar',
+    taluk: 'Kolar',
+    village: 'Huthur',
+    landSize: '2.5 Acres',
+    upiId: 'anand@okaxis',
+    crops: ['Tomato'],
+    lang: 'en',
+    consentGiven: true,
+    pass: 'farmer123',
+    badge: '🍅 Tomato Grower (Kolar)'
+  },
+  {
+    id: 'farmer_hp_105',
+    username: 'sunil_t',
+    name: 'Sunil T',
+    role: 'farmer',
+    phone: '98160 55443',
+    state: 'Himachal Pradesh',
+    district: 'Shimla',
+    taluk: 'Theog',
+    village: 'Kotkhai',
+    landSize: '3.5 Acres',
+    upiId: 'sunil@okicici',
+    crops: ['Apple'],
+    lang: 'en',
+    consentGiven: true,
+    pass: 'apple123',
+    badge: '🍏 Apple Orchardist (Shimla)'
+  },
+  {
+    id: 'admin_expert',
+    username: 'admin_expert',
+    name: 'Dr. Subrahmanya K',
+    role: 'expert',
+    phone: '94481 99999',
+    state: 'Karnataka',
+    district: 'Dakshina Kannada',
+    taluk: 'Mangaluru',
+    village: 'Vittal',
+    landSize: 'Research Station',
+    upiId: 'admin@sbi',
+    crops: ['Arecanut', 'Paddy', 'Apple', 'Tomato'],
+    lang: 'en',
+    consentGiven: true,
+    pass: 'admin123',
+    badge: '🔬 Senior Plant Pathologist'
+  }
+];
 
 export function AuthProvider({ children }) {
   // Global Language state (persisted)
@@ -66,13 +175,15 @@ export function AuthProvider({ children }) {
       const cached = localStorage.getItem('sasya_user');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed.username !== 'farmer_KA_101' && parsed.username !== 'farmer_HP_202') {
+        const valid = DEMO_ACCOUNTS.find(a => a.username === parsed.username);
+        if (valid) return valid;
+        if (parsed.username && !parsed.username.includes('farmer_KA_101') && !parsed.username.includes('farmer_HP_202')) {
           return parsed;
         }
         localStorage.removeItem('sasya_user');
       }
     } catch {}
-    return null;
+    return DEMO_ACCOUNTS[0];
   });
 
   useEffect(() => {
@@ -96,6 +207,15 @@ export function AuthProvider({ children }) {
     const cleanUser = (username || '').trim();
     if (!cleanUser || !password) {
       return { success: false, error: 'Please enter both username and password.' };
+    }
+
+    const demo = DEMO_ACCOUNTS.find(
+      (a) => a.username.toLowerCase() === cleanUser.toLowerCase() && a.pass === password
+    );
+    if (demo) {
+      setUser(demo);
+      if (demo.lang) setLang(demo.lang);
+      return { success: true, user: demo };
     }
 
     const storedUsers = JSON.parse(localStorage.getItem('sasya_custom_users') || '[]');

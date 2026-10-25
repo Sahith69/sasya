@@ -19,16 +19,16 @@ import {
   Mic, MicOff, Globe, Bot, ShieldAlert
 } from 'lucide-react';
 
-// Subreddit Crop Metadata
+// Subreddit Crop Metadata (Grounded, realistic member counts)
 const SUBREDDITS = {
   arecanut: {
     id: 'arecanut',
     name: 'r/arecanut',
     displayName: 'Arecanut Plantation Growers',
     icon: '🌴',
-    members: '1,420 members',
-    online: '38 online',
-    description: 'The premier community for arecanut palm cultivators, plant pathologists, and agronomists across Coastal & Malnad Karnataka. Share Koleroga alerts, spray schedules, and harvest techniques.',
+    members: '24 members',
+    online: '5 active',
+    description: 'Community for arecanut palm cultivators, plant pathologists, and agronomists across Coastal & Malnad Karnataka. Share Koleroga alerts, spray schedules, and harvest techniques.',
     rules: [
       'Be specific about palm canopy symptoms and leaf wetness',
       'Attach clear photos when requesting disease identification',
@@ -40,8 +40,8 @@ const SUBREDDITS = {
     name: 'r/paddy',
     displayName: 'Paddy & Rice Agronomy',
     icon: '🌾',
-    members: '2,890 members',
-    online: '64 online',
+    members: '31 members',
+    online: '6 active',
     description: 'Surveillance and crop management discussions for paddy farmers. Monitor leaf blast, bacterial blight, water management, and panicle protection.',
     rules: [
       'Report blast lesions promptly to protect neighboring basins',
@@ -53,9 +53,9 @@ const SUBREDDITS = {
     name: 'r/tomato',
     displayName: 'Tomato & Solanaceous Growers',
     icon: '🍅',
-    members: '1,120 members',
-    online: '29 online',
-    description: 'Commercial tomato growers and market gardeners. Discuss early blight, late blight, yellow leaf curl virus, and drip fertigation.',
+    members: '18 members',
+    online: '3 active',
+    description: 'Tomato growers and market gardeners. Discuss early blight, late blight, yellow leaf curl virus, and drip fertigation.',
     rules: [
       'Distinguish early vs late blight symptoms clearly',
       'State greenhouse vs open-field cultivation conditions'
@@ -66,8 +66,8 @@ const SUBREDDITS = {
     name: 'r/apple',
     displayName: 'Himachal & Kashmir Apple Orchards',
     icon: '🍏',
-    members: '870 members',
-    online: '21 online',
+    members: '14 members',
+    online: '2 active',
     description: 'High-altitude orchard management for Apple Scab (Venturia inaequalis), dormancy treatments, winter pruning, and KVK recommendations.',
     rules: [
       'Note orchard elevation and prevailing valley humidity',
@@ -76,7 +76,195 @@ const SUBREDDITS = {
   }
 };
 
-const INITIAL_POSTS = [];
+const INITIAL_POSTS = [
+  // ── r/arecanut (4 Posts) ──
+  {
+    id: 1,
+    crop: 'arecanut',
+    author: 'ramesh_k',
+    village: 'Venur, Dakshina Kannada',
+    badge: 'Arecanut & Paddy',
+    timeAgo: '1 hour ago',
+    flair: 'Labour Request',
+    flairColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
+    title: '👥 Urgent: Need 2 Experienced Palm Climbers for Bordeaux Spraying (Venur)',
+    content: 'Looking for 2 skilled palm climbers for 1% Bordeaux mixture spraying across 4 acres in Venur before continuous monsoon showers resume. Work scheduled for Thursday & Friday morning.',
+    image: null,
+    aiBadge: null,
+    upvotes: 3,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+  {
+    id: 2,
+    crop: 'arecanut',
+    author: 'manjunath_s',
+    village: 'Agumbe, Thirthahalli',
+    badge: 'Arecanut & Paddy',
+    timeAgo: '3 hours ago',
+    flair: 'Equipment Rental',
+    flairColor: 'bg-blue-500/15 text-blue-500 border-blue-500/30',
+    title: '🚜 50ft High-Pressure Power Sprayer Available for Rent (Thirthahalli basin)',
+    content: 'Ground-level 50ft multi-jet power sprayer with 100m pressure hose and brass atomizing nozzle. Ready for preventive fungicide spraying before the upcoming rain spell.',
+    image: null,
+    aiBadge: null,
+    upvotes: 2,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+  {
+    id: 3,
+    crop: 'arecanut',
+    author: 'suresh_p',
+    village: 'Sullia, Dakshina Kannada',
+    badge: 'Arecanut Cultivator',
+    timeAgo: '5 hours ago',
+    flair: 'Disease Query',
+    flairColor: 'bg-rose-500/15 text-rose-500 border-rose-500/30',
+    title: '🔍 Dark water-soaked lesions on nut calyx after 2 days of continuous mist',
+    content: 'Noticed premature nut drop on north-facing slope palms. Calyx attachment points appear softened and blackened. Is standard neutral 1% Bordeaux spray with rosin sticker sufficient to halt spread?',
+    image: '/samples/sample_arecanut.jpg',
+    aiBadge: 'Sasya AI: Koleroga (Phytophthora meadii)',
+    upvotes: 4,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+  {
+    id: 4,
+    crop: 'arecanut',
+    author: 'ramesh_k',
+    village: 'Venur, Dakshina Kannada',
+    badge: 'Arecanut & Paddy',
+    timeAgo: '6 hours ago',
+    flair: 'Weather Advisory',
+    flairColor: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
+    title: '🌧️ Monsoon Defense: Tying polyethene hoods (kotte) over developing bunches',
+    content: 'With sustained humidity predicted above 92% this fortnight, we completed tying polyethene protective hoods over vulnerable bunches. Prevention is significantly more cost-effective than managing severe Koleroga drop later.',
+    image: null,
+    aiBadge: null,
+    upvotes: 5,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+
+  // ── r/paddy (2 Posts) ──
+  {
+    id: 5,
+    crop: 'paddy',
+    author: 'ramesh_k',
+    village: 'Belthangady, Dakshina Kannada',
+    badge: 'Arecanut & Paddy',
+    timeAgo: '2 hours ago',
+    flair: 'Disease Query',
+    flairColor: 'bg-rose-500/15 text-rose-500 border-rose-500/30',
+    title: '🔍 Eye-shaped spindle blast lesions on nursery seedlings (variety Jyothi)',
+    content: 'Seedlings are 22 days old in wet nursery beds. Lesions have grayish centers with dark margins. Seeking agronomist recommendation on water drainage and safe bio-control timing.',
+    image: '/samples/sample_paddy.jpg',
+    aiBadge: 'Sasya AI: Magnaporthe oryzae (Leaf Blast)',
+    upvotes: 3,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+  {
+    id: 6,
+    crop: 'paddy',
+    author: 'manjunath_s',
+    village: 'Agumbe, Thirthahalli',
+    badge: 'Arecanut & Paddy',
+    timeAgo: '4 hours ago',
+    flair: 'Labour Request',
+    flairColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
+    title: '👥 Paddy Transplanting Crew (6-8 Workers) Needed for 2 Days',
+    content: '25-day nursery seedlings ready for field transplanting across 3.5 acres. Looking for an experienced local crew for 2 days. Direct pickup arranged from village junction.',
+    image: null,
+    aiBadge: null,
+    upvotes: 2,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+
+  // ── r/tomato (2 Posts) ──
+  {
+    id: 7,
+    crop: 'tomato',
+    author: 'anand_m',
+    village: 'Huthur, Kolar',
+    badge: 'Tomato Grower',
+    timeAgo: '2 hours ago',
+    flair: 'Disease Query',
+    flairColor: 'bg-rose-500/15 text-rose-500 border-rose-500/30',
+    title: '🍅 Concentric target rings on lower foliage after two foggy nights',
+    content: 'Noticed dark brown concentric rings with chlorotic yellow halos on lower tomato leaves. Is removing lower leaves touching wet soil sufficient, or should Trichoderma foliar spray be applied?',
+    image: '/samples/sample_tomato.jpg',
+    aiBadge: 'Sasya AI: Alternaria solani (Early Blight)',
+    upvotes: 3,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+  {
+    id: 8,
+    crop: 'tomato',
+    author: 'anand_m',
+    village: 'Huthur, Kolar',
+    badge: 'Tomato Grower',
+    timeAgo: '5 hours ago',
+    flair: 'Labour Request',
+    flairColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
+    title: '👥 4 Skilled Workers Needed for Bamboo Staking & Trellising Tomato Field',
+    content: 'Need 4 workers experienced in bamboo staking, trellis wiring, and nylon twine tying for semi-determinate tomato crop. Starting tomorrow 8:00 AM.',
+    image: null,
+    aiBadge: null,
+    upvotes: 2,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+
+  // ── r/apple (2 Posts) ──
+  {
+    id: 9,
+    crop: 'apple',
+    author: 'sunil_t',
+    village: 'Theog, Kotkhai, Shimla',
+    badge: 'Apple Orchardist',
+    timeAgo: '3 hours ago',
+    flair: 'Weather Advisory',
+    flairColor: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
+    title: '🍏 Bioclimatic Alert: Post-harvest orchard floor sanitation & scab management',
+    content: 'Western disturbance forecasted in 48 hours. Reminder to complete 5% urea foliar spray on fallen orchard leaves to accelerate natural decomposition and eliminate overwintering spores.',
+    image: null,
+    aiBadge: null,
+    upvotes: 4,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+  {
+    id: 10,
+    crop: 'apple',
+    author: 'sunil_t',
+    village: 'Theog, Kotkhai, Shimla',
+    badge: 'Apple Orchardist',
+    timeAgo: '7 hours ago',
+    flair: 'Disease Query',
+    flairColor: 'bg-rose-500/15 text-rose-500 border-rose-500/30',
+    title: '🔍 Premature leaf yellowing & brown margins in higher elevation block',
+    content: 'Observed localized foliar yellowing in north-slope block at 7,200ft elevation. Scanned leaf via Sasya AI to check for Alternaria leaf blotch vs nutrient stress. Seeking recommendations on post-harvest zinc-boron spray.',
+    image: '/samples/sample_apple.jpg',
+    aiBadge: 'Sasya AI: Apple Scab (Venturia inaequalis)',
+    upvotes: 1,
+    userVote: 0,
+    saved: false,
+    comments: []
+  }
+];
 
 export default function Community() {
   const navigate = useNavigate();
@@ -88,20 +276,16 @@ export default function Community() {
   const activeCrop = cropParam && SUBREDDITS[cropParam.toLowerCase()] ? cropParam.toLowerCase() : 'arecanut';
   const currentSubreddit = SUBREDDITS[activeCrop];
 
-  // Feed State - Persisted across refreshes in localStorage (cleared demo posts)
+  // Feed State - Persisted across refreshes in localStorage
   const [posts, setPosts] = useState(() => {
     try {
-      const saved = localStorage.getItem('sasya_community_posts');
+      const saved = localStorage.getItem('sasya_community_posts_v5');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const isLegacy = parsed.every(p => typeof p.id === 'number' && p.id <= 10);
-          if (!isLegacy) return parsed;
-        }
-        localStorage.removeItem('sasya_community_posts');
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch {}
-    return [];
+    return INITIAL_POSTS;
   });
 
   // Live Cloud Comment Synchronization (Fetches comments posted by other farmers/devices)

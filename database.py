@@ -177,8 +177,70 @@ def log_audit(actor: str, action: str, target_type: str, target_id: str, details
 
 
 def seed_initial_data(db_path: str = SASYA_DB_PATH) -> None:
-    """Leaves all database tables clean for authentic user creation."""
-    pass
+    """Populates realistic baseline entries matching exact user specification."""
+    conn = get_db(db_path)
+    cursor = conn.cursor()
+
+    # 1. Seed Experts (Modest, realistic counts, strictly no surnames)
+    cursor.execute("SELECT COUNT(*) FROM experts")
+    if cursor.fetchone()[0] == 0:
+        experts_data = [
+            ("exp_01", "Dr. Subrahmanya K", "Chief Pathologist", "Regional Agronomy Research Station, Vittal", "Arecanut", 12, 98.0, "Active"),
+            ("exp_02", "Dr. Roopa M", "Senior Rice Entomologist", "Agricultural Research Station, Gangavathi", "Paddy", 9, 97.5, "Active"),
+            ("exp_03", "Dr. Srinivas M", "Solanaceous Crop Specialist", "Horticultural Experiment Station, Kolar", "Tomato", 11, 98.5, "Active"),
+            ("exp_04", "Dr. Rajeshwar T", "Horticulture Specialist", "Regional Horticultural Research Station, Shimla", "Apple", 8, 96.0, "Active")
+        ]
+        with conn:
+            conn.executemany("""
+                INSERT INTO experts (id, name, role, institution, assigned_crop, reviews_count, agreement_rate, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, experts_data)
+
+    # 2. Seed Farmers (5 users: 3 Arecanut [2 also Paddy], 1 Tomato, 1 Apple)
+    cursor.execute("SELECT COUNT(*) FROM farmers")
+    if cursor.fetchone()[0] == 0:
+        farmers_data = [
+            ("farmer_ka_101", "9845110101", "Ramesh K", "Dakshina Kannada", "Belthangady", "Venur", "Karnataka", "en", 1, "2026-10-24T08:00:00", "2026-10-24T08:00:00"),
+            ("farmer_ka_102", "9845098765", "Manjunath S", "Shivamogga", "Thirthahalli", "Agumbe", "Karnataka", "en", 1, "2026-10-24T08:30:00", "2026-10-24T08:30:00"),
+            ("farmer_ka_103", "9845233445", "Suresh P", "Dakshina Kannada", "Sullia", "Sullia", "Karnataka", "en", 1, "2026-10-24T09:00:00", "2026-10-24T09:00:00"),
+            ("farmer_ka_104", "9741023456", "Anand M", "Kolar", "Kolar", "Huthur", "Karnataka", "en", 1, "2026-10-24T09:30:00", "2026-10-24T09:30:00"),
+            ("farmer_hp_105", "9816055443", "Sunil T", "Shimla", "Kotkhai", "Theog", "Himachal Pradesh", "hi", 1, "2026-10-24T10:00:00", "2026-10-24T10:00:00"),
+        ]
+        with conn:
+            conn.executemany("""
+                INSERT INTO farmers (id, phone, name, district, taluk, village, state, preferred_lang, consent_given, consent_timestamp, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, farmers_data)
+
+    # 3. Seed 10 Community Posts (4 in Arecanut, 2 in each of Paddy, Tomato, Apple)
+    cursor.execute("SELECT COUNT(*) FROM community_posts")
+    if cursor.fetchone()[0] == 0:
+        posts_data = [
+            # Arecanut (4 posts)
+            ("Arecanut", "farmer_ka_101", "Ramesh K (Venur)", "👥 Urgent: Need 2 Experienced Palm Climbers for Bordeaux Spraying (Venur)", "Looking for 2 skilled palm climbers for 1% Bordeaux mixture spraying across 4 acres in Venur before continuous monsoon showers resume. Work scheduled for Thursday & Friday morning.", None, 3, 0, "2026-10-25T09:30:00"),
+            ("Arecanut", "farmer_ka_102", "Manjunath S (Agumbe)", "🚜 50ft High-Pressure Power Sprayer Available for Rent (Thirthahalli basin)", "Ground-level 50ft multi-jet power sprayer with 100m pressure hose and brass atomizing nozzle. Ready for preventive fungicide spraying before the upcoming rain spell.", None, 2, 0, "2026-10-25T10:15:00"),
+            ("Arecanut", "farmer_ka_103", "Suresh P (Sullia)", "🔍 Dark water-soaked lesions on nut calyx after 2 days of continuous mist", "Noticed premature nut drop on north-facing slope palms. Calyx attachment points appear softened and blackened. Is standard neutral 1% Bordeaux spray with rosin sticker sufficient to halt spread?", None, 4, 0, "2026-10-25T11:00:00"),
+            ("Arecanut", "farmer_ka_101", "Ramesh K (Venur)", "🌧️ Monsoon Defense: Tying polyethene hoods (kotte) over developing bunches", "With sustained humidity predicted above 92% this fortnight, we completed tying polyethene protective hoods over vulnerable bunches. Prevention is significantly more cost-effective than managing severe Koleroga drop later.", None, 5, 0, "2026-10-25T11:45:00"),
+
+            # Paddy (2 posts)
+            ("Paddy", "farmer_ka_101", "Ramesh K (Belthangady)", "🔍 Eye-shaped spindle blast lesions on nursery seedlings (variety Jyothi)", "Seedlings are 22 days old in wet nursery beds. Lesions have grayish centers with dark margins. Seeking agronomist recommendation on water drainage and safe bio-control timing.", None, 3, 0, "2026-10-25T12:15:00"),
+            ("Paddy", "farmer_ka_102", "Manjunath S (Thirthahalli)", "👥 Paddy Transplanting Crew (6-8 Workers) Needed for 2 Days", "25-day nursery seedlings ready for field transplanting across 3.5 acres. Looking for an experienced local crew for 2 days. Direct pickup arranged from village junction.", None, 2, 0, "2026-10-25T12:45:00"),
+
+            # Tomato (2 posts)
+            ("Tomato", "farmer_ka_104", "Anand M (Huthur)", "🍅 Concentric target rings on lower foliage after two foggy nights", "Noticed dark brown concentric rings with chlorotic yellow halos on lower tomato leaves. Is removing lower leaves touching wet soil sufficient, or should Trichoderma foliar spray be applied?", None, 3, 0, "2026-10-25T13:10:00"),
+            ("Tomato", "farmer_ka_104", "Anand M (Huthur)", "👥 4 Skilled Workers Needed for Bamboo Staking & Trellising Tomato Field", "Need 4 workers experienced in bamboo staking, trellis wiring, and nylon twine tying for semi-determinate tomato crop. Starting tomorrow 8:00 AM.", None, 2, 0, "2026-10-25T13:30:00"),
+
+            # Apple (2 posts)
+            ("Apple", "farmer_hp_105", "Sunil T (Theog)", "🍏 Bioclimatic Alert: Post-harvest orchard floor sanitation & scab management", "Western disturbance forecasted in 48 hours. Reminder to complete 5% urea foliar spray on fallen orchard leaves to accelerate natural decomposition and eliminate overwintering spores.", None, 4, 0, "2026-10-25T13:50:00"),
+            ("Apple", "farmer_hp_105", "Sunil T (Theog)", "🔍 Premature leaf yellowing & brown margins in higher elevation block", "Observed localized foliar yellowing in north-slope block at 7,200ft elevation. Scanned leaf via Sasya AI to check for Alternaria leaf blotch vs nutrient stress. Seeking recommendations on post-harvest zinc-boron spray.", None, 1, 0, "2026-10-25T14:10:00")
+        ]
+        with conn:
+            conn.executemany("""
+                INSERT INTO community_posts (crop, author_id, author_name, title, content, audio_url, upvotes, comments_count, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, posts_data)
+
+    conn.close()
 
 
 # Initialize upon module import

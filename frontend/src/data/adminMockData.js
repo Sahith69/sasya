@@ -296,9 +296,9 @@ export const ADMIN_VERIFICATION_METRICS = {
   avgTurnaroundMinutes: 108, // 1.8 hrs
   slaCompliance4Hours: '98.4%',
   reviewerStats: [
-    { name: 'Dr. Subrahmanya K', institution: 'Regional Agronomy Center', reviewed: 512, approvalRate: '91.2%', avgTime: '1.2h' },
-    { name: 'Dr. Rekha M', institution: 'UAHS Shimoga', reviewed: 384, approvalRate: '88.5%', avgTime: '1.9h' },
-    { name: 'Dr. S. Kumar', institution: 'KVK Brahmavar', reviewed: 290, approvalRate: '87.1%', avgTime: '2.4h' }
+    { name: 'Dr. Subrahmanya K', institution: 'Regional Agronomy Center', reviewed: 12, approvalRate: '91.2%', avgTime: '1.2h' },
+    { name: 'Dr. Roopa M', institution: 'ARS Gangavathi', reviewed: 9, approvalRate: '88.5%', avgTime: '1.9h' },
+    { name: 'Dr. Srinivas M', institution: 'HES Kolar', reviewed: 11, approvalRate: '87.1%', avgTime: '2.4h' }
   ]
 };
 
@@ -334,10 +334,10 @@ export const ADMIN_BOUNTY_SPEND = {
 };
 
 export const ADMIN_COMMUNITY_STATS = [
-  { sub: 'r/arecanut', members: 1420, postsThisWeek: 64, activeRentals: 18, resolvedQueries: 52 },
-  { sub: 'r/paddy', members: 2890, postsThisWeek: 92, activeRentals: 24, resolvedQueries: 81 },
-  { sub: 'r/apple', members: 870, postsThisWeek: 28, activeRentals: 6, resolvedQueries: 22 },
-  { sub: 'r/tomato', members: 1120, postsThisWeek: 41, activeRentals: 11, resolvedQueries: 34 }
+  { sub: 'r/arecanut', members: 24, postsThisWeek: 4, activeRentals: 1, resolvedQueries: 3 },
+  { sub: 'r/paddy', members: 31, postsThisWeek: 2, activeRentals: 1, resolvedQueries: 2 },
+  { sub: 'r/apple', members: 14, postsThisWeek: 2, activeRentals: 0, resolvedQueries: 1 },
+  { sub: 'r/tomato', members: 18, postsThisWeek: 2, activeRentals: 1, resolvedQueries: 2 }
 ];
 
 export const ADMIN_MODERATION_ITEMS = [
@@ -371,31 +371,42 @@ export const ADMIN_EXPERTS = [
     institution: 'Regional Agronomy Research Station, Vittal',
     specialty: 'Arecanut & Palms Pathology',
     status: 'Active Reviewer',
-    verifiedCount: 512,
+    verifiedCount: 12,
     agreementRate: '98.2%',
     avatar: '👨‍🔬'
   },
   {
     id: 'EXP-02',
-    name: 'Dr. Rekha M',
-    title: 'Associate Director of Research',
-    institution: 'University of Agricultural & Horticultural Sciences (UAHS), Shimoga',
+    name: 'Dr. Roopa M',
+    title: 'Senior Rice Entomologist',
+    institution: 'Agricultural Research Station, Gangavathi',
     specialty: 'Paddy Blast & Fungal Epidemiology',
     status: 'Active Reviewer',
-    verifiedCount: 384,
+    verifiedCount: 9,
     agreementRate: '97.5%',
     avatar: '👩‍🔬'
   },
   {
     id: 'EXP-03',
-    name: 'Dr. S. Kumar',
-    title: 'Plant Protection Specialist',
-    institution: 'Krishi Vigyan Kendra (KVK), Brahmavar',
-    specialty: 'Bioclimatic Weather Modeling & Adjuvants',
+    name: 'Dr. Srinivas M',
+    title: 'Solanaceous Crop Specialist',
+    institution: 'Horticultural Experiment Station, Kolar',
+    specialty: 'Tomato Blight & Crop Protection',
     status: 'Active Reviewer',
-    verifiedCount: 290,
-    agreementRate: '96.9%',
+    verifiedCount: 11,
+    agreementRate: '98.5%',
     avatar: '👨‍🌾'
+  },
+  {
+    id: 'EXP-04',
+    name: 'Dr. Rajeshwar T',
+    title: 'Horticulture Specialist',
+    institution: 'Regional Horticultural Research Station, Shimla',
+    specialty: 'Apple Scab & Bioclimatic Modeling',
+    status: 'Active Reviewer',
+    verifiedCount: 8,
+    agreementRate: '96.0%',
+    avatar: '👨‍🔬'
   }
 ];
 
