@@ -344,7 +344,7 @@ export default function Community() {
                     id: `cloud_${bc.id || Date.now() + Math.random()}`,
                     author: bc.author_name || bc.author_id || 'Farmer',
                     badge: isExpert ? 'Agronomy Specialist' : 'Grower',
-                    badgeColor: isScientist 
+                    badgeColor: isExpert 
                       ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30' 
                       : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
                     content: bc.content,
