@@ -11,7 +11,7 @@ export const DEMO_ACCOUNTS = [
     username: 'farmer_KA_101',
     name: 'Ramesh Gowda',
     role: 'farmer',
-    phone: '00000 10101',
+    phone: '98451 10101',
     state: 'Karnataka',
     district: 'Dakshina Kannada',
     taluk: 'Belthangady',
@@ -29,7 +29,7 @@ export const DEMO_ACCOUNTS = [
     username: 'farmer_HP_202',
     name: 'Kuldeep Sharma',
     role: 'farmer',
-    phone: '00000 20202',
+    phone: '98160 20202',
     state: 'Himachal Pradesh',
     district: 'Shimla',
     taluk: 'Theog',
@@ -47,7 +47,7 @@ export const DEMO_ACCOUNTS = [
     username: 'admin_expert',
     name: 'Dr. Subrahmanya Bhat',
     role: 'expert',
-    phone: '00000 99999',
+    phone: '94481 99999',
     state: 'Karnataka',
     district: 'Dakshina Kannada',
     taluk: 'Mangaluru',
@@ -214,6 +214,39 @@ export function AuthProvider({ children }) {
     return { success: true, user: newUser };
   };
 
+  // 4b. Direct Farmer Registration with Place & Crop Preferences
+  const registerFarmer = ({ username, password, phone, name, state, district, taluk, village, crops }) => {
+    if (!username?.trim() || !password?.trim()) {
+      return { success: false, error: 'Username and password cannot be empty.' };
+    }
+
+    const newUser = {
+      id: `farmer_${phone ? phone.slice(-4) : Math.floor(Math.random() * 9000 + 1000)}`,
+      username: username.trim(),
+      password: password,
+      phone: phone?.trim() || '98450 12345',
+      role: 'farmer',
+      name: name?.trim() || username.trim(),
+      state: state || 'Karnataka',
+      district: district || 'Dakshina Kannada',
+      taluk: taluk || 'Belthangady',
+      village: village || 'Venur',
+      landSize: '3.5 Acres',
+      upiId: `${username.trim()}@oksbi`,
+      crops: crops && crops.length > 0 ? crops : ['Arecanut'],
+      lang: lang,
+      onboarded: true,
+      consentGiven: true
+    };
+
+    const storedUsers = JSON.parse(localStorage.getItem('sasya_custom_users') || '[]');
+    storedUsers.push(newUser);
+    localStorage.setItem('sasya_custom_users', JSON.stringify(storedUsers));
+
+    setUser(newUser);
+    return { success: true, user: newUser };
+  };
+
   // 5. Update Profile
   const updateProfile = (profileData) => {
     setUser((prev) => {
@@ -258,6 +291,7 @@ export function AuthProvider({ children }) {
         setTextSize,
         t,
         login,
+        registerFarmer,
         startPhoneSignup,
         verifyDummyOtp,
         completeAccountCreation,

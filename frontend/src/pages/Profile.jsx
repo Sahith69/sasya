@@ -1,14 +1,14 @@
-// src/pages/Profile.jsx - Unified Farmer Portal (Profile, Wallet, Scans, Listings, Settings)
+// src/pages/Profile.jsx - Clean Farmer Portal (Profile, Network, Scans, Listings, Settings)
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
-  User, Wallet, Camera, FileText, Settings, ArrowLeft, 
+  User, Camera, FileText, Settings, ArrowLeft, 
   MapPin, Shield, CheckCircle2, AlertTriangle, ChevronRight,
-  Plus, UploadCloud, RotateCcw, Volume2, Sun, Moon, ArrowRight,
-  Clock, DollarSign, Sparkles, ExternalLink, Search, RefreshCw
+  Plus, RotateCcw, Volume2, Sun, Moon, ArrowRight,
+  Clock, Sparkles, MessageSquare, Lock, Unlock, Globe,
+  UserCheck, UserPlus, Users, Check, X, Bell
 } from 'lucide-react';
-import { getFarmerParcels, lookupBhoomiRtc, registerBhoomiParcel } from '../services/api';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -18,13 +18,87 @@ export default function Profile() {
     textSize, setTextSize, t, logout 
   } = useAuth();
   
-  // Active Tab from query param (defaults to 'profile')
-  const activeTab = searchParams.get('tab') || 'profile';
+  // Active Tab from query param (defaults to 'profile', clean fallback for old links)
+  const rawTab = searchParams.get('tab') || 'profile';
+  const activeTab = (rawTab === 'wallet' || rawTab === 'bhoomi') ? 'profile' : (rawTab === 'requests' ? 'network' : rawTab);
   const setActiveTab = (tab) => setSearchParams({ tab });
 
-  // Wallet Simulation State
-  const [walletBalance, setWalletBalance] = useState(12.00);
-  const [payoutSuccess, setPayoutSuccess] = useState(false);
+  // Followers State
+  const [followers, setFollowers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sasya_followers_list');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [
+      { username: 'Dr_Hegde_CPCRI', name: 'Dr. Hegde', badge: 'Verified Scientist', location: 'Bantwal Centroid', avatar: 'DH', crop: 'Arecanut' },
+      { username: 'Ganesh_Bhat_Thalli', name: 'Ganesh Bhat', badge: 'Experienced Grower', location: 'Sullia Centroid', avatar: 'GB', crop: 'Arecanut' }
+    ];
+  });
+
+  // Following State (Synced with Community feed priority)
+  const [following, setFollowing] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sasya_following_list');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [
+      { username: 'Dr_Hegde_CPCRI', name: 'Dr. Hegde', badge: 'Verified Scientist', location: 'Bantwal Centroid', avatar: 'DH', crop: 'Arecanut' },
+      { username: 'Suresh_Hegde', name: 'Suresh Hegde', badge: 'Arecanut Cultivator', location: 'Belthangady Centroid', avatar: 'SH', crop: 'Arecanut' },
+      { username: 'Suresh_Rai_Koppa', name: 'Suresh Rai', badge: 'Grower', location: 'Koppa Centroid', avatar: 'SR', crop: 'Paddy' }
+    ];
+  });
+
+  // Suggested Growers in Network
+  const SUGGESTED_GROWERS = [
+    { username: 'Prashanth_Hegde', name: 'Prashanth Hegde', badge: 'Young Farmer Club', location: 'Tirthahalli Centroid', avatar: 'PH', crop: 'Arecanut' },
+    { username: 'Dr_S_K_Nayak', name: 'Dr. S. K. Nayak', badge: 'KVK Agronomist', location: 'Brahmavar Centroid', avatar: 'SN', crop: 'Paddy' },
+    { username: 'Anand_Kolar', name: 'Anand Kolar', badge: 'Tomato Farmer', location: 'Bangarapet Centroid', avatar: 'AK', crop: 'Tomato' }
+  ];
+
+  // Persist followers
+  useEffect(() => {
+    try {
+      localStorage.setItem('sasya_followers_list', JSON.stringify(followers));
+    } catch {}
+  }, [followers]);
+
+  // Persist following
+  useEffect(() => {
+    try {
+      localStorage.setItem('sasya_following_list', JSON.stringify(following));
+    } catch {}
+  }, [following]);
+
+  // Toast State
+  const [toastMessage, setToastMessage] = useState(null);
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleToggleFollowProfile = (farmer) => {
+    const isFollowing = following.some(f => f.username === farmer.username);
+    let next;
+    if (isFollowing) {
+      next = following.filter(f => f.username !== farmer.username);
+      showToast(`Unfollowed u/${farmer.username}`);
+    } else {
+      next = [...following, farmer];
+      showToast(`✓ You are now following u/${farmer.username}! Their posts will appear at the top of your feed.`);
+    }
+    setFollowing(next);
+    try {
+      localStorage.setItem('sasya_following_list', JSON.stringify(next));
+      const raw = localStorage.getItem('sasya_following_state');
+      const map = raw ? JSON.parse(raw) : {};
+      if (isFollowing) {
+        delete map[farmer.username];
+      } else {
+        map[farmer.username] = 'following';
+      }
+      localStorage.setItem('sasya_following_state', JSON.stringify(map));
+    } catch {}
+  };
 
   // Listings State
   const [listings, setListings] = useState([
@@ -63,71 +137,6 @@ export default function Profile() {
     ]);
     setListingTitle('');
     setShowListingModal(false);
-  };
-
-  const handleSimulatePayout = () => {
-    setPayoutSuccess(true);
-    setTimeout(() => {
-      setPayoutSuccess(false);
-    }, 4000);
-  };
-
-  // Bhoomi RTC Land Records State
-  const [parcels, setParcels] = useState([]);
-  const [bhoomiLoading, setBhoomiLoading] = useState(false);
-  const [bhoomiLookupForm, setBhoomiLookupForm] = useState({
-    district: 'Dakshina Kannada',
-    taluk: 'Belthangady',
-    hobli: 'Venur',
-    village: 'Kashipatna',
-    survey_no: '42',
-    hissa_no: '1'
-  });
-  const [lookupResult, setLookupResult] = useState(null);
-  const [registerSuccess, setRegisterSuccess] = useState('');
-
-  useEffect(() => {
-    async function loadParcels() {
-      const res = await getFarmerParcels(user?.id || 'farmer_ka_101');
-      if (res?.parcels) {
-        setParcels(res.parcels);
-      }
-    }
-    loadParcels();
-  }, [user]);
-
-  const handleLookupBhoomi = async (e) => {
-    e.preventDefault();
-    setBhoomiLoading(true);
-    setLookupResult(null);
-    setRegisterSuccess('');
-    try {
-      const res = await lookupBhoomiRtc(bhoomiLookupForm);
-      if (res?.success && res.record) {
-        setLookupResult(res.record);
-      }
-    } finally {
-      setBhoomiLoading(false);
-    }
-  };
-
-  const handleRegisterParcel = async () => {
-    if (!lookupResult) return;
-    setBhoomiLoading(true);
-    try {
-      const res = await registerBhoomiParcel({
-        farmer_id: user?.id || 'farmer_ka_101',
-        ...bhoomiLookupForm
-      });
-      if (res?.success) {
-        setRegisterSuccess(`Land parcel Sy ${bhoomiLookupForm.survey_no}/${bhoomiLookupForm.hissa_no} officially linked to your farm profile!`);
-        const updated = await getFarmerParcels(user?.id || 'farmer_ka_101');
-        if (updated?.parcels) setParcels(updated.parcels);
-        setLookupResult(null);
-      }
-    } finally {
-      setBhoomiLoading(false);
-    }
   };
 
   return (
@@ -200,14 +209,13 @@ export default function Profile() {
         </div>
       </header>
 
-      {/* ── TABS BAR (5 Items from Dropdown) ── */}
+      {/* ── TABS BAR (Profile, Growers Network, Scans, Listings, Settings) ── */}
       <div className={`border-b overflow-x-auto ${isDark ? 'border-[#162C20] bg-[#0E1E16]' : 'border-[#91BA94]/60 bg-white'}`}>
         <div className="max-w-5xl mx-auto px-4 flex items-center gap-1 sm:gap-2 py-2">
           {[
             { id: 'profile', label: t('menu_profile'), icon: User },
-            { id: 'wallet', label: t('menu_wallet'), icon: Wallet },
+            { id: 'network', label: 'Growers Network', icon: Users },
             { id: 'scans', label: t('menu_scans'), icon: Camera },
-            { id: 'bhoomi', label: 'Bhoomi RTC', icon: Shield },
             { id: 'listings', label: t('menu_listings'), icon: FileText },
             { id: 'settings', label: t('menu_settings'), icon: Settings }
           ].map((tab) => (
@@ -226,10 +234,23 @@ export default function Profile() {
             >
               <tab.icon className="w-4 h-4" />
               <span>{tab.label}</span>
+              {tab.badge && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white animate-pulse">
+                  {tab.badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
       </div>
+
+      {/* Toast Alert */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-[#275637] text-white text-xs font-bold shadow-2xl flex items-center gap-2 animate-bounce border border-[#91BA94]">
+          <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
 
       {/* ── TAB CONTENT BODY ── */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8">
@@ -276,7 +297,7 @@ export default function Profile() {
               </div>
 
               {/* Farm Details Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-[#D8E5DA]'}`}>
                   <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>{t('profile_location')}</div>
                   <div className="text-sm font-bold mt-1 flex items-center gap-1.5">
@@ -293,91 +314,297 @@ export default function Profile() {
                 </div>
 
                 <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-[#D8E5DA]'}`}>
-                  <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>{t('profile_privacy_shield')}</div>
-                  <div className="text-sm font-bold mt-1 text-[#22C55E] flex items-center gap-1.5">
-                    <Shield className="w-4 h-4 text-[#22C55E]" />
-                    <span>{t('profile_privacy_active')}</span>
+                  <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>Spatial Privacy</div>
+                  <div className="text-sm font-bold mt-1 flex items-center gap-1.5 text-emerald-500">
+                    <Shield className="w-4 h-4" />
+                    <span>Centroid Shield (k ≥ 5)</span>
+                  </div>
+                </div>
+
+                <div className={`p-4 rounded-xl border ${isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-[#D8E5DA]'}`}>
+                  <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>Growers Network</div>
+                  <div className="text-sm font-bold mt-1 flex items-center justify-between">
+                    <span>{following.length} Following</span>
+                    <button 
+                      onClick={() => setActiveTab('network')}
+                      className="text-xs text-emerald-500 hover:underline font-bold cursor-pointer"
+                    >
+                      View Network
+                    </button>
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Growers Network Overview Card (Open Cooperative) */}
+            <div className={`p-5 rounded-[14px] border shadow-xs space-y-3 ${
+              isDark ? 'bg-[#162C20]/80 border-emerald-500/40 text-white' : 'bg-[#EBF3ED] border-[#91BA94] text-[#275637]'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 font-black text-sm">
+                  <Users className="w-4 h-4 text-emerald-500" />
+                  <span>Growers Network • Open Cooperative</span>
+                </div>
+                <button 
+                  onClick={() => setActiveTab('network')}
+                  className="text-xs font-bold hover:underline cursor-pointer text-emerald-600 dark:text-emerald-400"
+                >
+                  Manage Following ({following.length}) →
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+                <div className={`p-3 rounded-xl border text-center ${
+                  isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-white border-[#D8E5DA]'
+                }`}>
+                  <div className="text-base font-black text-emerald-500">{following.length}</div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase">Following</div>
+                </div>
+                <div className={`p-3 rounded-xl border text-center ${
+                  isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-white border-[#D8E5DA]'
+                }`}>
+                  <div className="text-base font-black">{followers.length}</div>
+                  <div className="text-[10px] text-gray-400 font-bold uppercase">Followers</div>
+                </div>
+                <div className={`col-span-2 sm:col-span-1 p-3 rounded-xl border text-center flex flex-col justify-center ${
+                  isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-white border-[#D8E5DA]'
+                }`}>
+                  <div className="text-xs font-black text-emerald-500">⭐ Priority Feed</div>
+                  <div className="text-[10px] text-gray-400">Followed Farmers on Top</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Reddit-Style 1-on-1 Farmer Chat & Communities Card */}
+            <div className={`border rounded-[14px] p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+              isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+            }`}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg">
+                  💬
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm flex items-center gap-2">
+                    <span>1-on-1 Reddit Chat & Crop Discussions</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                      Anonymous
+                    </span>
+                  </h3>
+                  <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
+                    Chat privately with fellow arecanut growers using Reddit-grade privacy (u/{user?.username || 'Ramesh_Gowda'}). Zero phone numbers or land records exposed.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate('/c/arecanut?chat=open')}
+                className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                  isDark ? 'bg-[#22C55E] text-[#0B1712]' : 'bg-[#275637] text-white'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Open Farmer Chat</span>
+              </button>
             </div>
           </div>
         )}
 
-        {/* TAB 2: WALLET (SIMULATED) */}
-        {activeTab === 'wallet' && (
+        {/* TAB 2: GROWERS NETWORK (OPEN COOPERATIVE) */}
+        {activeTab === 'network' && (
           <div className="space-y-6 animate-card-in">
-            {/* Wallet Header Balance */}
-            <div className={`border rounded-[14px] p-6 shadow-xs ${
+            {/* Open Cooperative Banner */}
+            <div className={`p-6 rounded-[14px] border shadow-xs space-y-3 ${
               isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
             }`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 border-[#91BA94]/30">
                 <div>
-                  <span className={`text-[10px] font-mono uppercase tracking-wider font-bold ${
-                    isDark ? 'text-[#34D399]' : 'text-[#275637]'
-                  }`}>
-                    {t('open_research_bounty')}
-                  </span>
-                  <div className="text-3xl sm:text-4xl font-black mt-1 font-mono">
-                    ₹{walletBalance.toFixed(2)}
-                  </div>
+                  <h3 className="text-base font-extrabold flex items-center gap-2">
+                    <Users className="w-5 h-5 text-emerald-500" />
+                    <span>Open Growers Network</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-500">
+                      Open Cooperative
+                    </span>
+                  </h3>
                   <p className={`text-xs mt-1 ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                    Earned from 12 verified leaf submissions. Payout milestone: ₹50.00.
+                    Connect directly with fellow cultivators, agronomists, and labour teams across Karnataka. Posts and labour requests from farmers you follow are automatically prioritized at the top of your community feed.
                   </p>
                 </div>
 
                 <button
-                  onClick={handleSimulatePayout}
-                  className={`min-h-[48px] px-6 py-3 rounded-xl font-black text-sm transition-all duration-200 hover:scale-105 active:scale-95 shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
-                    isDark 
-                      ? 'bg-[#22C55E] text-[#0B1712] hover:bg-[#16A34A]' 
-                      : 'bg-[#275637] text-white hover:bg-[#1E462B]'
-                  }`}
+                  onClick={() => navigate('/c/arecanut')}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#275637] hover:bg-[#1E462B] text-white flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap self-start sm:self-auto"
                 >
-                  <DollarSign className="w-4 h-4" />
-                  <span>{t('btn_simulate_payout')}</span>
+                  <span>Explore Community</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              {/* Payout Success Toast */}
-              {payoutSuccess && (
-                <div className="mt-4 p-4 rounded-xl bg-[#E8F5E9] border border-[#275637] text-[#275637] text-xs font-bold flex items-center gap-2 animate-toast-slide">
-                  <CheckCircle2 className="w-5 h-5 text-[#275637]" />
-                  <span>Simulated transfer of ₹{walletBalance.toFixed(2)} credited to VPA: ramesh@oksbi</span>
+              {/* Priority Status Highlight */}
+              <div className={`p-3.5 rounded-xl border flex items-center gap-3 text-xs ${
+                isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-emerald-400' : 'bg-[#EBF3ED] border-[#91BA94]/60 text-[#275637]'
+              }`}>
+                <span className="text-lg">⭐</span>
+                <div>
+                  <strong>Feed Priority Active:</strong> Whenever you follow a farmer, their pathology alerts and labour requests are pinned to the top of your feed with a <strong>⭐ Following</strong> tag.
                 </div>
-              )}
+              </div>
             </div>
 
-            {/* Submission History Table */}
-            <div className={`border rounded-[14px] p-6 shadow-xs ${
+            {/* Suggested Growers to Connect With */}
+            <div className={`p-6 rounded-[14px] border shadow-xs space-y-4 ${
               isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
             }`}>
-              <h3 className="text-base font-bold mb-4">{t('verified_submission_history')}</h3>
-              <div className="space-y-3">
-                {[
-                  { crop: 'Arecanut', disease: 'Koleroga (Fruit Rot)', date: 'Today, 10:14 AM', bounty: '+₹1.00', status: 'Approved' },
-                  { crop: 'Paddy', disease: 'Blast (Pyricularia oryzae)', date: 'Yesterday', bounty: '+₹1.00', status: 'Approved' },
-                  { crop: 'Tomato', disease: 'Late Blight', date: 'Oct 21, 2026', bounty: '+₹1.00', status: 'Approved' },
-                  { crop: 'Arecanut', disease: 'Yellow Leaf Disease', date: 'Oct 19, 2026', bounty: '+₹1.00', status: 'Pending Review' }
-                ].map((item, idx) => (
-                  <div key={idx} className={`p-3.5 rounded-xl border flex items-center justify-between text-xs ${
-                    isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-[#D8E5DA]'
-                  }`}>
-                    <div>
-                      <div className="font-bold text-sm">{item.crop} — {item.disease}</div>
-                      <div className={`text-[11px] mt-0.5 ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>{item.date}</div>
+              <h3 className="font-extrabold text-sm flex items-center justify-between border-b pb-3 border-[#91BA94]/20">
+                <span>Recommended Growers & Agronomists</span>
+                <span className="text-xs text-gray-400 font-normal">Connect to personalize feed</span>
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {SUGGESTED_GROWERS.map((sug) => {
+                  const isFollowed = following.some(f => f.username === sug.username);
+                  return (
+                    <div 
+                      key={sug.username}
+                      className={`p-3.5 rounded-xl border flex flex-col justify-between gap-3 ${
+                        isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-[#D8E5DA]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-full bg-[#275637] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                          {sug.avatar}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-xs truncate">u/{sug.username}</div>
+                          <div className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                            {sug.crop} • {sug.location}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1 border-t border-gray-100 dark:border-gray-800">
+                        <button
+                          onClick={() => handleToggleFollowProfile(sug)}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer text-center ${
+                            isFollowed
+                              ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
+                              : 'bg-[#275637] hover:bg-[#1E462B] text-white border-transparent'
+                          }`}
+                        >
+                          {isFollowed ? 'Following ✓' : '+ Follow'}
+                        </button>
+                        <button
+                          onClick={() => navigate(`/c/${sug.crop.toLowerCase()}?chat=open`)}
+                          className={`p-1.5 rounded-lg border text-xs cursor-pointer ${
+                            isDark ? 'border-[#1E3A2B] text-gray-300 hover:text-white' : 'border-[#91BA94] text-gray-600 hover:bg-[#E8F2EA]'
+                          }`}
+                          title="Chat"
+                        >
+                          💬
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-mono font-bold text-sm text-[#22C55E]">{item.bounty}</div>
-                      <span className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
-                        item.status === 'Approved' ? 'bg-[#E8F2EA] text-[#275637]' : 'bg-[#FFF9E6] text-[#8C6D15]'
-                      }`}>
-                        {item.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+            </div>
+
+            {/* Followers & Following Directory */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              
+              {/* Following Box (Prioritized Farmers) */}
+              <div className={`p-5 rounded-[14px] border shadow-xs space-y-3 ${
+                isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+              }`}>
+                <h3 className="font-extrabold text-sm flex items-center justify-between border-b pb-3 border-[#91BA94]/20">
+                  <div className="flex items-center gap-2">
+                    <span>Following</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-500">
+                      {following.length} Farmers
+                    </span>
+                  </div>
+                  <UserPlus className="w-4 h-4 text-emerald-500" />
+                </h3>
+
+                <div className="space-y-2">
+                  {following.map((f, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 ${
+                        isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-[#D8E5DA]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-[#275637] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                          {f.avatar}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-bold text-xs truncate block">u/{f.username}</span>
+                          <span className="text-[10px] text-gray-400 block truncate">{f.crop || 'Crop'} • {f.location}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() => navigate('/c/arecanut?chat=open')}
+                          className="px-2 py-1 rounded-lg text-[11px] font-semibold text-emerald-600 hover:underline cursor-pointer"
+                        >
+                          💬 Chat
+                        </button>
+                        <button
+                          onClick={() => handleToggleFollowProfile(f)}
+                          className="px-2 py-1 rounded-lg text-[10px] font-bold border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 cursor-pointer"
+                          title="Unfollow"
+                        >
+                          Unfollow
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Followers Box */}
+              <div className={`p-5 rounded-[14px] border shadow-xs space-y-3 ${
+                isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+              }`}>
+                <h3 className="font-extrabold text-sm flex items-center justify-between border-b pb-3 border-[#91BA94]/20">
+                  <div className="flex items-center gap-2">
+                    <span>Followers</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-500">
+                      {followers.length} Growers
+                    </span>
+                  </div>
+                  <UserCheck className="w-4 h-4 text-emerald-500" />
+                </h3>
+
+                <div className="space-y-2">
+                  {followers.map((f, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 ${
+                        isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-[#D8E5DA]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-8 h-8 rounded-full bg-[#275637] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                          {f.avatar}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-bold text-xs truncate block">u/{f.username}</span>
+                          <span className="text-[10px] text-gray-400 block truncate">{f.location}</span>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => navigate('/c/arecanut?chat=open')}
+                        className="px-2 py-1 rounded-lg text-[11px] font-semibold text-emerald-600 hover:underline cursor-pointer"
+                      >
+                        💬 Chat
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
           </div>
         )}
@@ -530,192 +757,6 @@ export default function Profile() {
                   </button>
                 </div>
               ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 4: BHOOMI RTC LAND RECORDS */}
-        {activeTab === 'bhoomi' && (
-          <div className="space-y-6 animate-card-in">
-            {/* Header Card */}
-            <div className={`border rounded-2xl p-6 shadow-xs ${
-              isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
-            }`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🌾</span>
-                    <h2 className="text-xl font-black tracking-tight">Karnataka Bhoomi RTC Registry</h2>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
-                      Form-16 Pahani Online
-                    </span>
-                  </div>
-                  <p className={`text-xs mt-1 ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                    Link your cadastral survey plots from the Karnataka Revenue Department directly to hyper-local 48-hour spray defense.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Linked Parcels List */}
-            <div className={`border rounded-2xl p-6 shadow-xs space-y-4 ${
-              isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
-            }`}>
-              <div className="flex items-center justify-between">
-                <h3 className="font-extrabold text-sm flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-emerald-500" />
-                  <span>My Linked Cadastral Parcels ({parcels.length})</span>
-                </h3>
-              </div>
-
-              {registerSuccess && (
-                <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-xs font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>{registerSuccess}</span>
-                </div>
-              )}
-
-              {parcels.length === 0 ? (
-                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  No parcels currently linked. Use the registry lookup tool below to search and link your land.
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {parcels.map((p) => (
-                    <div 
-                      key={p.id}
-                      className={`p-4 rounded-xl border flex flex-col justify-between gap-3 ${
-                        isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#F9F9F6] border-[#D8E4DA]'
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-black text-sm text-emerald-500">
-                            Survey #{p.survey_no} / {p.hissa_no || '1'}
-                          </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                            {p.registered_crop}
-                          </span>
-                        </div>
-                        <div className="text-xs font-bold mt-1 text-gray-800 dark:text-gray-200">
-                          {p.owner_name}
-                        </div>
-                        <div className="text-[11px] text-gray-400 mt-0.5">
-                          {p.village}, {p.taluk}, {p.district}
-                        </div>
-                        <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-3">
-                          <span>Extent: {p.extent_acres}A {p.extent_guntas}G</span>
-                          <span>•</span>
-                          <span>Soil: {p.soil_type}</span>
-                        </div>
-                      </div>
-
-                      <div className="pt-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                        <a
-                          href={`http://localhost:8000/api/rtc/form16/${p.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[11px] font-bold text-emerald-600 hover:underline flex items-center gap-1"
-                        >
-                          <span>View Official Form-16</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                        <Link
-                          to="/risk"
-                          className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-600 text-white hover:bg-emerald-700 transition-all"
-                        >
-                          Check Spray Window ➔
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Bhoomi Online Registry Search Card */}
-            <div className={`border rounded-2xl p-6 shadow-xs space-y-4 ${
-              isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
-            }`}>
-              <h3 className="font-extrabold text-sm flex items-center gap-2">
-                <Search className="w-4 h-4 text-emerald-500" />
-                <span>Search Bhoomi Cadastral Registry</span>
-              </h3>
-
-              <form onSubmit={handleLookupBhoomi} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider mb-1 text-gray-400">
-                    District
-                  </label>
-                  <input
-                    type="text"
-                    value={bhoomiLookupForm.district}
-                    onChange={(e) => setBhoomiLookupForm({ ...bhoomiLookupForm, district: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold border bg-transparent border-gray-300 dark:border-gray-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider mb-1 text-gray-400">
-                    Taluk
-                  </label>
-                  <input
-                    type="text"
-                    value={bhoomiLookupForm.taluk}
-                    onChange={(e) => setBhoomiLookupForm({ ...bhoomiLookupForm, taluk: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold border bg-transparent border-gray-300 dark:border-gray-700"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider mb-1 text-gray-400">
-                    Survey Number
-                  </label>
-                  <input
-                    type="text"
-                    value={bhoomiLookupForm.survey_no}
-                    onChange={(e) => setBhoomiLookupForm({ ...bhoomiLookupForm, survey_no: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold border bg-transparent border-gray-300 dark:border-gray-700"
-                    placeholder="e.g. 42"
-                  />
-                </div>
-
-                <div className="sm:col-span-3 flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={bhoomiLoading}
-                    className="px-5 py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
-                  >
-                    {bhoomiLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
-                    <span>Fetch Official Bhoomi RTC</span>
-                  </button>
-                </div>
-              </form>
-
-              {/* Lookup Result Card */}
-              {lookupResult && (
-                <div className={`p-4 rounded-xl border mt-4 ${
-                  isDark ? 'bg-[#0B1712] border-emerald-500/40' : 'bg-emerald-50/50 border-emerald-300'
-                }`}>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                        <span className="font-extrabold text-sm">RTC Verified: {lookupResult.owner_name}</span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Certificate: {lookupResult.rtc_certificate_no} • Extent: {lookupResult.extent_acres}A {lookupResult.extent_guntas}G • Crop: {lookupResult.registered_crop}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={handleRegisterParcel}
-                      disabled={bhoomiLoading}
-                      className="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 shadow-xs cursor-pointer transition-all"
-                    >
-                      Link Parcel to Farm Profile
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}

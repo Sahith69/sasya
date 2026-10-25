@@ -1,12 +1,32 @@
-// src/pages/Login.jsx - Minimal Hackathon Sign In & Sign Up with Smooth Micro-Animations
+// src/pages/Login.jsx - Minimal Hackathon Sign In & Sign Up with Farmer Place & Crop Preferences
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, DEMO_ACCOUNTS } from '../context/AuthContext';
-import { Sprout, Phone, Lock, User, ArrowRight, CheckCircle2, Sparkles, Check } from 'lucide-react';
+import { Sprout, Phone, Lock, User, ArrowRight, CheckCircle2, Sparkles, Check, MapPin } from 'lucide-react';
+
+const AVAILABLE_CROPS = [
+  { id: 'Arecanut', label: '🌴 Arecanut (ಅಡಿಕೆ)' },
+  { id: 'Paddy', label: '🌾 Paddy (ಭತ್ತ)' },
+  { id: 'Tomato', label: '🍅 Tomato (ಟೊಮೆಟೊ)' },
+  { id: 'Apple', label: '🍎 Apple (ಸೇಬು)' },
+  { id: 'Coconut', label: '🥥 Coconut (ತೆಂಗು)' },
+  { id: 'Black Pepper', label: '🌿 Black Pepper (ಕಾಳುಮೆಣಸು)' }
+];
+
+const DISTRICT_OPTIONS = [
+  'Dakshina Kannada',
+  'Udupi',
+  'Shivamogga',
+  'Chikkamagaluru',
+  'Mysuru',
+  'Shimla',
+  'Kullu',
+  'Dehradun'
+];
 
 export default function Login() {
   const navigate = useNavigate();
-  const { lang, setLang, t, login, startPhoneSignup } = useAuth();
+  const { lang, setLang, t, login, registerFarmer } = useAuth();
 
   const [activeTab, setActiveTab] = useState('signin'); // 'signin' or 'signup'
   
@@ -16,11 +36,27 @@ export default function Login() {
   const [signInError, setSignInError] = useState('');
   const [selectedDemoId, setSelectedDemoId] = useState(null);
 
-  // Sign Up Form States
-  const [phone, setPhone] = useState('0000012345');
+  // Sign Up Form States (Farmer Place & Crop Preferences)
+  const [signUpName, setSignUpName] = useState('');
+  const [signUpUsername, setSignUpUsername] = useState('');
+  const [signUpPassword, setSignUpPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [signUpDistrict, setSignUpDistrict] = useState('Dakshina Kannada');
+  const [signUpTaluk, setSignUpTaluk] = useState('Belthangady, Venur');
+  const [signUpCrops, setSignUpCrops] = useState(['Arecanut']);
   const [signUpError, setSignUpError] = useState('');
-  const [toastMsg, setToastMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Toggle crop selection
+  const toggleCrop = (cropId) => {
+    if (signUpCrops.includes(cropId)) {
+      if (signUpCrops.length > 1) {
+        setSignUpCrops(signUpCrops.filter(c => c !== cropId));
+      }
+    } else {
+      setSignUpCrops([...signUpCrops, cropId]);
+    }
+  };
 
   // Handle Sign In submission
   const handleSignIn = (e) => {
@@ -39,7 +75,7 @@ export default function Login() {
         if (res.user.role === 'expert') {
           navigate('/expert/queue');
         } else {
-          navigate(res.user.consentGiven ? '/home' : '/onboarding');
+          navigate('/home');
         }
       } else {
         setSignInError(res.error);
@@ -47,83 +83,63 @@ export default function Login() {
     }, 250);
   };
 
-  // Quick Demo Auto-Fill (Saves critical pitch seconds)
-  const handleQuickFill = (account) => {
-    setUsername(account.username);
-    setPassword(account.pass);
-    setSelectedDemoId(account.id);
-    setSignInError('');
-  };
-
-  // Handle Sign Up (Dummy Phone -> Send OTP)
-  const handleSendOtp = (e) => {
+  // Handle Sign Up submission with place & crops preferences
+  const handleSignUpSubmit = (e) => {
     e.preventDefault();
     setSignUpError('');
-    setIsSubmitting(true);
 
-    const res = startPhoneSignup(phone);
-    if (res.success) {
-      setToastMsg(`📲 Simulated SMS: OTP ${res.demoOtp} sent to +91 ${phone}`);
-      setTimeout(() => {
-        setIsSubmitting(false);
-        navigate('/verify-otp');
-      }, 650);
-    } else {
-      setIsSubmitting(false);
-      setSignUpError(res.error);
+    if (!signUpUsername.trim()) {
+      setSignUpError('Please choose a username for your farmer profile.');
+      return;
     }
+    if (!signUpPassword.trim()) {
+      setSignUpError('Please enter a password.');
+      return;
+    }
+    if (signUpCrops.length === 0) {
+      setSignUpError('Please select at least one crop that you grow.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setTimeout(() => {
+      const res = registerFarmer({
+        username: signUpUsername.trim(),
+        password: signUpPassword.trim(),
+        phone: phone.trim() || '98450 12345',
+        name: signUpName.trim() || signUpUsername.trim(),
+        district: signUpDistrict,
+        taluk: signUpTaluk.trim(),
+        village: signUpTaluk.trim().split(',')[1]?.trim() || signUpTaluk.trim(),
+        crops: signUpCrops
+      });
+      setIsSubmitting(false);
+
+      if (res.success) {
+        navigate('/home');
+      } else {
+        setSignUpError(res.error || 'Registration failed. Please try again.');
+      }
+    }, 300);
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F9F6] text-[#275637] flex flex-col justify-center items-center px-4 py-8 relative overflow-hidden">
+    <div className="min-h-screen bg-[#F9F9F6] text-[#275637] flex flex-col justify-center items-center p-4 sm:p-6 antialiased selection:bg-[#91BA94]/30">
       
-      {/* Subtle Ambient Organic Blurs (Minimal & Atmospheric) */}
-      <div className="absolute -top-16 -left-16 w-80 h-80 bg-[#91BA94]/12 rounded-full blur-3xl pointer-events-none animate-float" />
-      <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-[#B1D27D]/10 rounded-full blur-3xl pointer-events-none animate-float" style={{ animationDelay: '2.5s' }} />
-
-      {/* Top Simulated SMS Toast */}
-      {toastMsg && (
-        <div className="fixed top-6 z-50 bg-[#E8F5E9] border-2 border-[#275637] text-[#275637] px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-bold animate-toast-slide">
-          <CheckCircle2 className="w-5 h-5 text-[#275637] shrink-0" />
-          <span>{toastMsg}</span>
-        </div>
-      )}
-
-      {/* Main Container with smooth entrance */}
-      <div className="w-full max-w-[460px] relative z-10 animate-card-in">
+      {/* Container Box */}
+      <div className="w-full max-w-md mx-auto">
         
-        {/* Header Branding */}
+        {/* Top Header & Branding */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-13 h-13 rounded-2xl bg-[#E8F2EA] border border-[#91BA94] text-2xl mb-3 shadow-xs hover:rotate-3 transition-transform duration-300">
-            🌾
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#275637] text-white shadow-md mb-3 transition-transform hover:scale-105 duration-300">
+            <Sprout className="w-7 h-7 text-[#91BA94]" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#275637] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#275637]">
             {t('app_name')}
           </h1>
           <p className="text-xs sm:text-sm text-[#556B5C] font-medium mt-1">
             {t('tagline')}
           </p>
-
-          {/* Language Switch Pills with Smooth Active Indicator */}
-          <div className="inline-flex bg-white/90 backdrop-blur-xs p-1 rounded-full border border-[#91BA94] mt-3 gap-1 shadow-xs">
-            {[
-              { code: 'en', label: 'English' },
-              { code: 'kn', label: 'ಕನ್ನಡ' },
-              { code: 'hi', label: 'हिंदी' }
-            ].map((item) => (
-              <button
-                key={item.code}
-                onClick={() => setLang(item.code)}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  lang === item.code
-                    ? 'bg-[#275637] text-white shadow-xs scale-100'
-                    : 'text-[#275637] hover:bg-[#F4F8F5]'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Auth Card */}
@@ -212,91 +228,163 @@ export default function Login() {
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
-              {/* 1-Click Demo Shortcut Pills (Pitch Lifesaver) */}
-              <div className="pt-3 border-t border-[#E8F0E9] mt-4">
-                <div className="flex items-center justify-center gap-1.5 mb-2.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#275637]" />
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#556B5C]">
-                    {t('quick_demo')}
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {DEMO_ACCOUNTS.map((acc) => {
-                    const isSelected = selectedDemoId === acc.id;
-                    return (
-                      <button
-                        key={acc.id}
-                        type="button"
-                        onClick={() => handleQuickFill(acc)}
-                        className={`w-full text-left px-3 py-2 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all duration-150 cursor-pointer ${
-                          isSelected
-                            ? 'border-[#275637] bg-[#E8F5E9] text-[#275637] shadow-xs scale-[1.01]'
-                            : 'border-[#D8E4DA] bg-[#FAFCFA] hover:bg-[#F4F8F5] text-[#275637]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>{acc.badge}</span>
-                          {isSelected && <Check className="w-3.5 h-3.5 text-[#275637]" />}
-                        </div>
-                        <span className="text-[10px] text-[#556B5C] bg-white px-2 py-0.5 rounded border border-[#D8E4DA]">
-                          {acc.username}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+              {/* Quick Fill Test Account Link */}
+              <div className="pt-3 border-t border-[#E8F0E9] mt-4 flex items-center justify-between text-xs text-[#556B5C]">
+                <span>Default credentials:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUsername('farmer_KA_101');
+                    setPassword('farmer123');
+                    setSignInError('');
+                  }}
+                  className="font-mono font-bold text-[#275637] hover:underline cursor-pointer"
+                >
+                  farmer_KA_101 / farmer123
+                </button>
               </div>
             </form>
           )}
 
-          {/* TAB 2: SIGN UP (Dummy Phone -> OTP) */}
+          {/* TAB 2: SIGN UP (WITH FARMER PLACE & CROP PREFERENCES) */}
           {activeTab === 'signup' && (
-            <form onSubmit={handleSendOtp} className="space-y-4 transition-opacity duration-300 ease-in">
+            <form onSubmit={handleSignUpSubmit} className="space-y-3.5 transition-opacity duration-300 ease-in">
               {signUpError && (
                 <div className="bg-[#FDECEA] border border-[#B5483A] text-[#B5483A] px-3.5 py-2.5 rounded-xl text-xs font-semibold">
                   {signUpError}
                 </div>
               )}
 
-              <div className="bg-[#FFF9E6] border border-[#F5E096] text-[#8C6D15] p-3 rounded-xl text-xs font-semibold leading-relaxed">
-                🛡️ <strong>Sandbox Mode:</strong> Use test number <code>00000 12345</code>. No real SMS charges apply.
+              {/* Full Name & Username */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#275637] uppercase tracking-wider mb-1">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    value={signUpName}
+                    onChange={(e) => setSignUpName(e.target.value)}
+                    placeholder="Ramesh Gowda"
+                    className="w-full px-3 py-2 bg-[#FAFCFA] border border-[#91BA94] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#275637]/25 font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-[#275637] uppercase tracking-wider mb-1">
+                    Username *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={signUpUsername}
+                    onChange={(e) => setSignUpUsername(e.target.value)}
+                    placeholder="ramesh_gowda"
+                    className="w-full px-3 py-2 bg-[#FAFCFA] border border-[#91BA94] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#275637]/25 font-medium"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#275637] uppercase tracking-wider mb-1.5">
-                  {t('mobile_label')}
-                </label>
-                <div className="flex gap-2">
-                  <div className="px-3 py-2.5 bg-[#E8F0E9] border border-[#91BA94] rounded-xl text-sm font-bold text-[#275637] flex items-center">
-                    +91
+              {/* Phone & Password */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#275637] uppercase tracking-wider mb-1">
+                    Mobile Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="98450 12345"
+                    className="w-full px-3 py-2 bg-[#FAFCFA] border border-[#91BA94] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#275637]/25 font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-[#275637] uppercase tracking-wider mb-1">
+                    Password *
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={signUpPassword}
+                    onChange={(e) => setSignUpPassword(e.target.value)}
+                    placeholder="farmer123"
+                    className="w-full px-3 py-2 bg-[#FAFCFA] border border-[#91BA94] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#275637]/25 font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* ── PREFERENCE: FARMER'S PLACE (LOCATION) ── */}
+              <div className="p-3 rounded-xl bg-[#F4F8F5] border border-[#91BA94]/60 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-black text-[#275637]">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Farmer's Place (Location Preference)</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#556B5C] uppercase tracking-wider mb-1">
+                      District
+                    </label>
+                    <select
+                      value={signUpDistrict}
+                      onChange={(e) => setSignUpDistrict(e.target.value)}
+                      className="w-full px-2.5 py-1.5 bg-white border border-[#91BA94] rounded-lg text-xs font-bold text-[#275637] focus:outline-none cursor-pointer"
+                    >
+                      {DISTRICT_OPTIONS.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="relative flex-1 group">
-                    <Phone className="w-4 h-4 text-[#556B5C] group-focus-within:text-[#275637] absolute left-3.5 top-3.5 transition-colors" />
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#556B5C] uppercase tracking-wider mb-1">
+                      Taluk / Village
+                    </label>
                     <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder={t('mobile_placeholder')}
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-[#FAFCFA] border border-[#91BA94] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#275637]/25 focus:border-[#275637] font-medium transition-all"
+                      type="text"
+                      value={signUpTaluk}
+                      onChange={(e) => setSignUpTaluk(e.target.value)}
+                      placeholder="Belthangady, Venur"
+                      className="w-full px-2.5 py-1.5 bg-white border border-[#91BA94] rounded-lg text-xs font-medium focus:outline-none"
                     />
                   </div>
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setPhone('0000012345')}
-                className="text-xs text-[#275637] font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
-              >
-                <span>{t('use_demo_mobile')}</span>
-              </button>
+              {/* ── PREFERENCE: WHAT THEY GROW ── */}
+              <div className="p-3 rounded-xl bg-[#F4F8F5] border border-[#91BA94]/60 space-y-2">
+                <div className="flex items-center justify-between text-xs font-black text-[#275637]">
+                  <span>What You Grow (Primary Crops)</span>
+                  <span className="text-[10px] text-gray-400 font-normal">Select all that apply</span>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {AVAILABLE_CROPS.map((c) => {
+                    const isSelected = signUpCrops.includes(c.id);
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => toggleCrop(c.id)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer flex items-center gap-1 ${
+                          isSelected
+                            ? 'bg-[#275637] text-white border-[#275637] shadow-xs'
+                            : 'bg-white border-[#91BA94]/60 text-[#275637] hover:bg-[#E8F2EA]'
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3 h-3" />}
+                        <span>{c.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="w-full py-3 px-4 bg-[#275637] hover:bg-[#1E462B] active:scale-[0.99] text-white font-bold rounded-xl text-sm transition-all duration-200 shadow-xs flex items-center justify-center gap-2 group cursor-pointer mt-2"
               >
-                <span>{isSubmitting ? 'Sending Simulated SMS...' : t('send_otp_btn')}</span>
+                <span>{isSubmitting ? 'Setting Up Farm Profile...' : 'Register Farm Profile & Enter Sasya ➔'}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </form>

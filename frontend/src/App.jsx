@@ -16,6 +16,7 @@ import DetectResult from './pages/DetectResult';
 import Community from './pages/Community';
 import Risk from './pages/Risk';
 import Wallet from './pages/Wallet';
+import Contribute from './pages/Contribute';
 import SurveillanceMap from './pages/SurveillanceMap';
 import ExpertQueue from './pages/ExpertQueue';
 
@@ -48,14 +49,11 @@ function AdminProtectedRoute({ children }) {
   return <AdminLayout>{children}</AdminLayout>;
 }
 
-// Protected Route wrapper
-function ProtectedRoute({ children, requireConsent = true }) {
+// Protected Route wrapper (Clean direct access for authenticated farmers)
+function ProtectedRoute({ children }) {
   const { user } = useAuth();
   if (!user) {
     return <Navigate to="/login" replace />;
-  }
-  if (requireConsent && !user.consentGiven && user.role !== 'expert') {
-    return <Navigate to="/onboarding/consent" replace />;
   }
   return children;
 }
@@ -93,18 +91,21 @@ function MainApp() {
         <Route path="/detect" element={<ProtectedRoute><Detect /></ProtectedRoute>} />
         <Route path="/detect/result" element={<ProtectedRoute><DetectResult /></ProtectedRoute>} />
         
-        {/* Young Farmer Crop Sub-Communities */}
+        {/* Young Farmer Crop Sub-Communities & Reddit-Style 1-on-1 Chat */}
         <Route path="/c/:crop" element={<ProtectedRoute><Community /></ProtectedRoute>} />
         <Route path="/c" element={<Navigate to="/c/arecanut" replace />} />
+        <Route path="/chat" element={<Navigate to="/c/arecanut?chat=open" replace />} />
+        <Route path="/messages" element={<Navigate to="/c/arecanut?chat=open" replace />} />
         
-        {/* 48-Hour Bioclimatic Spray Window */}
-        <Route path="/risk" element={<ProtectedRoute><Risk /></ProtectedRoute>} />
+        {/* Redirect removed 48-Hour Spray Window route */}
+        <Route path="/risk" element={<Navigate to="/home" replace />} />
         
-        {/* Digital Research Bounty Desk & Wallet */}
-        <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+        {/* Open Agronomy Dataset Contribution Desk */}
+        <Route path="/contribute" element={<ProtectedRoute><Contribute /></ProtectedRoute>} />
+        <Route path="/wallet" element={<ProtectedRoute><Contribute /></ProtectedRoute>} />
         
         {/* Epidemic Surveillance Map */}
-        <Route path="/map" element={<ProtectedRoute><SurveillanceMap /></ProtectedRoute>} />
+        <Route path="/map" element={<SurveillanceMap />} />
         
         {/* Agricultural Scientist & Expert Pathology Review Desk */}
         <Route path="/expert/queue" element={<ProtectedRoute><ExpertQueue /></ProtectedRoute>} />
@@ -137,7 +138,7 @@ function MainApp() {
         {/* Convenient Route Aliases */}
         <Route path="/scan" element={<Navigate to="/detect" replace />} />
         <Route path="/weather" element={<Navigate to="/risk" replace />} />
-        <Route path="/bounty" element={<Navigate to="/wallet" replace />} />
+        <Route path="/bounty" element={<Navigate to="/profile" replace />} />
         <Route path="/settings" element={<Navigate to="/profile?tab=settings" replace />} />
         <Route path="/scans" element={<Navigate to="/profile?tab=scans" replace />} />
         <Route path="/listings" element={<Navigate to="/profile?tab=listings" replace />} />

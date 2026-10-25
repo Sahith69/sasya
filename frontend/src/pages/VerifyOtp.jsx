@@ -71,7 +71,7 @@ export default function VerifyOtp() {
 
     const res = completeAccountCreation(newUsername, newPassword);
     if (res.success) {
-      navigate('/onboarding');
+      navigate('/home');
     } else {
       setError(res.error);
     }

@@ -1,490 +1,731 @@
-// src/pages/Detect.jsx - Instant Crop Pathology & Gatekeeper Scanner
-import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+// src/pages/Detect.jsx - Instant Crop Pathology & Leaf Scanner with Live Camera
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
-  ArrowLeft, Camera, Upload, Sparkles, AlertTriangle, 
-  CheckCircle2, Sun, Moon, Zap, ShieldAlert, RefreshCw,
-  Eye, Cpu
+  Camera, Upload, Zap, Sun, Moon, RotateCcw, 
+  MapPin, User, Settings, FileText, UploadCloud,
+  CheckCircle2, Cpu, X, AlertTriangle, ArrowLeft, RefreshCw
 } from 'lucide-react';
 import { runCropDiagnosis } from '../services/api';
 
-const SAMPLE_CARDS = [
-  {
-    id: 'arecanut',
-    name: 'Arecanut (Koleroga / Fruit Rot)',
-    kannada: 'ಅಡಿಕೆ (ಕೊಳೆ ರೋಗ)',
-    crop: 'Arecanut',
-    path: '/samples/sample_arecanut.jpg',
-    badge: 'High Severity',
-    badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
-    description: 'Phytophthora meadii lesion on areca nut calyx & husk',
-    ood: false
-  },
-  {
-    id: 'paddy',
-    name: 'Paddy (Blast / ಬೆಂಕಿ ರೋಗ)',
-    kannada: 'ಭತ್ತ (ಬೆಂಕಿ ರೋಗ)',
-    crop: 'Paddy',
-    path: '/samples/sample_paddy.jpg',
-    badge: 'Moderate',
-    badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-    description: 'Magnaporthe oryzae spindle-shaped necrotic lesions',
-    ood: false
-  },
-  {
-    id: 'apple',
-    name: 'Apple (Apple Scab / ಸ್ಕ್ಯಾಬ್)',
-    kannada: 'ಸೇಬು (ಸ್ಕ್ಯಾಬ್)',
-    crop: 'Apple',
-    path: '/samples/sample_apple.jpg',
-    badge: 'Mild Grade 1',
-    badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-    description: 'Venturia inaequalis olive-green fungal spots',
-    ood: false
-  },
-  {
-    id: 'tomato',
-    name: 'Tomato (Early Blight / ಅರ್ಲಿ ಬ್ಲೈಟ್)',
-    kannada: 'ಟೊಮೆಟೊ (ಅರ್ಲಿ ಬ್ಲೈಟ್)',
-    crop: 'Tomato',
-    path: '/samples/sample_tomato.jpg',
-    badge: 'Moderate Grade 2',
-    badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-    description: 'Alternaria solani concentric target rings',
-    ood: false
-  },
-  {
-    id: 'noncrop',
-    name: 'Non-Crop Object (Reject Test)',
-    kannada: 'ಬೆಳೆಯಲ್ಲದ ವಸ್ತು (ತಿರಸ್ಕಾರ ಪರೀಕ್ಷೆ)',
-    crop: 'Non-Crop',
-    path: '/samples/sample_noncrop.jpg',
-    badge: 'OOD Guard Test',
-    badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-    description: 'Tests Mahalanobis Distance out-of-distribution rejection',
-    ood: true
-  }
+const SUPPORTED_CROPS = [
+  { id: 'Arecanut', name: 'Arecanut (ಅಡಿಕೆ)' },
+  { id: 'Paddy', name: 'Paddy (ಭತ್ತ)' },
+  { id: 'Tomato', name: 'Tomato (ಟೊಮೆಟೊ)' },
+  { id: 'Apple', name: 'Apple (ಸೇಬು)' }
 ];
 
 export default function Detect() {
   const navigate = useNavigate();
-  const { user, lang, setLang, theme, toggleTheme, isDark, t } = useAuth();
+  const { user, lang, setLang, theme, toggleTheme, isDark, t, logout } = useAuth();
 
   const fileInputRef = useRef(null);
-  const cameraInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const profileDropdownRef = useRef(null);
 
-  const [selectedImage, setSelectedImage] = useState('/samples/sample_arecanut.jpg');
+  const [selectedImage, setSelectedImage] = useState(null);
   const [selectedCrop, setSelectedCrop] = useState('Arecanut');
-  const [isOodSample, setIsOodSample] = useState(false);
-  const [selectedSampleId, setSelectedSampleId] = useState('arecanut');
   const [uploadedFile, setUploadedFile] = useState(null);
-  
-  // Scanning state & telemetry logs
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // Scanning state
   const [isScanning, setIsScanning] = useState(false);
   const [scanStep, setScanStep] = useState(0);
 
   const scanSteps = [
-    'Initializing Multi-Crop Gatekeeper & Domain Guard...',
-    'Computing Mahalanobis OOD distance from Imagenet feature space...',
-    'Running ResNet-18 Disease Classifier attention heads...',
-    'Quantifying CORN Ordinal lesion severity ratio...',
-    'Synthesizing Grad-CAM Class Activation Heatmap...'
+    'Validating leaf specimen...',
+    'Running ResNet-18 neural classifier...',
+    'Evaluating lesion severity ratio...',
+    'Generating Grad-CAM attention heatmap...'
   ];
 
-  const handleSelectSample = (sample) => {
-    setSelectedImage(sample.path);
-    setSelectedCrop(sample.crop);
-    setIsOodSample(sample.ood);
-    setSelectedSampleId(sample.id);
-    setUploadedFile(null);
-  };
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadedFile(file);
-      const url = URL.createObjectURL(file);
-      setSelectedImage(url);
-      setSelectedSampleId('custom');
-      setIsOodSample(false);
+  // Stop camera tracks on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  // Start Live Camera
+  const startCamera = async () => {
+    try {
+      setCameraError(null);
+      setSelectedImage(null);
+      setUploadedFile(null);
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      });
+
+      streamRef.current = stream;
+      setIsCameraActive(true);
+
+      // Connect stream to video element once rendered
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(e => console.warn("Video play error:", e));
+        }
+      }, 100);
+    } catch (err) {
+      console.warn("Camera getUserMedia error:", err);
+      setCameraError("Camera unavailable or permission denied. Please choose an image file instead.");
+      setIsCameraActive(false);
+      fileInputRef.current?.click();
     }
   };
 
+  // Stop Live Camera
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  // Capture frame from Live Camera
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+
+    setSelectedImage(dataUrl);
+
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], `leaf_capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
+        setUploadedFile(file);
+      }
+    }, 'image/jpeg', 0.92);
+
+    stopCamera();
+  };
+
+  // File upload handler
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      stopCamera();
+      setUploadedFile(file);
+      const url = URL.createObjectURL(file);
+      setSelectedImage(url);
+    }
+  };
+
+  // Clear selected image
+  const handleClearImage = () => {
+    setSelectedImage(null);
+    setUploadedFile(null);
+    stopCamera();
+  };
+
+  // Run Diagnosis
   const handleRunDiagnosis = async () => {
+    if (!selectedImage && !uploadedFile) return;
+
     setIsScanning(true);
     setScanStep(0);
 
     const stepInterval = setInterval(() => {
       setScanStep((prev) => (prev < scanSteps.length - 1 ? prev + 1 : prev));
-    }, 380);
+    }, 450);
 
     let liveDiag = null;
     try {
-      let fileToSend = uploadedFile;
-      if (!fileToSend && selectedImage) {
-        try {
-          const fetchRes = await fetch(selectedImage);
-          if (fetchRes.ok) {
-            const blob = await fetchRes.blob();
-            fileToSend = new File([blob], `${selectedSampleId || 'sample'}.jpg`, { type: 'image/jpeg' });
-          }
-        } catch (sampleErr) {
-          console.warn('Could not fetch sample as file:', sampleErr);
-        }
-      }
-      if (fileToSend) {
+      if (uploadedFile) {
         liveDiag = await runCropDiagnosis({
-          file: fileToSend,
+          file: uploadedFile,
           cropHint: selectedCrop,
           district: user?.district || 'Dakshina Kannada'
         });
       }
     } catch (err) {
-      console.warn('Backend diagnosis failed, falling back to client mode:', err);
+      console.warn('Backend diagnosis failed, falling back to local model:', err);
     }
 
     setTimeout(() => {
       clearInterval(stepInterval);
       setIsScanning(false);
 
-      // Navigate to /detect/result with full diagnosis state
       navigate('/detect/result', {
         state: {
           image: selectedImage,
           crop: selectedCrop,
-          sampleId: selectedSampleId,
-          isOod: liveDiag?.verification?.is_valid_crop === false ? true : isOodSample,
+          sampleId: selectedCrop.toLowerCase(),
+          isOod: liveDiag?.verification?.is_valid_crop === false,
           liveResult: liveDiag?.success ? liveDiag : null,
           timestamp: new Date().toISOString()
         }
       });
-    }, 2000);
+    }, 1800);
   };
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
-      isDark ? 'bg-[#0B1712] text-white' : 'bg-[#F9F9F6] text-[#275637]'
+    <div className={`min-h-screen flex flex-col relative overflow-x-hidden transition-colors duration-300 pb-20 md:pb-6 ${
+      isDark 
+        ? 'bg-[#0B1712] text-white selection:bg-[#22C55E] selection:text-[#0B1712]' 
+        : 'bg-[#F9F9F6] text-[#275637] selection:bg-[#B1D27D] selection:text-[#275637]'
     }`}>
-      {/* ── TOP NAVIGATION ── */}
-      <header className={`sticky top-0 z-40 backdrop-blur-md border-b px-4 sm:px-8 h-16 flex items-center justify-between ${
-        isDark ? 'bg-[#0B1712]/90 border-[#162C20]' : 'bg-[#F9F9F6]/90 border-[#91BA94]/60'
+      
+      {/* ── TOP FROSTED NAVBAR (EXACT HOMEPAGE CONSISTENCY) ── */}
+      <header className={`sticky top-0 z-40 backdrop-blur-md transition-colors duration-300 border-b ${
+        isDark 
+          ? 'bg-[#0B1712]/90 border-[#162C20]' 
+          : 'bg-[#F9F9F6]/90 border-[#91BA94]/60'
       }`}>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => navigate('/home')}
-            className={`p-2 rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
-              isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:bg-[#162F20]' : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
-            }`}
-            title="Back to Dashboard"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-extrabold text-base sm:text-lg tracking-tight">
-                {t('detect_title')}
-              </h1>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                isDark ? 'bg-[#12241A] border-[#1E3A2B] text-[#34D399]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          
+          {/* Left: Brand with Dynamic Script Badge */}
+          <div className="flex items-center gap-6">
+            <Link 
+              to="/home" 
+              className="flex items-center gap-2 group transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <div className={`w-9 h-9 rounded-xl border flex items-center justify-center text-lg shadow-xs group-hover:rotate-6 transition-transform ${
+                isDark 
+                  ? 'bg-[#12241A] border-[#1E3A2B] text-white' 
+                  : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
               }`}>
-                AI v2.4
-              </span>
-            </div>
-            <p className={`text-[11px] hidden sm:block ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-              {t('detect_sub')}
-            </p>
-          </div>
-        </div>
+                🌾
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <span className={`font-extrabold text-xl tracking-tight transition-colors ${
+                  isDark ? 'text-white' : 'text-[#275637]'
+                }`}>
+                  Sasya
+                </span>
+                {lang !== 'en' && (
+                  <span className={`text-[11px] px-1.5 py-0.5 rounded-md border font-bold transition-all duration-300 ${
+                    isDark 
+                      ? 'bg-[#12241A] border-[#22C55E]/40 text-[#22C55E]' 
+                      : 'bg-[#B1D27D] border-[#91BA94] text-[#275637]'
+                  }`}>
+                    {lang === 'kn' ? 'ಸಸ್ಯ' : 'सस्य'}
+                  </span>
+                )}
+              </div>
+            </Link>
 
-        {/* Right Header Controls: Language & Theme */}
-        <div className="flex items-center gap-2">
-          {/* Language Switcher */}
-          <div className={`flex items-center p-1 rounded-xl border text-xs shadow-xs ${
-            isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
-          }`}>
-            {[
-              { code: 'en', label: 'EN' },
-              { code: 'kn', label: 'ಕನ್ನಡ' },
-              { code: 'hi', label: 'हिंदी' }
-            ].map((item) => (
-              <button
-                key={item.code}
-                onClick={() => setLang(item.code)}
-                className={`px-2 py-0.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  lang === item.code
-                    ? isDark 
-                      ? 'bg-[#22C55E] text-[#0B1712] shadow-xs' 
-                      : 'bg-[#275637] text-white shadow-xs'
-                    : isDark 
-                      ? 'text-[#8BA695] hover:text-white' 
-                      : 'text-[#275637] hover:bg-[#E8F2EA]'
+            {/* Nav Links with Expanding Underline */}
+            <nav className="hidden md:flex items-center gap-1.5 text-sm font-semibold">
+              <Link 
+                to="/home"
+                className={`px-3.5 py-2 rounded-xl transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${
+                  isDark 
+                    ? 'text-[#8BA695] hover:text-white hover:bg-[#12241A]' 
+                    : 'text-[#556B5C] hover:text-[#275637] hover:bg-[#E8F2EA]'
                 }`}
               >
-                {item.label}
-              </button>
-            ))}
+                {t('nav_home') || 'Home'}
+              </Link>
+              <Link 
+                to="/c/arecanut"
+                className={`px-3.5 py-2 rounded-xl transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${
+                  isDark 
+                    ? 'text-[#8BA695] hover:text-white hover:bg-[#12241A]' 
+                    : 'text-[#556B5C] hover:text-[#275637] hover:bg-[#E8F2EA]'
+                }`}
+              >
+                {t('nav_community') || 'Community'}
+              </Link>
+              <Link 
+                to="/detect"
+                className={`px-3.5 py-2 rounded-xl font-bold transition-all duration-200 ${
+                  isDark 
+                    ? 'bg-[#12241A] text-[#22C55E]' 
+                    : 'bg-[#E8F2EA] text-[#275637]'
+                }`}
+              >
+                {t('nav_detect') || 'Detect'}
+              </Link>
+              <Link 
+                to="/map"
+                className={`px-3.5 py-2 rounded-xl transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${
+                  isDark 
+                    ? 'text-[#8BA695] hover:text-white hover:bg-[#12241A]' 
+                    : 'text-[#556B5C] hover:text-[#275637] hover:bg-[#E8F2EA]'
+                }`}
+              >
+                {t('nav_map') || 'Map'}
+              </Link>
+            </nav>
           </div>
 
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-xl border transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer ${
-              isDark ? 'bg-[#12241A] border-[#1E3A2B] text-[#FCD34D]' : 'bg-white border-[#91BA94] text-[#275637]'
-            }`}
-            title="Toggle Dark/Light"
-          >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
+          {/* Right: Theme Selector, Language Switcher & Profile Avatar */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle Theme"
+              title={isDark ? "Switch to White/Light Theme" : "Switch to Dark Theme"}
+              className={`p-2 rounded-xl border transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer shadow-xs ${
+                isDark 
+                  ? 'bg-[#12241A] border-[#1E3A2B] text-[#FCD34D] hover:bg-[#183526]' 
+                  : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
+              }`}
+            >
+              {isDark ? (
+                <Sun className="w-4 h-4 transition-transform duration-300 hover:rotate-45" />
+              ) : (
+                <Moon className="w-4 h-4 transition-transform duration-300 hover:-rotate-45" />
+              )}
+            </button>
+
+            {/* Language Switcher */}
+            <div className={`flex items-center p-1 rounded-xl border text-xs shadow-xs ${
+              isDark 
+                ? 'bg-[#12241A] border-[#1E3A2B]' 
+                : 'bg-white border-[#91BA94]'
+            }`}>
+              {[
+                { code: 'en', label: 'EN' },
+                { code: 'kn', label: 'ಕನ್ನಡ' },
+                { code: 'hi', label: 'हिंदी' }
+              ].map((item) => (
+                <button
+                  key={item.code}
+                  onClick={() => setLang(item.code)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
+                    lang === item.code
+                      ? isDark 
+                        ? 'bg-[#22C55E] text-[#0B1712] shadow-xs' 
+                        : 'bg-[#275637] text-white shadow-xs'
+                      : isDark 
+                        ? 'text-[#8BA695] hover:text-white' 
+                        : 'text-[#275637] hover:bg-[#E8F2EA]'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Profile Avatar Button */}
+            <div className="relative" ref={profileDropdownRef}>
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs border transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
+                  isDark 
+                    ? 'bg-[#12241A] border-[#1E3A2B] hover:border-[#22C55E] text-white' 
+                    : 'bg-[#275637] hover:bg-[#1E462B] border-[#91BA94] text-white'
+                }`}
+                aria-expanded={isProfileOpen}
+                title="User Profile"
+              >
+                {user?.username ? user.username.substring(0, 2).toUpperCase() : 'AR'}
+              </button>
+
+              {/* Profile Dropdown Popover */}
+              {isProfileOpen && (
+                <div className={`absolute right-0 mt-2 w-64 border rounded-[14px] shadow-2xl py-3 z-50 animate-card-in ${
+                  isDark 
+                    ? 'bg-[#102217] border-[#1E3A2B] text-white' 
+                    : 'bg-white border-[#91BA94] text-[#275637]'
+                }`}>
+                  <div className={`px-4 pb-3 border-b ${isDark ? 'border-[#1A3324]' : 'border-[#E8F0E9]'}`}>
+                    <div className="text-xs font-bold">
+                      {user?.username || 'Ramesh_Gowda'}
+                    </div>
+                    <div className={`text-[11px] flex items-center gap-1 mt-0.5 font-medium ${
+                      isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'
+                    }`}>
+                      <MapPin className="w-3 h-3 text-[#22C55E]" />
+                      <span>{user?.village || 'Venur'}, {user?.district || 'Dakshina Kannada'}</span>
+                    </div>
+                  </div>
+
+                  <div className="py-2 text-xs font-semibold">
+                    {[
+                      { icon: User, label: 'Farmer Profile', to: '/profile?tab=profile' },
+                      { icon: Camera, label: 'Scan Diary', to: '/profile?tab=scans' },
+                      { icon: Settings, label: 'Privacy & Settings', to: '/profile?tab=settings' },
+                    ].map((item, idx) => (
+                      <button 
+                        key={idx}
+                        onClick={() => { setIsProfileOpen(false); navigate(item.to); }}
+                        className={`w-full text-left px-4 py-2 flex items-center gap-2.5 transition-colors cursor-pointer ${
+                          isDark 
+                            ? 'hover:bg-[#162F20] hover:text-white' 
+                            : 'hover:bg-[#E8F2EA] text-[#275637]'
+                        }`}
+                      >
+                        <item.icon className={`w-4 h-4 ${isDark ? 'text-[#22C55E]' : 'text-[#275637]'}`} />
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className={`pt-2 border-t px-2 ${isDark ? 'border-[#1A3324]' : 'border-[#E8F0E9]'}`}>
+                    <button
+                      onClick={() => { logout(); navigate('/login'); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                        isDark ? 'text-rose-400 hover:bg-rose-500/10' : 'text-rose-600 hover:bg-rose-50'
+                      }`}
+                    >
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </div>
         </div>
       </header>
 
-      {/* ── MAIN CONTENT ── */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8">
+      {/* ── MAIN CONTENT (HERO CONTAINER LIKE HOMEPAGE) ── */}
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 flex flex-col justify-center">
         
-        {/* Top Info Banner */}
-        <div className={`p-4 rounded-[14px] border mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs ${
-          isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
-        }`}>
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-              isDark ? 'bg-[#162F20] text-[#34D399]' : 'bg-[#E8F2EA] text-[#275637]'
-            }`}>
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold">4 Crops Supported + Non-Crop Guard Active</h2>
-              <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                Arecanut (Koleroga), Paddy (Blast), Apple (Scab), and Tomato. Captures or sample clicks auto-evaluated.
-              </p>
-            </div>
+        {/* Page Greeting & Subtitle */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/home')}
+              className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:bg-[#162F20]' : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
+              }`}
+              title="Back"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+              Scan Leaf Specimen
+            </h1>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${
-              isDark ? 'bg-[#162F20] border-[#1E3A2B] text-[#8BA695]' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
-            }`}>
-              📍 {user?.village || 'Venur'}, {user?.district || 'Dakshina Kannada'}
-            </span>
+          <p className={`text-xs sm:text-sm mt-1.5 font-medium ml-7 ${
+            isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'
+          }`}>
+            Capture or upload a clear photo of an affected leaf, calyx, or bunch for ResNet-18 diagnostic analysis.
+          </p>
+        </div>
+
+        {/* Hidden File Picker Input */}
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileUpload} 
+          accept="image/*" 
+          className="hidden" 
+        />
+
+        {/* Crop Selector Card */}
+        <div className={`border rounded-[14px] p-4 mb-5 shadow-xs ${
+          isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+        }`}>
+          <label className={`block text-xs font-bold mb-2 uppercase tracking-wider ${
+            isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'
+          }`}>
+            Select Crop to Diagnose
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {SUPPORTED_CROPS.map((crop) => (
+              <button
+                key={crop.id}
+                type="button"
+                onClick={() => setSelectedCrop(crop.id)}
+                className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer truncate text-center ${
+                  selectedCrop === crop.id
+                    ? isDark 
+                      ? 'bg-[#22C55E] text-[#0B1712] border-[#22C55E] shadow-xs' 
+                      : 'bg-[#275637] text-white border-[#275637] shadow-xs'
+                    : isDark 
+                      ? 'bg-[#0E1E16] border-[#1E3A2B] text-gray-300 hover:border-gray-500' 
+                      : 'bg-[#FAFCFA] border-[#D8E4DA] text-[#275637] hover:bg-[#E8F2EA]'
+                }`}
+              >
+                {crop.name.split(' ')[0]}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Left Column: Image Viewport & Upload Controls (7 cols) */}
-          <div className="lg:col-span-7 space-y-4">
-            
-            {/* Image Preview Card */}
-            <div className={`relative rounded-[16px] border overflow-hidden p-4 sm:p-6 flex flex-col items-center justify-center min-h-[380px] shadow-sm ${
-              isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
-            }`}>
-              
-              {selectedImage ? (
-                <div className="relative w-full max-w-md aspect-square rounded-[14px] overflow-hidden border border-[#91BA94]/40 shadow-md flex items-center justify-center bg-black/5">
-                  <img 
-                    src={selectedImage} 
-                    alt="Leaf specimen" 
-                    className="w-full h-full object-cover"
-                  />
+        {/* Error notification if camera fails */}
+        {cameraError && (
+          <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-semibold flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{cameraError}</span>
+          </div>
+        )}
 
-                  {/* Scanning Animation Overlay */}
-                  {isScanning && (
-                    <div className="absolute inset-0 bg-[#275637]/30 backdrop-blur-[1px] flex flex-col items-center justify-center p-4">
-                      {/* Laser Bar Animation */}
-                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#22C55E] to-transparent shadow-[0_0_15px_#22C55E] animate-bounce" />
-                      
-                      <div className={`p-4 rounded-xl border max-w-xs w-full text-center shadow-xl ${
-                        isDark ? 'bg-[#0B1712]/95 border-[#22C55E]/40 text-white' : 'bg-white/95 border-[#275637]/40 text-[#275637]'
-                      }`}>
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                          <Cpu className="w-5 h-5 text-[#22C55E] animate-spin" />
-                          <span className="font-extrabold text-xs uppercase tracking-wider text-[#22C55E]">
-                            AI Analysis In Progress
-                          </span>
-                        </div>
-                        <p className="text-xs font-semibold min-h-[36px] flex items-center justify-center">
-                          {scanSteps[scanStep]}
-                        </p>
-                        <div className="w-full bg-black/20 h-1.5 rounded-full mt-3 overflow-hidden">
-                          <div 
-                            className="bg-[#22C55E] h-full transition-all duration-300"
-                            style={{ width: `${((scanStep + 1) / scanSteps.length) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+        {/* ── MAIN VIEWPORT CARD (HOMEPAGE AESTHETIC) ── */}
+        <div className={`border rounded-[16px] p-5 sm:p-7 shadow-xs flex flex-col items-center justify-center transition-all ${
+          isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+        }`}>
 
-                  {/* Specimen Tag */}
-                  <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-md px-3 py-1.5 rounded-lg text-white text-xs font-medium flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
-                    <span>Selected: {selectedCrop}</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center text-center p-8">
-                  <Camera className="w-16 h-16 text-[#91BA94] mb-3 opacity-60" />
-                  <p className="text-sm font-bold">No Specimen Selected</p>
-                  <p className="text-xs opacity-75 mt-1">Take a photo or choose a sample below</p>
-                </div>
-              )}
-
-              {/* Upload Action Triggers */}
-              <div className="w-full mt-5 flex flex-wrap items-center justify-center gap-3">
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileUpload} 
-                  accept="image/*" 
-                  className="hidden" 
+          {/* VIEW 1: LIVE WEBCAM VIEWFINDER */}
+          {isCameraActive ? (
+            <div className="w-full max-w-lg space-y-4">
+              <div className="relative aspect-video w-full rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-xl bg-black flex items-center justify-center">
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted 
+                  className="w-full h-full object-cover"
                 />
-                <input 
-                  type="file" 
-                  ref={cameraInputRef} 
-                  onChange={handleFileUpload} 
-                  accept="image/*" 
-                  capture="environment" 
-                  className="hidden" 
-                />
+
+                {/* Viewfinder Targeting Reticle */}
+                <div className="absolute inset-6 border-2 border-dashed border-emerald-400/80 rounded-xl pointer-events-none flex items-center justify-center">
+                  <span className="text-[11px] font-mono font-bold bg-black/60 px-2.5 py-1 rounded text-emerald-300">
+                    Align leaf lesion in center
+                  </span>
+                </div>
+
+                {/* Close camera button */}
+                <button
+                  type="button"
+                  onClick={stopCamera}
+                  className="absolute top-3 right-3 p-2 rounded-full bg-black/70 hover:bg-black text-white cursor-pointer transition-transform active:scale-95 shadow-md"
+                  title="Close Camera"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Camera Shutter & Actions */}
+              <div className="flex items-center justify-center gap-4 pt-1">
+                <button
+                  type="button"
+                  onClick={stopCamera}
+                  className="px-4 py-2.5 rounded-xl border text-xs font-bold text-gray-400 hover:text-white cursor-pointer"
+                >
+                  Cancel
+                </button>
 
                 <button
                   type="button"
-                  onClick={() => cameraInputRef.current?.click()}
-                  className={`flex-1 min-w-[140px] h-12 rounded-[14px] font-bold text-xs flex items-center justify-center gap-2 border transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer shadow-xs ${
-                    isDark 
-                      ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:border-[#22C55E]' 
-                      : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
-                  }`}
+                  onClick={capturePhoto}
+                  className="px-7 py-3 rounded-full bg-emerald-500 hover:bg-emerald-600 text-[#0B1712] font-black text-sm flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 >
-                  <Camera className="w-4 h-4 text-[#22C55E]" />
-                  <span>{t('detect_open_camera')}</span>
+                  <Camera className="w-5 h-5" />
+                  <span>Snap Photo</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className={`flex-1 min-w-[140px] h-12 rounded-[14px] font-bold text-xs flex items-center justify-center gap-2 border transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer shadow-xs ${
-                    isDark 
-                      ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:border-[#22C55E]' 
-                      : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
-                  }`}
+                  className="px-4 py-2.5 rounded-xl border text-xs font-bold text-gray-400 hover:text-white cursor-pointer"
                 >
-                  <Upload className="w-4 h-4 text-[#22C55E]" />
-                  <span>{t('detect_upload_file')}</span>
+                  Or Upload
                 </button>
+              </div>
+            </div>
+          ) : selectedImage ? (
+            
+            /* VIEW 2: CAPTURED / UPLOADED IMAGE PREVIEW */
+            <div className="w-full max-w-md space-y-4">
+              <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-[#91BA94]/40 shadow-inner bg-black flex items-center justify-center">
+                <img 
+                  src={selectedImage} 
+                  alt="Captured leaf specimen" 
+                  className="w-full h-full object-contain"
+                />
 
+                {/* Remove / Change Image Button */}
+                {!isScanning && (
+                  <button
+                    onClick={handleClearImage}
+                    className="absolute top-3 right-3 p-1.5 rounded-full bg-black/70 hover:bg-black text-white cursor-pointer transition-transform active:scale-95 shadow-md"
+                    title="Remove Photo"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+
+                {/* Scanning Progress Overlay */}
+                {isScanning && (
+                  <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-white text-center">
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#22C55E] to-transparent shadow-[0_0_15px_#22C55E] animate-bounce" />
+                    
+                    <Cpu className="w-9 h-9 text-[#22C55E] animate-spin mb-3" />
+                    <p className="font-extrabold text-sm mb-1 text-[#22C55E]">
+                      AI Diagnosis In Progress
+                    </p>
+                    <p className="text-xs text-gray-200 min-h-[30px] font-medium">
+                      {scanSteps[scanStep]}
+                    </p>
+                    
+                    <div className="w-48 bg-white/20 h-1.5 rounded-full mt-3 overflow-hidden">
+                      <div 
+                        className="bg-[#22C55E] h-full transition-all duration-300"
+                        style={{ width: `${((scanStep + 1) / scanSteps.length) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2 pt-1">
                 <button
                   type="button"
                   disabled={isScanning}
                   onClick={handleRunDiagnosis}
-                  className={`w-full h-13 rounded-[14px] font-extrabold text-sm flex items-center justify-center gap-2.5 transition-all duration-200 hover:scale-[1.02] active:scale-95 cursor-pointer shadow-md ${
+                  className={`w-full h-12 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md ${
                     isDark 
                       ? 'bg-[#22C55E] hover:bg-[#1ea850] text-[#0B1712]' 
                       : 'bg-[#275637] hover:bg-[#1e462b] text-white'
                   }`}
                 >
                   <Zap className="w-4 h-4 fill-current" />
-                  <span>{t('detect_analyze_btn')}</span>
+                  <span>Analyze {selectedCrop} Leaf</span>
                 </button>
-              </div>
 
-            </div>
-
-            {/* Privacy & Guard Notice */}
-            <div className={`p-3.5 rounded-[14px] border text-xs flex items-center gap-3 ${
-              isDark ? 'bg-[#12241A]/50 border-[#1E3A2B] text-[#8BA695]' : 'bg-[#E8F2EA]/60 border-[#91BA94]/70 text-[#275637]'
-            }`}>
-              <CheckCircle2 className="w-4 h-4 text-[#22C55E] shrink-0" />
-              <span>
-                <strong>Spatial Privacy Guaranteed:</strong> Photo GPS is truncated to village centroid before transmission. Zero raw EXIF or cadastral land boundaries stored.
-              </span>
-            </div>
-
-          </div>
-
-          {/* Right Column: 1-Click Pitch Samples (5 cols) */}
-          <div className="lg:col-span-5 space-y-4">
-            
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-sm flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#22C55E]" />
-                <span>{t('detect_quick_samples')}</span>
-              </h3>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                isDark ? 'bg-[#162F20] text-[#8BA695]' : 'bg-[#E8F2EA] text-[#275637]'
-              }`}>
-                Pitch Demo Ready
-              </span>
-            </div>
-
-            <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-              {t('detect_sample_desc')}
-            </p>
-
-            <div className="space-y-3">
-              {SAMPLE_CARDS.map((sample) => {
-                const isSelected = selectedSampleId === sample.id;
-                return (
-                  <div
-                    key={sample.id}
-                    onClick={() => handleSelectSample(sample)}
-                    className={`p-3 rounded-[14px] border transition-all duration-200 cursor-pointer flex items-center gap-3.5 hover:scale-[1.01] ${
-                      isSelected
-                        ? isDark 
-                          ? 'bg-[#142C1E] border-[#22C55E] ring-1 ring-[#22C55E]' 
-                          : 'bg-[#E8F2EA] border-[#275637] ring-1 ring-[#275637]'
-                        : isDark
-                          ? 'bg-[#102217] border-[#1E3A2B] hover:border-[#22C55E]/50'
-                          : 'bg-white border-[#91BA94] hover:bg-[#F9F9F6]'
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={isScanning}
+                    onClick={startCamera}
+                    className={`flex-1 py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer ${
+                      isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-gray-50 border-[#91BA94] text-[#275637]'
                     }`}
                   >
-                    <img 
-                      src={sample.path} 
-                      alt={sample.name} 
-                      className="w-14 h-14 rounded-xl object-cover border shrink-0 border-[#91BA94]/40"
-                    />
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>Retake Photo</span>
+                  </button>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-1">
-                        <h4 className="text-xs font-bold truncate">
-                          {sample.name}
-                        </h4>
-                        <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border shrink-0 ${sample.badgeColor}`}>
-                          {sample.badge}
-                        </span>
-                      </div>
-                      <p className={`text-[11px] font-medium truncate mt-0.5 ${
-                        isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'
-                      }`}>
-                        {sample.kannada}
-                      </p>
-                      <p className={`text-[10px] truncate mt-0.5 opacity-80 ${
-                        isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'
-                      }`}>
-                        {sample.description}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Quick Demo Hint */}
-            <div className={`p-3.5 rounded-[14px] border text-xs ${
-              isDark ? 'bg-[#102217] border-[#1E3A2B] text-[#8BA695]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
-            }`}>
-              <div className="flex items-center gap-2 font-bold mb-1">
-                <ShieldAlert className="w-4 h-4 text-[#F6D05F]" />
-                <span>Test OOD Guard:</span>
+                  <button
+                    type="button"
+                    disabled={isScanning}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`flex-1 py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer ${
+                      isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-gray-50 border-[#91BA94] text-[#275637]'
+                    }`}
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Different</span>
+                  </button>
+                </div>
               </div>
-              <p className="text-[11px] leading-relaxed">
-                Click <strong>"Non-Crop Object"</strong> to see how Sasya's Mahalanobis distance filter prevents false pesticide prescriptions on non-crop images.
-              </p>
             </div>
 
-          </div>
+          ) : (
+
+            /* VIEW 3: EMPTY DROPZONE STATE (CAMERA & UPLOAD) */
+            <div className="py-8 px-4 flex flex-col items-center text-center w-full max-w-sm">
+              <div className={`w-18 h-18 rounded-2xl flex items-center justify-center mb-4 ${
+                isDark ? 'bg-[#162C20] text-[#22C55E]' : 'bg-[#E8F2EA] text-[#275637]'
+              }`}>
+                <Camera className="w-9 h-9" />
+              </div>
+
+              <h2 className="text-base font-extrabold mb-1">
+                Take or Upload Leaf Photo
+              </h2>
+              <p className={`text-xs mb-6 ${
+                isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'
+              }`}>
+                Focus on the dark calyx rot, leaf spots, or lesion margins.
+              </p>
+
+              <div className="w-full space-y-2.5">
+                <button
+                  type="button"
+                  onClick={startCamera}
+                  className={`w-full h-12 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2.5 transition-all hover:scale-[1.01] active:scale-95 cursor-pointer shadow-xs ${
+                    isDark 
+                      ? 'bg-[#22C55E] hover:bg-[#1ea850] text-[#0B1712]' 
+                      : 'bg-[#275637] hover:bg-[#1e462b] text-white'
+                  }`}
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>Open Camera</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`w-full h-11 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer ${
+                    isDark 
+                      ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:border-[#22C55E]' 
+                      : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
+                  }`}
+                >
+                  <Upload className="w-4 h-4 text-[#22C55E]" />
+                  <span>Upload Image File</span>
+                </button>
+              </div>
+            </div>
+          )}
 
         </div>
 
       </main>
+
+      {/* ── MOBILE BOTTOM NAVIGATION (EXACT HOMEPAGE CONSISTENCY) ── */}
+      <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-40 border-t flex items-center justify-around py-2 px-2 backdrop-blur-md ${
+        isDark ? 'bg-[#0B1712]/95 border-[#162C20]' : 'bg-[#F9F9F6]/95 border-[#91BA94]/60'
+      }`}>
+        <button 
+          onClick={() => navigate('/home')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-1 active:scale-90 transition-transform ${
+            isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
+          }`}
+        >
+          <span className="text-base">🌱</span>
+          <span className="text-[10px] font-semibold">{t('nav_home') || 'Home'}</span>
+        </button>
+
+        <button 
+          onClick={() => navigate('/c/arecanut')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-1 active:scale-90 transition-transform ${
+            isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
+          }`}
+        >
+          <span className="text-base">💬</span>
+          <span className="text-[10px] font-semibold">{t('nav_community') || 'Community'}</span>
+        </button>
+
+        <button 
+          onClick={() => navigate('/detect')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-1 active:scale-90 transition-transform ${
+            isDark ? 'text-[#22C55E] font-bold' : 'text-[#275637] font-bold'
+          }`}
+        >
+          <Camera className="w-5 h-5 text-emerald-500" />
+          <span className="text-[10px] font-bold">{t('nav_detect') || 'Detect'}</span>
+        </button>
+
+        <button 
+          onClick={() => navigate('/profile')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-1 active:scale-90 transition-transform ${
+            isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
+          }`}
+        >
+          <User className="w-5 h-5" />
+          <span className="text-[10px] font-semibold">{t('menu_profile') || 'Profile'}</span>
+        </button>
+      </nav>
+
     </div>
   );
 }

@@ -3,7 +3,7 @@
 // Automatically falls back to high-fidelity client-side simulation if backend is offline.
 
 // Dynamically resolve API URL across local dev, Render, Vercel, and cloud deploys
-let rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+let rawApiUrl = import.meta.env.VITE_API_URL || 'https://sasya-backend.onrender.com/api';
 if (!rawApiUrl.startsWith('http://') && !rawApiUrl.startsWith('https://')) {
   rawApiUrl = `https://${rawApiUrl}`;
 }

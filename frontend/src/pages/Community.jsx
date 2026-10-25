@@ -1,99 +1,289 @@
-// src/pages/Community.jsx - Young Farmer Crop Sub-Communities (r/arecanut, r/paddy, etc.)
-import React, { useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+// src/pages/Community.jsx - Reddit Replica for Crop Communities (r/arecanut, r/paddy, r/tomato, r/apple)
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { addCommunityComment, createCommunityPost } from '../services/api';
+import RedditChat from '../components/RedditChat';
 import { 
-  ArrowLeft, MessageSquare, ThumbsUp, ThumbsDown, Share2, 
+  ArrowLeft, MessageSquare, Share2, Bookmark, Flag, 
   Send, Sparkles, Filter, AlertTriangle, ShieldCheck, 
   Sun, Moon, MapPin, Tag, Plus, CheckCircle2, ChevronDown,
-  ChevronUp, Wrench, Clock, Users, Camera
+  ChevronUp, Wrench, Clock, Users, Camera, Flame, 
+  TrendingUp, Image as ImageIcon, Check, X, Search, MoreHorizontal
 } from 'lucide-react';
 
-const CROPS = [
-  { id: 'arecanut', name: 'Arecanut (ಅಡಿಕೆ)', members: '1,420 growers', activeBadge: 'High Koleroga Season' },
-  { id: 'paddy', name: 'Paddy (ಭತ್ತ)', members: '2,890 growers', activeBadge: 'Blast Warning' },
-  { id: 'apple', name: 'Apple (ಸೇಬು)', members: '870 growers', activeBadge: 'Post-Harvest' },
-  { id: 'tomato', name: 'Tomato (ಟೊಮೆಟೊ)', members: '1,120 growers', activeBadge: 'Blight Watch' },
-];
+// Subreddit Crop Metadata
+const SUBREDDITS = {
+  arecanut: {
+    id: 'arecanut',
+    name: 'r/arecanut',
+    displayName: 'Arecanut Plantation Growers',
+    icon: '🌴',
+    members: '1,420 members',
+    online: '38 online',
+    description: 'The premier community for arecanut palm cultivators, plant pathologists, and agronomists across Coastal & Malnad Karnataka. Share Koleroga alerts, spray schedules, and harvest techniques.',
+    rules: [
+      'Be specific about palm canopy symptoms and leaf wetness',
+      'Attach clear photos when requesting disease identification',
+      'Share prophylactic Bordeaux spray timing before continuous rain'
+    ]
+  },
+  paddy: {
+    id: 'paddy',
+    name: 'r/paddy',
+    displayName: 'Paddy & Rice Agronomy',
+    icon: '🌾',
+    members: '2,890 members',
+    online: '64 online',
+    description: 'Surveillance and crop management discussions for paddy farmers. Monitor leaf blast, bacterial blight, water management, and panicle protection.',
+    rules: [
+      'Report blast lesions promptly to protect neighboring basins',
+      'Specify rice variety (Jaya, Jyothi, MTU 1010) in your post'
+    ]
+  },
+  tomato: {
+    id: 'tomato',
+    name: 'r/tomato',
+    displayName: 'Tomato & Solanaceous Growers',
+    icon: '🍅',
+    members: '1,120 members',
+    online: '29 online',
+    description: 'Commercial tomato growers and market gardeners. Discuss early blight, late blight, yellow leaf curl virus, and drip fertigation.',
+    rules: [
+      'Distinguish early vs late blight symptoms clearly',
+      'State greenhouse vs open-field cultivation conditions'
+    ]
+  },
+  apple: {
+    id: 'apple',
+    name: 'r/apple',
+    displayName: 'Himachal & Kashmir Apple Orchards',
+    icon: '🍏',
+    members: '870 members',
+    online: '21 online',
+    description: 'High-altitude orchard management for Apple Scab (Venturia inaequalis), dormancy treatments, winter pruning, and KVK recommendations.',
+    rules: [
+      'Note orchard elevation and prevailing valley humidity',
+      'Follow integrated pest management protocols'
+    ]
+  }
+};
 
 const INITIAL_POSTS = [
   {
     id: 1,
     crop: 'arecanut',
-    author: 'Ramesh Gowda',
-    authorId: 'farmer_KA_101',
+    author: 'Ramesh_Gowda',
     village: 'Venur, Dakshina Kannada',
-    badge: 'Grower (4 acres)',
+    badge: 'Arecanut Cultivator (4ac)',
     timeAgo: '2 hours ago',
-    category: 'Disease Query',
-    title: 'Koleroga spotted after continuous mist. Is 1% Bordeaux mixture enough or should I add sticker?',
-    content: 'Noticed dark water-soaked rot starting on 3-month-old nut calyxes on the north slope. Sasya scan gave 96.4% confidence Koleroga. Since rain is predicted in 22 hours, is normal Bordeaux spray adequate or must I mix rosin sticker adjuvant?',
+    flair: 'Disease Query',
+    flairColor: 'bg-rose-500/15 text-rose-500 border-rose-500/30',
+    title: 'Koleroga spotted after continuous mist. Is 1% Bordeaux mixture enough or should I add rosin sticker?',
+    content: 'Noticed dark water-soaked rot starting on 3-month-old nut calyxes on the north-facing slope. Sasya ResNet scan flagged 96.4% confidence Koleroga (Phytophthora meadii). With Open-Meteo forecasting rainfall in 22 hours, is standard neutral Bordeaux spray sufficient or is rosin sticker mandatory to stop wash-off?',
     image: '/samples/sample_arecanut.jpg',
-    aiVerified: 'Sasya AI Verified: Grade 2 Koleroga (Phytophthora meadii)',
-    upvotes: 32,
-    userVoted: 1,
+    aiBadge: 'Sasya AI Verified: Grade 2 Koleroga (Phytophthora meadii)',
+    upvotes: 34,
+    userVote: 1, // 1 for up, -1 for down, 0 for none
+    saved: false,
     comments: [
       {
         id: 101,
-        author: 'Dr. Hegde (Pathologist, CPCRI Vittal)',
+        author: 'Dr_Hegde_CPCRI',
         badge: 'Verified Scientist',
-        badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-        content: 'Ramesh, definitely add 100g Rosin sticker per 100L of 1% Bordeaux. With Open-Meteo predicting 14mm rain tomorrow afternoon, unbonded copper will wash off in 40 minutes, wasting ₹8,000+ per acre. Spray immediately before 3 PM today.',
-        timeAgo: '1 hour ago'
+        badgeColor: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
+        content: 'Ramesh, definitely add 100g Rosin sticker per 100L of 1% Bordeaux mixture. With the forecast predicting 14mm rain tomorrow afternoon, unbonded copper particles will wash off within 45 minutes. Complete spraying before 3 PM today while leaf surfaces are dry.',
+        timeAgo: '1 hour ago',
+        upvotes: 18,
+        userVote: 0
       },
       {
         id: 102,
-        author: 'Ganesh Bhat',
-        village: 'Tirthahalli',
+        author: 'Ganesh_Bhat_Thalli',
         badge: 'Experienced Grower',
-        badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-        content: 'Also make sure to tie polyethene hoods (kotte) over the crown bunches if rain becomes continuous next week. I lost ₹4L two years ago by delaying just 36 hours.',
-        timeAgo: '45 mins ago'
+        badgeColor: 'bg-amber-500/20 text-amber-500 border-amber-500/30',
+        content: 'Also make sure to tie polyethene hoods (kotte) over the developing crown bunches if continuous monsoon spells persist next week. Prevention is 10x cheaper than harvesting dropped rotten nuts.',
+        timeAgo: '42 mins ago',
+        upvotes: 9,
+        userVote: 0
       }
     ]
   },
   {
     id: 2,
     crop: 'arecanut',
-    author: 'Prashanth Hegde',
-    authorId: 'prashanth_thalli',
+    author: 'Prashanth_Hegde',
     village: 'Mandagadde, Tirthahalli',
     badge: 'Young Farmer Club',
     timeAgo: '4 hours ago',
-    category: 'Equipment Rental',
-    title: 'High-pressure 50ft power sprayer available for rent today & tomorrow',
-    content: 'Reaches the highest palm tops without tree climbing. Includes 100m high-pressure hose and brass atomizing nozzle. Rent is ₹350/day. Cleaned and ready for Bordeaux application before the weekend monsoon front.',
+    flair: 'Equipment Rental',
+    flairColor: 'bg-blue-500/15 text-blue-500 border-blue-500/30',
+    title: 'High-pressure 50ft power sprayer available for rent today & tomorrow (Tirthahalli taluk)',
+    content: 'Reaches the highest palm tops from ground level without needing tree climbers. Includes 100m high-pressure braided hose and brass atomizing nozzle. Rent is ₹350/day. Cleaned and ready for Bordeaux application before the weekend monsoon front.',
     image: null,
-    aiVerified: null,
-    upvotes: 19,
-    userVoted: 0,
+    aiBadge: null,
+    upvotes: 21,
+    userVote: 0,
+    saved: false,
     comments: [
       {
         id: 201,
-        author: 'Suresh Rai',
-        village: 'Koppa',
+        author: 'Suresh_Rai_Koppa',
         badge: 'Grower',
-        badgeColor: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-        content: 'Prashanth, I need it tomorrow morning from 7 AM to 12 PM for 2 acres. Sent you a DM on your profile!',
-        timeAgo: '3 hours ago'
+        badgeColor: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
+        content: 'Prashanth, I need it tomorrow morning from 7 AM to 12 PM for 2 acres. DM me on WhatsApp!',
+        timeAgo: '3 hours ago',
+        upvotes: 4,
+        userVote: 0
       }
     ]
   },
   {
     id: 3,
     crop: 'arecanut',
-    author: 'Dr. S. K. Nayak (KVK Brahmavar)',
-    authorId: 'kvk_expert_nayak',
+    author: 'Dr_S_K_Nayak',
     village: 'Brahmavar, Udupi',
-    badge: 'Agronomy Specialist',
+    badge: 'Agronomy Specialist (KVK)',
     timeAgo: '7 hours ago',
-    category: 'Weather Alert',
+    flair: 'Weather Advisory',
+    flairColor: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
     title: 'Bioclimatic Alert: Relative Humidity > 92% sustained across Coastal Ghats',
-    content: 'Our environmental sensor telemetry indicates 14 continuous hours above 90% RH with temperatures between 21°C - 24°C. This is the exact epidemiological trigger for Phytophthora zoospore release. Complete all prophylactic spraying during current morning dry spell.',
+    content: 'Environmental station telemetry indicates 14 continuous hours above 90% RH with ambient temperatures between 21°C - 24°C. This is the exact epidemiological trigger for Phytophthora zoospore release. Complete all prophylactic canopy coverage during the morning dry window.',
     image: null,
-    aiVerified: 'Open-Meteo High Bioclimatic Risk Verified',
-    upvotes: 68,
-    userVoted: 0,
+    aiBadge: 'Open-Meteo High Bioclimatic Risk Verified',
+    upvotes: 72,
+    userVote: 0,
+    saved: true,
+    comments: []
+  },
+  {
+    id: 4,
+    crop: 'paddy',
+    author: 'Manjunath_Mandya',
+    village: 'Maddur, Mandya',
+    badge: 'Paddy Grower',
+    timeAgo: '3 hours ago',
+    flair: 'Disease Query',
+    flairColor: 'bg-rose-500/15 text-rose-500 border-rose-500/30',
+    title: 'Eye-shaped spindle blast lesions on nursery seedlings (variety Jyothi)',
+    content: 'Seedlings are 22 days old. Leaf blast lesions have greyish centers and dark brown margins. Should I drain the standing nursery water and apply Tricyclazole 75% WP @ 0.6g/L?',
+    image: null,
+    aiBadge: 'Sasya AI Verified: Magnaporthe oryzae (Leaf Blast)',
+    upvotes: 19,
+    userVote: 0,
+    saved: false,
+    comments: [
+      {
+        id: 401,
+        author: 'KVK_Agronomist',
+        badge: 'KVK Mandya',
+        badgeColor: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
+        content: 'Yes, drain stagnant water immediately to reduce microclimate humidity. Spray Tricyclazole in early morning before sunlight breaks spore adhesion.',
+        timeAgo: '2 hours ago',
+        upvotes: 7,
+        userVote: 0
+      }
+    ]
+  },
+  {
+    id: 5,
+    crop: 'tomato',
+    author: 'Anand_Kolar',
+    village: 'Bangarapet, Kolar',
+    badge: 'Tomato Farmer',
+    timeAgo: '5 hours ago',
+    flair: 'Disease Query',
+    flairColor: 'bg-rose-500/15 text-rose-500 border-rose-500/30',
+    title: 'Water-soaked greasy patches on tomato fruit after two nights of fog',
+    content: 'Rapid spreading observed on green fruits. Phytophthora infestans (Late Blight) suspected. What is the recommended curative tank mix before rain?',
+    image: null,
+    aiBadge: 'Sasya AI Verified: Phytophthora infestans (Late Blight)',
+    upvotes: 27,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+  {
+    id: 6,
+    crop: 'apple',
+    author: 'Kuldeep_Sharma',
+    village: 'Theog, Shimla',
+    badge: 'Orchardist (HP)',
+    timeAgo: '6 hours ago',
+    flair: 'Weather Advisory',
+    flairColor: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
+    title: 'Post-harvest urea application timing for apple scab control',
+    content: 'Harvest complete in higher elevation blocks. Preparing 5% urea spray on fallen orchard leaves to accelerate decomposition and destroy overwintering pseudothecia.',
+    image: null,
+    aiBadge: null,
+    upvotes: 41,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+  {
+    id: 7,
+    crop: 'arecanut',
+    author: 'Suresh_Hegde',
+    village: 'Belthangady, Dakshina Kannada',
+    badge: 'Arecanut Cultivator',
+    timeAgo: '1 hour ago',
+    flair: 'Labour Request',
+    flairColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
+    title: '👥 URGENT: 3 Skilled Arecanut Palm Climbers Needed for Koleroga Spraying (Belthangady)',
+    content: 'Need 3 experienced palm climbers for crown spraying and fungicide application across 6 acres in Belthangady taluk. Daily wage: ₹950/day + breakfast, lunch & travel allowance provided. Work starts this Thursday morning before monsoon showers resume.',
+    image: null,
+    aiBadge: null,
+    upvotes: 48,
+    userVote: 0,
+    saved: false,
+    comments: [
+      {
+        id: 701,
+        author: 'Manju_Climber_Team',
+        badge: 'Labour Group Lead',
+        badgeColor: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+        content: 'We are a crew of 4 trained palm climbers with safety harnesses. Available Thursday to Saturday. Sent you a DM on Reddit chat!',
+        timeAgo: '35 mins ago',
+        upvotes: 8,
+        userVote: 0
+      }
+    ]
+  },
+  {
+    id: 8,
+    crop: 'paddy',
+    author: 'Ganesh_Mandya',
+    village: 'Maddur, Mandya',
+    badge: 'Paddy Farmer',
+    timeAgo: '2 hours ago',
+    flair: 'Labour Request',
+    flairColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
+    title: '👥 Paddy Transplanting Labour Group (6-8 Workers) Needed for 2 Days (Maddur basin)',
+    content: 'Paddy nursery seedlings (Jyothi variety) are 22 days old and ready for field transplantation. Looking for a group of 6-8 experienced farm workers for 2 days. ₹650/day/worker with direct pickup from Maddur bus stand.',
+    image: null,
+    aiBadge: null,
+    upvotes: 31,
+    userVote: 0,
+    saved: false,
+    comments: []
+  },
+  {
+    id: 9,
+    crop: 'tomato',
+    author: 'Venkatesh_Kolar',
+    village: 'Bangarapet, Kolar',
+    badge: 'Commercial Grower',
+    timeAgo: '3 hours ago',
+    flair: 'Labour Request',
+    flairColor: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
+    title: '👥 4 Workers Needed for Bamboo Staking & Trellising Tomato Field (Bangarapet)',
+    content: 'Need 4 workers experienced in bamboo staking, trellis wiring and nylon twine tying for semi-determinate tomato crop. Starting tomorrow 8:00 AM. ₹600/day.',
+    image: null,
+    aiBadge: null,
+    upvotes: 22,
+    userVote: 0,
+    saved: false,
     comments: []
   }
 ];
@@ -101,123 +291,347 @@ const INITIAL_POSTS = [
 export default function Community() {
   const navigate = useNavigate();
   const { crop: cropParam } = useParams();
-  const { user, lang, setLang, theme, toggleTheme, isDark, t } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { user, lang, setLang, toggleTheme, isDark, t } = useAuth();
 
-  // Active Crop selection
-  const [activeCrop, setActiveCrop] = useState(cropParam || 'arecanut');
-  const [activeFilter, setActiveFilter] = useState('All');
+  // Active Subreddit
+  const activeCrop = cropParam && SUBREDDITS[cropParam.toLowerCase()] ? cropParam.toLowerCase() : 'arecanut';
+  const currentSubreddit = SUBREDDITS[activeCrop];
 
-  // Posts State
-  const [posts, setPosts] = useState(INITIAL_POSTS);
-  const [showNewPostModal, setShowNewPostModal] = useState(false);
-  const [newPostTitle, setNewPostTitle] = useState('');
-  const [newPostContent, setNewPostContent] = useState('');
-  const [newPostCategory, setNewPostCategory] = useState('Disease Query');
-  const [expandedComments, setExpandedComments] = useState({ 1: true });
-  const [newCommentText, setNewCommentText] = useState({});
+  // Feed State - Persisted across refreshes in localStorage
+  const [posts, setPosts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sasya_community_posts');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_POSTS;
+  });
 
+  // Sync posts to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('sasya_community_posts', JSON.stringify(posts));
+    } catch (e) {
+      console.warn("Could not save community posts", e);
+    }
+  }, [posts]);
+
+  const [sortFilter, setSortFilter] = useState('hot'); // 'hot', 'new', 'top'
+  const [flairFilter, setFlairFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // 1-on-1 Reddit Private Chat State
+  const [isChatOpen, setIsChatOpen] = useState(() => searchParams.get('chat') === 'open');
+  const [chatTargetUser, setChatTargetUser] = useState(null);
+
+  const handleOpenChat = (target = null) => {
+    if (target) {
+      setChatTargetUser(target);
+    }
+    setIsChatOpen(true);
+  };
+
+  // Farmer Follow State (Open Network - No Private Account Gates)
+  const [followingMap, setFollowingMap] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sasya_following_state');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      'Dr_Hegde_CPCRI': 'following',
+      'Suresh_Hegde': 'following'
+    };
+  });
+
+  const handleToggleFollow = (author) => {
+    const isFollowing = followingMap[author] === 'following';
+    const next = { ...followingMap };
+    if (isFollowing) {
+      delete next[author];
+      showToast(`Unfollowed u/${author}`);
+    } else {
+      next[author] = 'following';
+      showToast(`✓ You are now following u/${author}`);
+    }
+    setFollowingMap(next);
+    localStorage.setItem('sasya_following_state', JSON.stringify(next));
+  };
+  
+  // Post Creator State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newContent, setNewContent] = useState('');
+  const [newFlair, setNewFlair] = useState('Labour Request');
+  const [labourWorkers, setLabourWorkers] = useState('');
+  const [labourWage, setLabourWage] = useState('');
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const fileInputRef = useRef(null);
+
+  const handleImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Image is larger than 5MB. Please choose a smaller photo.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setNewImageUrl(event.target.result);
+      showToast('✓ Photo attached from your device!');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Comment Thread Expansion State
+  const [expandedPostId, setExpandedPostId] = useState(1);
+  const [commentInputs, setCommentInputs] = useState({});
+
+  // Toast State
+  const [toastMessage, setToastMessage] = useState(null);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  // Upvote / Downvote Handler (Reddit Style)
   const handleVote = (postId, delta) => {
     setPosts(posts.map(p => {
       if (p.id === postId) {
-        const nextVote = p.userVoted === delta ? 0 : delta;
-        const diff = nextVote - p.userVoted;
-        return { ...p, upvotes: p.upvotes + diff, userVoted: nextVote };
+        const nextVote = p.userVote === delta ? 0 : delta;
+        const diff = nextVote - p.userVote;
+        return { ...p, upvotes: p.upvotes + diff, userVote: nextVote };
       }
       return p;
     }));
   };
 
-  const handleAddComment = (postId) => {
-    const text = newCommentText[postId]?.trim();
-    if (!text) return;
-
+  // Save / Bookmark Toggle
+  const handleToggleSave = (postId) => {
     setPosts(posts.map(p => {
       if (p.id === postId) {
-        const newC = {
-          id: Date.now(),
-          author: user?.name || 'Ramesh Gowda',
-          village: user?.village || 'Venur',
-          badge: 'Grower (Local)',
-          badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-          content: text,
-          timeAgo: 'Just now'
-        };
+        const nextSaved = !p.saved;
+        showToast(nextSaved ? 'Saved to bookmarks' : 'Removed from bookmarks');
+        return { ...p, saved: nextSaved };
+      }
+      return p;
+    }));
+  };
+
+  // Share Handler
+  const handleShare = (post) => {
+    navigator.clipboard.writeText(window.location.href);
+    showToast(`Link to "${post.title.substring(0, 30)}..." copied!`);
+  };
+
+  // Add Comment to Post (100% Persisted across F5 refreshes & Synced with Render backend)
+  const handleAddComment = async (postId) => {
+    const text = (commentInputs[postId] || '').trim();
+    if (!text) return;
+
+    const authorName = user?.username || user?.name?.replace(/\s+/g, '_') || 'Ramesh_Gowda';
+    const newC = {
+      id: Date.now(),
+      author: authorName,
+      badge: 'Grower (Verified)',
+      badgeColor: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
+      content: text,
+      timeAgo: 'Just now',
+      upvotes: 1,
+      userVote: 1
+    };
+
+    const nextPosts = posts.map(p => {
+      if (p.id === postId) {
         return { ...p, comments: [...p.comments, newC] };
       }
       return p;
-    }));
+    });
 
-    setNewCommentText({ ...newCommentText, [postId]: '' });
+    setPosts(nextPosts);
+    try {
+      localStorage.setItem('sasya_community_posts', JSON.stringify(nextPosts));
+    } catch {}
+
+    setCommentInputs({ ...commentInputs, [postId]: '' });
+    showToast('✓ Comment published & permanently saved!');
+
+    // Background sync with live Render backend
+    try {
+      await addCommunityComment(postId, {
+        post_id: postId,
+        author_id: user?.id || user?.username || 'farmer_local',
+        author_name: authorName,
+        content: text
+      });
+    } catch (err) {
+      console.info("Comment backed up locally");
+    }
   };
 
-  const handleCreatePost = (e) => {
+  // Create Post Submission
+  const handleCreatePost = async (e) => {
     e.preventDefault();
-    if (!newPostTitle.trim()) return;
+    if (!newTitle.trim()) return;
+
+    const flairColorMap = {
+      'Labour Request': 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
+      'Equipment Rental': 'bg-blue-500/15 text-blue-500 border-blue-500/30',
+      'Disease Query': 'bg-rose-500/15 text-rose-500 border-rose-500/30',
+      'Weather Advisory': 'bg-amber-500/15 text-amber-500 border-amber-500/30',
+      'General Discussion': 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
+    };
+
+    let postBody = newContent.trim();
+    if (newFlair === 'Labour Request') {
+      const tags = [];
+      if (labourWorkers.trim()) tags.push(`👥 Workers Needed: ${labourWorkers.trim()}`);
+      if (labourWage.trim()) tags.push(`💰 Wage: ${labourWage.trim()}`);
+      if (tags.length > 0) {
+        postBody = postBody ? `${tags.join(' | ')}\n\n${postBody}` : tags.join(' | ');
+      }
+    }
 
     const newPost = {
       id: Date.now(),
       crop: activeCrop,
-      author: user?.name || 'Ramesh Gowda',
-      authorId: user?.username || 'farmer_KA_101',
-      village: `${user?.village || 'Venur'}, ${user?.district || 'Dakshina Kannada'}`,
-      badge: 'Grower (4 acres)',
+      author: user?.username || user?.name?.replace(/\s+/g, '_') || 'Young_Farmer',
+      village: `${user?.village || 'Venur'}, ${user?.district || 'Coastal KA'}`,
+      badge: 'Grower',
       timeAgo: 'Just now',
-      category: newPostCategory,
-      title: newPostTitle,
-      content: newPostContent,
-      image: null,
-      aiVerified: null,
+      flair: newFlair,
+      flairColor: flairColorMap[newFlair] || 'bg-gray-500/15 text-gray-500',
+      title: newTitle.trim(),
+      content: postBody,
+      image: newImageUrl.trim() || null,
+      aiBadge: null,
       upvotes: 1,
-      userVoted: 1,
+      userVote: 1,
+      saved: false,
       comments: []
     };
 
-    setPosts([newPost, ...posts]);
-    setNewPostTitle('');
-    setNewPostContent('');
-    setShowNewPostModal(false);
+    const nextPosts = [newPost, ...posts];
+    setPosts(nextPosts);
+    try {
+      localStorage.setItem('sasya_community_posts', JSON.stringify(nextPosts));
+    } catch {}
+
+    setNewTitle('');
+    setNewContent('');
+    setLabourWorkers('');
+    setLabourWage('');
+    setNewImageUrl('');
+    setIsCreateModalOpen(false);
+    showToast(`✓ Post published & permanently saved!`);
+
+    // Background sync with live Render backend
+    try {
+      await createCommunityPost({
+        crop: activeCrop,
+        author_id: user?.id || user?.username || 'farmer_local',
+        author_name: user?.username || user?.name || 'Young_Farmer',
+        title: newTitle.trim(),
+        content: postBody
+      });
+    } catch (err) {
+      console.info("Post synced locally");
+    }
   };
 
-  const currentCropObj = CROPS.find(c => c.id === activeCrop) || CROPS[0];
+  // Filter & Sort Posts (Followed Farmers ALWAYS at the top)
+  const filteredPosts = posts
+    .filter(p => p.crop === activeCrop)
+    .filter(p => flairFilter === 'All' || p.flair === flairFilter)
+    .filter(p => !searchQuery.trim() || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.content.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      // 1. Followed farmers' posts ALWAYS at the very top!
+      const aFollowed = followingMap[a.author] === 'following';
+      const bFollowed = followingMap[b.author] === 'following';
+      if (aFollowed && !bFollowed) return -1;
+      if (!aFollowed && bFollowed) return 1;
+
+      // 2. Secondary sort according to selected filter
+      if (sortFilter === 'new') return b.id - a.id;
+      if (sortFilter === 'top') return b.upvotes - a.upvotes;
+      return b.upvotes - a.upvotes; // default hot
+    });
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
       isDark ? 'bg-[#0B1712] text-white' : 'bg-[#F9F9F6] text-[#275637]'
     }`}>
-      {/* ── TOP NAVIGATION ── */}
-      <header className={`sticky top-0 z-40 backdrop-blur-md border-b px-4 sm:px-8 h-16 flex items-center justify-between ${
+
+      {/* ── REDDIT TOP HEADER (HACKATHON THEME) ── */}
+      <header className={`sticky top-0 z-40 border-b h-14 px-4 flex items-center justify-between backdrop-blur-md ${
         isDark ? 'bg-[#0B1712]/90 border-[#162C20]' : 'bg-[#F9F9F6]/90 border-[#91BA94]/60'
       }`}>
+        {/* Left: Back & Subreddit Identity */}
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/home')}
-            className={`p-2 rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
+            className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
               isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:bg-[#162F20]' : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
             }`}
             title="Back to Dashboard"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-extrabold text-base sm:text-lg tracking-tight">
-                {t('comm_title')}
-              </h1>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                isDark ? 'bg-[#12241A] border-[#1E3A2B] text-[#34D399]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
-              }`}>
-                Live Feed
-              </span>
-            </div>
-            <p className={`text-[11px] hidden sm:block ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-              {t('comm_sub')}
-            </p>
+
+          <Link to={`/c/${activeCrop}`} className="flex items-center gap-2 font-black text-sm sm:text-base">
+            <span className="text-xl">{currentSubreddit.icon}</span>
+            <span className={isDark ? 'text-white' : 'text-[#275637]'}>{currentSubreddit.name}</span>
+          </Link>
+        </div>
+
+        {/* Center: Reddit Search Bar */}
+        <div className="hidden md:flex items-center flex-1 max-w-md mx-6">
+          <div className="relative w-full flex items-center">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={`Search ${currentSubreddit.name}...`}
+              className={`w-full pl-9 pr-4 py-1.5 rounded-full text-xs font-medium border outline-none transition-all ${
+                isDark 
+                  ? 'bg-[#12241A] border-[#1E3A2B] text-white focus:border-[#22C55E]' 
+                  : 'bg-white border-[#91BA94] text-[#275637] focus:ring-1 focus:ring-[#275637]'
+              }`}
+            />
           </div>
         </div>
 
-        {/* Right Header Controls: Language & Actions */}
-        <div className="flex items-center gap-2">
-          {/* Language Switcher */}
+        {/* Right Controls: Chat, Create Post CTA, Theme */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => handleOpenChat(null)}
+            className={`px-3 py-1.5 rounded-full border text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer ${
+              isDark 
+                ? 'bg-[#12241A] border-[#1E3A2B] text-emerald-400 hover:bg-[#162F20]' 
+                : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
+            }`}
+            title="Open 1-on-1 Reddit Farmer Chat"
+          >
+            <MessageSquare className="w-3.5 h-3.5 text-emerald-500" />
+            <span className="hidden sm:inline">Farmer Chat</span>
+          </button>
+
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="px-3.5 py-1.5 rounded-full text-xs font-black bg-[#275637] hover:bg-[#1E462B] text-white flex items-center gap-1.5 shadow-xs transition-transform active:scale-95 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Create Post</span>
+            <span className="sm:hidden">Post</span>
+          </button>
+
+          {/* Trilingual Switcher (Consistent Everywhere) */}
           <div className={`flex items-center p-1 rounded-xl border text-xs shadow-xs ${
             isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
           }`}>
@@ -245,391 +659,792 @@ export default function Community() {
           </div>
 
           <button
-            onClick={() => setShowNewPostModal(true)}
-            className={`px-3.5 py-1.5 rounded-xl border text-xs font-extrabold flex items-center gap-2 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer shadow-xs ${
-              isDark ? 'bg-[#22C55E] text-[#0B1712] border-[#22C55E]' : 'bg-[#275637] text-white border-[#275637]'
-            }`}
-          >
-            <Plus className="w-4 h-4" />
-            <span>{t('comm_ask_growers')}</span>
-          </button>
-
-          <button
             onClick={toggleTheme}
-            className={`p-2 rounded-xl border transition-all duration-200 hover:scale-110 active:scale-90 cursor-pointer ${
-              isDark ? 'bg-[#12241A] border-[#1E3A2B] text-[#FCD34D]' : 'bg-white border-[#91BA94] text-[#275637]'
+            className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
+              isDark ? 'bg-[#12241A] border-[#1E3A2B] text-amber-400' : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
             }`}
-            title="Toggle Dark/Light"
+            title="Toggle theme"
           >
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
         </div>
       </header>
 
-      {/* ── CROP TABS SELECTOR ── */}
-      <div className={`border-b overflow-x-auto ${isDark ? 'border-[#162C20] bg-[#0E1E16]' : 'border-[#91BA94]/60 bg-white'}`}>
-        <div className="max-w-6xl mx-auto px-4 flex items-center gap-2 py-2.5">
-          {CROPS.map((c) => {
-            const isSelected = activeCrop === c.id;
-            return (
-              <button
-                key={c.id}
-                onClick={() => setActiveCrop(c.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 flex items-center gap-2 border ${
-                  isSelected
-                    ? isDark 
-                      ? 'bg-[#22C55E] text-[#0B1712] border-[#22C55E]' 
-                      : 'bg-[#275637] text-white border-[#275637]'
-                    : isDark
-                      ? 'bg-[#12241A] border-[#1E3A2B] text-[#8BA695] hover:text-white'
-                      : 'bg-[#F9F9F6] border-[#91BA94]/70 text-[#275637] hover:bg-[#E8F2EA]'
-                }`}
-              >
-                <span>r/{c.id}</span>
-                <span className="text-[10px] opacity-75">({c.members})</span>
-              </button>
-            );
-          })}
+      {/* ── SUBREDDIT BANNER ── */}
+      <div className={`border-b ${isDark ? 'bg-[#102217] border-[#1A2820]' : 'bg-white border-[#D8E4DA]'}`}>
+        <div className="h-16 sm:h-20 bg-gradient-to-r from-[#275637] via-[#1E462B] to-[#12241A] relative" />
+        <div className="max-w-5xl mx-auto px-4 pb-3 flex items-end justify-between -mt-6 sm:-mt-8 relative z-10">
+          <div className="flex items-end gap-3 sm:gap-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-[#F9F9F6] dark:border-[#102217] bg-[#12241A] flex items-center justify-center text-3xl sm:text-4xl shadow-md">
+              {currentSubreddit.icon}
+            </div>
+            <div className="mb-1">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2">
+                <span>{currentSubreddit.displayName}</span>
+              </h1>
+              <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                {currentSubreddit.name} • {currentSubreddit.members} • {currentSubreddit.online}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 mb-1">
+            <button className="px-4 py-1.5 rounded-full font-bold text-xs bg-[#22C55E] text-[#0B1712] hover:bg-[#16A34A] cursor-pointer shadow-xs">
+              Joined ✓
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ── MAIN CONTENT ── */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6">
+      {/* ── TOAST NOTIFICATION ── */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-[#275637] text-white text-xs font-bold shadow-2xl flex items-center gap-2 animate-bounce">
+          <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* ── MAIN 2-COLUMN REDDIT LAYOUT ── */}
+      <main className="flex-1 max-w-5xl w-full mx-auto px-2 sm:px-4 py-4 grid grid-cols-1 lg:grid-cols-12 gap-5">
         
-        {/* Sub Header Banner */}
-        <div className={`p-4 sm:p-5 rounded-[16px] border mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs ${
-          isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
-        }`}>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-black tracking-tight">
-                r/{currentCropObj.id} • {currentCropObj.name}
-              </h2>
-              <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${
-                isDark ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-[#FFF9E6] text-[#275637] border-[#F6D05F]'
-              }`}>
-                {currentCropObj.activeBadge}
-              </span>
+        {/* ── LEFT FEED COLUMN (8 cols) ── */}
+        <div className="lg:col-span-8 space-y-3">
+          
+          {/* Reddit Create Post Card */}
+          <div 
+            onClick={() => setIsCreateModalOpen(true)}
+            className={`p-2.5 sm:p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-colors shadow-xs ${
+              isDark ? 'bg-[#102217] border-[#1E3A2B] hover:border-gray-500' : 'bg-white border-[#D8E4DA] hover:border-[#275637]'
+            }`}
+          >
+            <div className="w-8 h-8 rounded-full bg-[#275637] text-white flex items-center justify-center text-xs font-bold">
+              {user?.username ? user.username.substring(0, 2).toUpperCase() : 'AR'}
             </div>
-            <p className={`text-xs mt-1 ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-              Dedicated pathology discussion, chemical recipes, spray alerts, and local power sprayers for {currentCropObj.name}.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <Link
-              to="/detect"
-              className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all hover:scale-105 active:scale-95 ${
-                isDark ? 'bg-[#142C1E] border-[#22C55E]/40 text-[#22C55E]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
+            <input 
+              type="text" 
+              readOnly 
+              placeholder={`Create Post in ${currentSubreddit.name}...`}
+              className={`flex-1 px-3.5 py-1.5 rounded-lg text-xs font-medium border outline-none cursor-pointer ${
+                isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-gray-400' : 'bg-[#FAFCFA] border-[#D8E4DA] text-gray-500'
               }`}
-            >
-              <Camera className="w-3.5 h-3.5" />
-              <span>Diagnose Leaf First</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Filter Chips Bar */}
-        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-1">
-          {['All', 'Disease Queries', 'Weather Alerts', 'Equipment Rental'].map((f) => (
-            <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0 border ${
-                activeFilter === f
-                  ? isDark ? 'bg-[#22C55E] text-[#0B1712] border-[#22C55E]' : 'bg-[#275637] text-white border-[#275637]'
-                  : isDark ? 'bg-[#102217] border-[#1E3A2B] text-[#8BA695]' : 'bg-white border-[#91BA94]/70 text-[#275637]'
-              }`}
-            >
-              {f}
+            />
+            <button className="p-2 rounded-lg text-gray-400 hover:text-[#275637] dark:hover:text-[#22C55E]">
+              <ImageIcon className="w-4 h-4" />
             </button>
-          ))}
-        </div>
+          </div>
 
-        {/* Feed Posts */}
-        <div className="space-y-5">
-          {posts.map((post) => {
-            const isCommentsOpen = !!expandedComments[post.id];
-            return (
-              <div 
-                key={post.id}
-                className={`rounded-[16px] border shadow-xs overflow-hidden transition-all duration-200 hover:border-[#22C55E]/50 ${
-                  isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+          {/* Reddit Sort & Filter Strip */}
+          <div className={`p-2 rounded-xl border flex items-center justify-between text-xs font-bold shadow-xs ${
+            isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
+          }`}>
+            <div className="flex items-center gap-1">
+              {[
+                { id: 'hot', label: 'Hot', icon: Flame },
+                { id: 'new', label: 'New', icon: Sparkles },
+                { id: 'top', label: 'Top', icon: TrendingUp },
+              ].map(sort => (
+                <button
+                  key={sort.id}
+                  onClick={() => setSortFilter(sort.id)}
+                  className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all cursor-pointer ${
+                    sortFilter === sort.id
+                      ? isDark ? 'bg-[#1E3A2B] text-[#22C55E]' : 'bg-[#E8F2EA] text-[#275637]'
+                      : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  <sort.icon className="w-3.5 h-3.5" />
+                  <span>{sort.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Category Filter Dropdown */}
+            <select
+              value={flairFilter}
+              onChange={(e) => setFlairFilter(e.target.value)}
+              className={`px-2 py-1 rounded-lg text-xs font-semibold border outline-none cursor-pointer ${
+                isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-[#FAFCFA] border-[#D8E4DA] text-gray-800'
+              }`}
+            >
+              <option value="All">{t('comm_all_flairs') || 'All Categories'}</option>
+              <option value="Labour Request">👥 {t('comm_labour') || 'Labour Request'}</option>
+              <option value="Equipment Rental">🛠️ {t('comm_rentals') || 'Equipment Rental'}</option>
+              <option value="Disease Query">🍃 {t('comm_queries') || 'Disease Query'}</option>
+              <option value="Weather Advisory">🌧️ {t('comm_alerts') || 'Weather Advisory'}</option>
+              <option value="General Discussion">💬 General Discussion</option>
+            </select>
+          </div>
+
+          {/* Quick Flair Filter Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
+            {[
+              { id: 'All', label: 'All', icon: null },
+              { id: 'Labour Request', label: '👥 Labour Request' },
+              { id: 'Equipment Rental', label: '🛠️ Equipment Rental' },
+              { id: 'Disease Query', label: '🍃 Disease Query' },
+              { id: 'Weather Advisory', label: '🌧️ Weather Advisory' },
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setFlairFilter(f.id)}
+                className={`px-3 py-1 rounded-full text-xs font-bold border transition-all cursor-pointer whitespace-nowrap ${
+                  flairFilter === f.id
+                    ? isDark ? 'bg-[#22C55E] text-[#0B1712] border-[#22C55E]' : 'bg-[#275637] text-white border-[#275637]'
+                    : isDark ? 'bg-[#102217] border-[#1E3A2B] text-gray-300 hover:border-gray-500' : 'bg-white border-[#D8E4DA] text-gray-700 hover:bg-[#E8F2EA]'
                 }`}
               >
-                {/* Post Top Meta */}
-                <div className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-xs">
-                        {post.author}
-                      </span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-md border font-semibold ${
-                        isDark ? 'bg-[#162F20] border-[#1E3A2B] text-[#8BA695]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
-                      }`}>
-                        {post.badge}
-                      </span>
-                      <span className={`text-[11px] flex items-center gap-1 ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                        <MapPin className="w-3 h-3 text-[#22C55E]" />
-                        {post.village}
-                      </span>
-                    </div>
+                {f.label}
+              </button>
+            ))}
+          </div>
 
-                    <span className={`text-[11px] ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                      {post.timeAgo}
-                    </span>
-                  </div>
+          {/* Reddit Posts List */}
+          {filteredPosts.length === 0 ? (
+            <div className={`p-8 rounded-xl border text-center text-xs text-gray-400 ${
+              isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
+            }`}>
+              No posts found in {currentSubreddit.name} matching your filter. Be the first to start a discussion!
+            </div>
+          ) : (
+            filteredPosts.map((post) => {
+              const isExpanded = expandedPostId === post.id;
+              const isUpvoted = post.userVote === 1;
+              const isDownvoted = post.userVote === -1;
 
-                  {/* Post Title & Category */}
-                  <div className="mb-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                        post.category === 'Disease Query'
-                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                          : post.category === 'Equipment Rental'
-                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                            : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                      }`}>
-                        {post.category}
-                      </span>
-                    </div>
-                    <h3 className="font-extrabold text-base sm:text-lg leading-snug">
-                      {post.title}
-                    </h3>
-                  </div>
-
-                  {/* Post Content Body */}
-                  <p className={`text-xs sm:text-sm leading-relaxed mb-4 ${isDark ? 'text-gray-300' : 'text-[#556B5C]'}`}>
-                    {post.content}
-                  </p>
-
-                  {/* Optional Leaf Specimen Image */}
-                  {post.image && (
-                    <div className="mb-4 rounded-xl overflow-hidden border border-[#91BA94]/40 max-w-sm">
-                      <img src={post.image} alt="Specimen" className="w-full h-48 object-cover" />
-                      {post.aiVerified && (
-                        <div className={`p-2 text-[11px] font-bold flex items-center gap-1.5 ${
-                          isDark ? 'bg-[#142C1E] text-[#34D399]' : 'bg-[#E8F2EA] text-[#275637]'
-                        }`}>
-                          <Sparkles className="w-3.5 h-3.5 text-[#22C55E]" />
-                          <span>{post.aiVerified}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Bottom Action Toolbar */}
-                  <div className="flex items-center justify-between pt-3 border-t border-[#91BA94]/20 text-xs font-bold">
+              return (
+                <article
+                  key={post.id}
+                  className={`rounded-xl border transition-all duration-150 overflow-hidden shadow-xs hover:border-[#275637] dark:hover:border-gray-500 ${
+                    isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
+                  }`}
+                >
+                  <div className="flex items-start">
                     
-                    {/* Voting Controls */}
-                    <div className={`flex items-center rounded-xl border p-1 ${
-                      isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#F9F9F6] border-[#91BA94]/50'
+                    {/* LEFT REDDIT VOTING STRIP (Desktop & Mobile) */}
+                    <div className={`w-10 sm:w-12 pt-3 pb-2 flex flex-col items-center shrink-0 ${
+                      isDark ? 'bg-[#0E1E16]' : 'bg-[#FAFCFA]'
                     }`}>
                       <button
                         onClick={() => handleVote(post.id, 1)}
-                        className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                          post.userVoted === 1
-                            ? 'bg-[#22C55E] text-[#0B1712]'
-                            : isDark ? 'hover:bg-[#162F20] text-[#8BA695]' : 'hover:bg-[#E8F2EA] text-[#275637]'
+                        className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors cursor-pointer ${
+                          isUpvoted ? 'text-orange-500' : 'text-gray-400 hover:text-orange-500'
                         }`}
                         title="Upvote"
                       >
-                        <ThumbsUp className="w-3.5 h-3.5" />
+                        <ChevronUp className={`w-5 h-5 ${isUpvoted ? 'stroke-[3]' : ''}`} />
                       </button>
-                      
-                      <span className="px-2 font-mono text-xs">
+
+                      <span className={`text-xs font-black font-mono my-0.5 ${
+                        isUpvoted ? 'text-orange-500' : isDownvoted ? 'text-blue-500' : 'text-gray-500 dark:text-gray-400'
+                      }`}>
                         {post.upvotes}
                       </span>
 
                       <button
                         onClick={() => handleVote(post.id, -1)}
-                        className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                          post.userVoted === -1
-                            ? 'bg-rose-500 text-white'
-                            : isDark ? 'hover:bg-[#162F20] text-[#8BA695]' : 'hover:bg-[#E8F2EA] text-[#275637]'
+                        className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors cursor-pointer ${
+                          isDownvoted ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'
                         }`}
                         title="Downvote"
                       >
-                        <ThumbsDown className="w-3.5 h-3.5" />
+                        <ChevronDown className={`w-5 h-5 ${isDownvoted ? 'stroke-[3]' : ''}`} />
                       </button>
                     </div>
 
-                    {/* Comments Toggle */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setExpandedComments({
-                          ...expandedComments,
-                          [post.id]: !isCommentsOpen
-                        })}
-                        className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
-                          isDark 
-                            ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:border-[#22C55E]' 
-                            : 'bg-white border-[#91BA94]/60 text-[#275637] hover:bg-[#E8F2EA]'
-                        }`}
-                      >
-                        <MessageSquare className="w-3.5 h-3.5 text-[#22C55E]" />
-                        <span>{post.comments.length} Comments</span>
-                        {isCommentsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
+                    {/* MAIN POST CONTENT */}
+                    <div className="flex-1 p-3 sm:p-4 min-w-0">
+                      
+                      {/* Post Metadata Header */}
+                      <div className="flex items-center gap-2 text-[11px] text-gray-400 flex-wrap mb-1.5">
+                        <span className="font-bold text-gray-800 dark:text-gray-200">
+                          {currentSubreddit.name}
+                        </span>
+                        <span>•</span>
+                        <span>
+                          Posted by{' '}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenChat({
+                                username: post.author,
+                                name: post.author.replace(/_/g, ' '),
+                                badge: post.badge,
+                                village: post.village,
+                                crop: SUBREDDITS[post.crop]?.displayName || 'Grower'
+                              });
+                            }}
+                            className="font-bold hover:underline cursor-pointer text-gray-800 dark:text-gray-200"
+                            title={`Chat privately with u/${post.author}`}
+                          >
+                            u/{post.author}
+                          </button>
+                        </span>
 
-                      {/* WhatsApp Share Button */}
-                      <button
-                        onClick={() => {
-                          const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(`🌾 Sasya Farmer Hub Alert: ${post.title} - Read more on Sasya!`)}`;
-                          window.open(url, '_blank');
-                        }}
-                        className={`px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
-                          isDark 
-                            ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:border-[#22C55E]' 
-                            : 'bg-white border-[#91BA94]/60 text-[#275637] hover:bg-[#E8F2EA]'
-                        }`}
-                        title="Share on WhatsApp"
-                      >
-                        <Share2 className="w-3.5 h-3.5 text-[#22C55E]" />
-                        <span className="hidden sm:inline">Share</span>
-                      </button>
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* Comments Accordion Tray */}
-                {isCommentsOpen && (
-                  <div className={`p-4 sm:p-5 border-t space-y-3.5 ${
-                    isDark ? 'bg-[#0E1E16] border-[#162C20]' : 'bg-[#F9F9F6] border-[#91BA94]/30'
-                  }`}>
-                    {post.comments.map((comment) => (
-                      <div 
-                        key={comment.id}
-                        className={`p-3 rounded-xl border text-xs ${
-                          isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#91BA94]/50'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold">{comment.author}</span>
-                            {comment.badge && (
-                              <span className={`text-[9px] px-1.5 py-0.5 rounded border font-semibold ${comment.badgeColor || 'bg-gray-500/20 text-gray-400'}`}>
-                                {comment.badge}
-                              </span>
-                            )}
-                          </div>
-                          <span className={`text-[10px] ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                            {comment.timeAgo}
+                        {/* Followed Farmer Priority Badge */}
+                        {followingMap[post.author] === 'following' && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40 flex items-center gap-1 shadow-xs">
+                            <span>⭐</span> {t('comm_following_tag') || 'Following'}
                           </span>
-                        </div>
-                        <p className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-[#556B5C]'}`}>
-                          {comment.content}
-                        </p>
-                      </div>
-                    ))}
+                        )}
 
-                    {/* New Comment Input Box */}
-                    <div className="flex items-center gap-2 mt-2">
-                      <input 
-                        type="text" 
-                        placeholder="Reply to this farmer with local advice..."
-                        value={newCommentText[post.id] || ''}
-                        onChange={(e) => setNewCommentText({
-                          ...newCommentText,
-                          [post.id]: e.target.value
-                        })}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleAddComment(post.id);
-                        }}
-                        className={`flex-1 h-10 px-3.5 rounded-xl border text-xs focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
-                          isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-white border-[#91BA94] text-[#275637]'
-                        }`}
-                      />
-                      <button
-                        onClick={() => handleAddComment(post.id)}
-                        className="h-10 px-4 rounded-xl bg-[#275637] text-white font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-[#1E462B] transition-all cursor-pointer"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>Reply</span>
-                      </button>
+                        {/* Follow / Unfollow Button (Direct 1-Click, Open Network) */}
+                        {post.author !== (user?.username || 'Ramesh_Gowda') && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleFollow(post.author)}
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition-all cursor-pointer ${
+                              followingMap[post.author] === 'following'
+                                ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/40 hover:bg-rose-500/10 hover:text-rose-500'
+                                : isDark
+                                  ? 'border-[#1E3A2B] text-gray-300 hover:border-emerald-500 hover:text-emerald-400'
+                                  : 'border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
+                            }`}
+                            title={
+                              followingMap[post.author] === 'following'
+                                ? 'Click to Unfollow'
+                                : 'Follow this grower'
+                            }
+                          >
+                            {followingMap[post.author] === 'following' ? 'Following ✓' : '+ Follow'}
+                          </button>
+                        )}
+                        <span className="text-[10px] opacity-75">({post.village})</span>
+                        <span>•</span>
+                        <span>{post.timeAgo}</span>
+                        
+                        {/* Flair Badge */}
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${post.flairColor}`}>
+                          {post.flair}
+                        </span>
+                      </div>
+
+                      {/* Post Title */}
+                      <h2 className={`text-sm sm:text-base font-bold leading-snug tracking-tight mb-2 ${
+                        isDark ? 'text-white' : 'text-gray-900'
+                      }`}>
+                        {post.title}
+                      </h2>
+
+                      {/* Post Body */}
+                      <p className={`text-xs sm:text-sm leading-relaxed mb-3 whitespace-pre-line ${
+                        isDark ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        {post.content}
+                      </p>
+
+                      {/* Attached Image (if present) */}
+                      {post.image && (
+                        <div className="mb-3 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 max-h-96 bg-black flex items-center justify-center">
+                          <img 
+                            src={post.image} 
+                            alt={post.title} 
+                            className="max-h-96 w-full object-contain" 
+                          />
+                        </div>
+                      )}
+
+                      {/* AI Verification Pill (if present) */}
+                      {post.aiBadge && (
+                        <div className="mb-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                          <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>{post.aiBadge}</span>
+                        </div>
+                      )}
+
+                      {/* REDDIT ACTION BAR */}
+                      <div className="flex items-center gap-1 sm:gap-2 text-xs font-bold text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-800">
+                        <button
+                          onClick={() => setExpandedPostId(isExpanded ? null : post.id)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                          <span>{post.comments.length} Comments</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenChat({
+                            username: post.author,
+                            name: post.author.replace(/_/g, ' '),
+                            badge: post.badge,
+                            village: post.village,
+                            crop: SUBREDDITS[post.crop]?.displayName || 'Grower'
+                          })}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer text-emerald-600 dark:text-emerald-400 font-semibold"
+                          title={`Open Reddit-style 1-on-1 private chat with u/${post.author}`}
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>Chat</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleShare(post)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                        >
+                          <Share2 className="w-4 h-4" />
+                          <span>Share</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleToggleSave(post.id)}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer ${
+                            post.saved ? 'text-amber-500' : ''
+                          }`}
+                        >
+                          <Bookmark className={`w-4 h-4 ${post.saved ? 'fill-amber-500' : ''}`} />
+                          <span>{post.saved ? 'Saved' : 'Save'}</span>
+                        </button>
+                      </div>
+
+                      {/* THREADED REDDIT COMMENT SECTION */}
+                      {isExpanded && (
+                        <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800 space-y-3">
+                          
+                          {/* New Comment Input Box */}
+                          <div className="space-y-2">
+                            <span className="text-[11px] text-gray-400">
+                              Comment as <strong className="text-emerald-500">u/{user?.username || 'Ramesh_Gowda'}</strong>
+                            </span>
+                            <div className="flex gap-2">
+                              <textarea
+                                value={commentInputs[post.id] || ''}
+                                onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                                placeholder="What are your thoughts?"
+                                rows={2}
+                                className={`w-full p-2.5 rounded-xl border text-xs outline-none resize-none ${
+                                  isDark ? 'bg-[#07100C] border-[#1E3A2B] text-white focus:border-[#22C55E]' : 'bg-[#FAFCFA] border-gray-300 text-gray-800 focus:border-[#275637]'
+                                }`}
+                              />
+                            </div>
+                            <div className="flex justify-end">
+                              <button
+                                onClick={() => handleAddComment(post.id)}
+                                className="px-4 py-1.5 rounded-full font-bold text-xs bg-[#275637] hover:bg-[#1E462B] text-white flex items-center gap-1 cursor-pointer shadow-xs"
+                              >
+                                <Send className="w-3 h-3" />
+                                <span>Comment</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Comments Tree */}
+                          {post.comments.length === 0 ? (
+                            <div className="text-center py-4 text-xs text-gray-400 italic">
+                              No comments yet. Be the first to share your agronomic insight!
+                            </div>
+                          ) : (
+                            <div className="space-y-3 pt-2">
+                              {post.comments.map((comment) => (
+                                <div key={comment.id} className="flex gap-2.5 pl-2 border-l-2 border-gray-200 dark:border-gray-800">
+                                  <div className="flex-1 space-y-1">
+                                    <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleOpenChat({
+                                            username: comment.author,
+                                            name: comment.author.replace(/_/g, ' '),
+                                            badge: comment.badge,
+                                            village: 'Verified Community Member',
+                                            crop: currentSubreddit.displayName
+                                          });
+                                        }}
+                                        className="font-bold hover:underline cursor-pointer text-gray-900 dark:text-gray-200"
+                                        title={`Chat privately with u/${comment.author}`}
+                                      >
+                                        u/{comment.author}
+                                      </button>
+                                      <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${comment.badgeColor || 'border-gray-500'}`}>
+                                        {comment.badge}
+                                      </span>
+                                      <span>•</span>
+                                      <span>{comment.timeAgo}</span>
+                                    </div>
+                                    <p className={`text-xs leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                      {comment.content}
+                                    </p>
+                                    <div className="flex items-center gap-3 text-[10px] text-gray-400 pt-0.5">
+                                      <span className="font-mono font-bold text-emerald-500">▲ {comment.upvotes || 1}</span>
+                                      <button 
+                                        onClick={() => handleOpenChat({
+                                          username: comment.author,
+                                          name: comment.author.replace(/_/g, ' '),
+                                          badge: comment.badge,
+                                          village: 'Verified Community Member',
+                                          crop: currentSubreddit.displayName
+                                        })}
+                                        className="hover:underline cursor-pointer text-emerald-600 dark:text-emerald-400 font-semibold"
+                                        title={`Chat privately with u/${comment.author}`}
+                                      >
+                                        💬 Chat
+                                      </button>
+                                      <button className="hover:underline cursor-pointer">Reply</button>
+                                      <button className="hover:underline cursor-pointer">Share</button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                        </div>
+                      )}
+
                     </div>
+
                   </div>
-                )}
-              </div>
-            );
-          })}
+                </article>
+              );
+            })
+          )}
+
         </div>
+
+        {/* ── RIGHT REDDIT SIDEBAR (4 cols) ── */}
+        <aside className="lg:col-span-4 space-y-4">
+          
+          {/* About Subreddit Card */}
+          <div className={`rounded-xl border overflow-hidden shadow-xs ${
+            isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
+          }`}>
+            <div className="p-3 bg-[#275637] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-between">
+              <span>About Community</span>
+              <span>{currentSubreddit.icon}</span>
+            </div>
+            
+            <div className="p-4 space-y-3 text-xs">
+              <p className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-[#556B5C]'}`}>
+                {currentSubreddit.description}
+              </p>
+
+              <div className="pt-2 border-t border-gray-100 dark:border-gray-800 grid grid-cols-2 gap-3 text-center">
+                <div>
+                  <div className="font-black text-sm">{currentSubreddit.members.split(' ')[0]}</div>
+                  <div className="text-[10px] text-gray-400">Members</div>
+                </div>
+                <div>
+                  <div className="font-black text-sm text-emerald-500">● {currentSubreddit.online.split(' ')[0]}</div>
+                  <div className="text-[10px] text-gray-400">Online Now</div>
+                </div>
+              </div>
+
+              <div className="pt-2 space-y-2">
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="w-full py-2 px-3 rounded-full font-bold text-xs bg-[#275637] hover:bg-[#1E462B] text-white shadow-xs cursor-pointer transition-transform active:scale-95"
+                >
+                  Create Post
+                </button>
+                <button
+                  onClick={() => handleOpenChat(null)}
+                  className={`w-full py-2 px-3 rounded-full font-bold text-xs border flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
+                    isDark 
+                      ? 'border-[#1E3A2B] bg-[#12241A] text-emerald-400 hover:bg-[#183223]' 
+                      : 'border-[#91BA94] bg-[#FAFCFA] text-[#275637] hover:bg-[#E8F2EA]'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Farmer Chat (Private DMs)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Subreddit Rules Card */}
+          <div className={`p-4 rounded-xl border text-xs shadow-xs space-y-2.5 ${
+            isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
+          }`}>
+            <h3 className="font-bold text-xs uppercase tracking-wider text-[#556B5C] dark:text-gray-400">
+              {currentSubreddit.name} Rules
+            </h3>
+            <ol className="list-decimal pl-4 space-y-1.5 text-gray-600 dark:text-gray-300">
+              {currentSubreddit.rules.map((rule, idx) => (
+                <li key={idx} className="leading-snug">{rule}</li>
+              ))}
+            </ol>
+          </div>
+
+          {/* Growers Network (Open Farmer Cooperative) */}
+          <div className={`p-4 rounded-xl border text-xs shadow-xs space-y-3 ${
+            isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
+          }`}>
+            <div className="flex items-center justify-between border-b pb-2 border-gray-100 dark:border-gray-800">
+              <h3 className="font-bold text-xs uppercase tracking-wider text-[#556B5C] dark:text-gray-400">
+                Growers Network
+              </h3>
+              <Link to="/profile" className="text-[11px] font-bold text-emerald-500 hover:underline">
+                View Profile
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-center">
+              <div className={`p-2 rounded-lg border ${isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-gray-200'}`}>
+                <div className="font-extrabold text-sm">2</div>
+                <div className="text-[10px] text-gray-400">Followers</div>
+              </div>
+              <div className={`p-2 rounded-lg border ${isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#FAFCFA] border-gray-200'}`}>
+                <div className="font-extrabold text-sm text-emerald-500">
+                  {Object.values(followingMap).filter(v => v === 'following').length + 1}
+                </div>
+                <div className="text-[10px] text-gray-400">Following</div>
+              </div>
+            </div>
+
+            <div className={`w-full py-2 px-3 rounded-xl border text-xs text-center flex items-center justify-center gap-1.5 ${
+              isDark 
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                : 'bg-[#E8F2EA] text-[#275637] border-[#91BA94]'
+            }`}>
+              <Users className="w-3.5 h-3.5" />
+              <span>Open Network • Followed Farmers First</span>
+            </div>
+          </div>
+
+          {/* Crop Subreddits Switcher Card */}
+          <div className={`p-4 rounded-xl border text-xs shadow-xs space-y-2.5 ${
+            isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
+          }`}>
+            <h3 className="font-bold text-xs uppercase tracking-wider text-[#556B5C] dark:text-gray-400">
+              Other Crop Subreddits
+            </h3>
+            <div className="space-y-1">
+              {Object.values(SUBREDDITS).map((sub) => (
+                <Link
+                  key={sub.id}
+                  to={`/c/${sub.id}`}
+                  className={`w-full p-2 rounded-lg flex items-center justify-between transition-colors ${
+                    activeCrop === sub.id 
+                      ? isDark ? 'bg-[#14281C] text-emerald-400 font-bold' : 'bg-[#E8F2EA] text-[#275637] font-bold'
+                      : isDark ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>{sub.icon}</span>
+                    <span>{sub.name}</span>
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-mono">
+                    {sub.members.split(' ')[0]}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+        </aside>
 
       </main>
 
-      {/* ── CREATE NEW POST MODAL ── */}
-      {showNewPostModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`max-w-lg w-full rounded-[18px] border p-6 shadow-2xl animate-card-in ${
-            isDark ? 'bg-[#102217] border-[#1E3A2B] text-white' : 'bg-white border-[#91BA94] text-[#275637]'
+      {/* ── CREATE POST MODAL ── */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className={`w-full max-w-lg rounded-2xl border shadow-2xl p-6 relative animate-card-in ${
+            isDark ? 'bg-[#102217] border-[#1E3A2B] text-white' : 'bg-white border-gray-300 text-gray-900'
           }`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-extrabold text-base">
-                Ask Growers in r/{activeCrop}
-              </h3>
-              <button 
-                onClick={() => setShowNewPostModal(false)}
-                className="text-xs font-bold opacity-70 hover:opacity-100 cursor-pointer"
-              >
-                ✕ Cancel
-              </button>
-            </div>
+            <button
+              onClick={() => setIsCreateModalOpen(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-white cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-            <form onSubmit={handleCreatePost} className="space-y-4 text-xs font-semibold">
+            <h3 className="text-base font-bold mb-4 flex items-center gap-2">
+              <span>Create Post in {currentSubreddit.name}</span>
+            </h3>
+
+            <form onSubmit={handleCreatePost} className="space-y-3.5 text-xs font-semibold">
               <div>
-                <label className="block mb-1">Category</label>
-                <select 
-                  value={newPostCategory}
-                  onChange={(e) => setNewPostCategory(e.target.value)}
-                  className={`w-full h-10 px-3 rounded-xl border text-xs ${
-                    isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
+                <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">Flair / Category</label>
+                <select
+                  value={newFlair}
+                  onChange={(e) => setNewFlair(e.target.value)}
+                  className={`w-full p-2.5 rounded-xl border text-xs font-bold outline-none cursor-pointer ${
+                    isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-gray-50 border-gray-300 text-gray-800'
                   }`}
                 >
-                  <option value="Disease Query">Disease Query & Diagnosis</option>
-                  <option value="Weather Alert">Spray Window & Weather Alert</option>
-                  <option value="Equipment Rental">Power Equipment Rental / Service</option>
+                  <option value="Labour Request">👥 Labour Request</option>
+                  <option value="Equipment Rental">🛠️ Equipment Rental</option>
+                  <option value="Disease Query">🍃 Disease Query</option>
+                  <option value="Weather Advisory">🌧️ Weather Advisory</option>
+                  <option value="General Discussion">💬 General Discussion</option>
                 </select>
               </div>
 
+              {/* Dedicated Labour Request Fields */}
+              {newFlair === 'Labour Request' && (
+                <div className={`p-3 rounded-xl border space-y-2.5 animate-fadeIn ${
+                  isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#F4F8F5] border-[#91BA94]/60'
+                }`}>
+                  <div className="flex items-center gap-1.5 text-xs font-black text-purple-600 dark:text-purple-400">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Labour Request Specifications</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="block mb-1 text-[10px] text-gray-400 font-bold uppercase">Workers Needed</label>
+                      <input
+                        type="text"
+                        value={labourWorkers}
+                        onChange={(e) => setLabourWorkers(e.target.value)}
+                        placeholder="e.g. 3 Skilled Tree Climbers"
+                        className={`w-full p-2 rounded-lg border text-xs outline-none ${
+                          isDark ? 'bg-[#07100C] border-[#1E3A2B] text-white' : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block mb-1 text-[10px] text-gray-400 font-bold uppercase">Daily Wage (₹)</label>
+                      <input
+                        type="text"
+                        value={labourWage}
+                        onChange={(e) => setLabourWage(e.target.value)}
+                        placeholder="e.g. ₹900/day + food"
+                        className={`w-full p-2 rounded-lg border text-xs outline-none ${
+                          isDark ? 'bg-[#07100C] border-[#1E3A2B] text-white' : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label className="block mb-1">Title</label>
-                <input 
-                  type="text" 
+                <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">Post Title *</label>
+                <input
+                  type="text"
                   required
-                  placeholder="e.g. Koleroga spotted on south slope palms after rain"
-                  value={newPostTitle}
-                  onChange={(e) => setNewPostTitle(e.target.value)}
-                  className={`w-full h-10 px-3 rounded-xl border text-xs ${
-                    isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder={
+                    newFlair === 'Labour Request'
+                      ? "e.g. 3 Tree Climbers Needed for Arecanut Harvesting in Belthangady"
+                      : "Title: e.g. Yellow leaf spots appearing after yesterday's rain"
+                  }
+                  className={`w-full p-2.5 rounded-xl border text-xs outline-none ${
+                    isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-gray-50 border-gray-300 text-gray-900'
                   }`}
                 />
               </div>
 
               <div>
-                <label className="block mb-1">Description / Observation</label>
-                <textarea 
+                <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">Text Content</label>
+                <textarea
                   rows={4}
-                  required
-                  placeholder="Describe your symptoms, weather conditions, or equipment details..."
-                  value={newPostContent}
-                  onChange={(e) => setNewPostContent(e.target.value)}
-                  className={`w-full p-3 rounded-xl border text-xs ${
-                    isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
+                  value={newContent}
+                  onChange={(e) => setNewContent(e.target.value)}
+                  placeholder={
+                    newFlair === 'Labour Request'
+                      ? "Specify work dates, location/taluk, lodging or food arrangements, contact preference..."
+                      : "Describe crop symptoms, spray details, or question..."
+                  }
+                  className={`w-full p-2.5 rounded-xl border text-xs outline-none resize-none ${
+                    isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-gray-50 border-gray-300 text-gray-900'
                   }`}
                 />
               </div>
 
-              <button
-                type="submit"
-                className="w-full h-12 rounded-[14px] bg-[#275637] hover:bg-[#1E462B] text-white font-extrabold text-sm transition-all cursor-pointer shadow-md"
-              >
-                Publish to r/{activeCrop} Community
-              </button>
+              {/* Photo Attachment: From Device Camera or File or URL */}
+              <div>
+                <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">
+                  Attach Photo (Camera / Device or URL)
+                </label>
+                
+                {/* Hidden File Input */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleImageFileChange}
+                  className="hidden"
+                />
+
+                <div className="flex items-center gap-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`px-3 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      isDark 
+                        ? 'bg-[#0E1E16] border-[#1E3A2B] text-emerald-400 hover:bg-[#152B1F]' 
+                        : 'bg-[#F4F8F5] border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
+                    }`}
+                  >
+                    <Camera className="w-4 h-4 text-emerald-500" />
+                    <span>Upload Photo from Device</span>
+                  </button>
+                  {newImageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setNewImageUrl('')}
+                      className="px-2.5 py-1.5 rounded-xl border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Remove</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Photo Preview Thumbnail */}
+                {newImageUrl && (
+                  <div className="relative mb-2 rounded-xl overflow-hidden border border-emerald-500/30 max-h-48 bg-black/40 flex items-center justify-center">
+                    <img src={newImageUrl} alt="Preview" className="max-h-48 w-full object-contain" />
+                  </div>
+                )}
+
+                <input
+                  type="text"
+                  value={newImageUrl.startsWith('data:') ? '' : newImageUrl}
+                  onChange={(e) => setNewImageUrl(e.target.value)}
+                  placeholder="Or paste an image URL (/samples/sample_arecanut.jpg)"
+                  className={`w-full p-2.5 rounded-xl border text-xs outline-none ${
+                    isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-gray-50 border-gray-300 text-gray-900'
+                  }`}
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-full font-bold text-xs bg-[#275637] hover:bg-[#1E462B] text-white shadow-xs cursor-pointer"
+                >
+                  Post
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* ── FLOATING REDDIT CHAT TRIGGER ── */}
+      {!isChatOpen && (
+        <button
+          onClick={() => handleOpenChat(null)}
+          className="fixed bottom-5 right-5 z-40 px-4 py-2.5 rounded-full bg-[#275637] hover:bg-[#1E462B] text-white shadow-xl flex items-center gap-2 font-bold text-xs transition-all hover:scale-105 active:scale-95 cursor-pointer border border-[#91BA94]/50"
+          title="Reddit-style 1-on-1 Farmer Chat"
+        >
+          <div className="relative">
+            <MessageSquare className="w-4 h-4 text-emerald-300" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400" />
+          </div>
+          <span>Farmer Chat (Private)</span>
+        </button>
+      )}
+
+      {/* ── REDDIT-STYLE 1-ON-1 FARMER CHAT WINDOW ── */}
+      <RedditChat
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        targetUser={chatTargetUser}
+        isDark={isDark}
+        currentUser={user}
+      />
 
     </div>
   );

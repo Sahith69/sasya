@@ -3,16 +3,16 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
-  ArrowLeft, ShieldAlert, CheckCircle2, AlertTriangle, 
-  RotateCcw, Share2, Sun, Moon, Droplets, Wind, 
-  Clock, Shield, Sparkles, MessageSquare, ExternalLink,
-  ChevronRight, Award, Info
+  ArrowLeft, ShieldAlert, CheckCircle2, RotateCcw, 
+  Share2, Sun, Moon, Shield, Sparkles, MessageSquare, 
+  ChevronRight, Info
 } from 'lucide-react';
 
-// Pre-calibrated mock diagnosis data per sample
+// Pre-calibrated mock diagnosis data per crop
 const DIAGNOSIS_DATA = {
   arecanut: {
     crop: 'Arecanut (ಅಡಿಕೆ)',
+    cropKey: 'arecanut',
     diseaseName: 'Koleroga (Fruit Rot)',
     kannadaName: 'ಕೊಳೆ ರೋಗ (ಹಣ್ಣು ಕೊಳೆತ)',
     pathogen: 'Phytophthora meadii',
@@ -20,19 +20,11 @@ const DIAGNOSIS_DATA = {
     severityGrade: 'Grade 2: Moderate Severity (8.4% lesion ratio)',
     severityColor: 'text-amber-500 bg-amber-500/10 border-amber-500/30',
     description: 'Characteristic water-soaked dark lesions on the calyx and perianth of the nut. Fungal mycelium produces sporangia under high relative humidity (>90%).',
-    treatment: 'Apply 1% Bordeaux Mixture (1 kg copper sulphate + 1 kg quicklime in 100L water) with Rosin sticker. Ensure thorough coverage of nut bunches before heavy rain.',
-    sprayWindow: {
-      status: 'SAFE TO SPRAY NOW',
-      safeHours: 18,
-      rainArrivesIn: 22,
-      rainIntensity: '14.2 mm/hr',
-      windSpeed: '9.4 km/h',
-      statusColor: 'text-[#22C55E] bg-[#22C55E]/10 border-[#22C55E]/30'
-    },
-    bountyReward: 12.00
+    treatment: 'Apply 1% Bordeaux Mixture (1 kg copper sulphate + 1 kg quicklime in 100L water) with Rosin sticker. Ensure thorough coverage of nut bunches before heavy rain.'
   },
   paddy: {
     crop: 'Paddy (ಭತ್ತ)',
+    cropKey: 'paddy',
     diseaseName: 'Paddy Blast (ಎಲೆ ಬೆಂಕಿ ರೋಗ)',
     kannadaName: 'ಎಲೆ ಬೆಂಕಿ ರೋಗ (ಬ್ಲಾಸ್ಟ್)',
     pathogen: 'Magnaporthe oryzae',
@@ -40,19 +32,11 @@ const DIAGNOSIS_DATA = {
     severityGrade: 'Grade 2: Moderate Severity (6.2% lesion ratio)',
     severityColor: 'text-amber-500 bg-amber-500/10 border-amber-500/30',
     description: 'Elliptical spindle-shaped lesions with grayish-white centers and brownish borders on leaf blades.',
-    treatment: 'Spray Tricyclazole 75% WP @ 0.6g/L or Isoprothiolane 40% EC @ 1.5ml/L during morning hours.',
-    sprayWindow: {
-      status: 'SAFE TO SPRAY NOW',
-      safeHours: 24,
-      rainArrivesIn: 30,
-      rainIntensity: '4.8 mm/hr',
-      windSpeed: '7.1 km/h',
-      statusColor: 'text-[#22C55E] bg-[#22C55E]/10 border-[#22C55E]/30'
-    },
-    bountyReward: 10.00
+    treatment: 'Spray Tricyclazole 75% WP @ 0.6g/L or Isoprothiolane 40% EC @ 1.5ml/L during morning hours.'
   },
   apple: {
     crop: 'Apple (ಸೇಬು)',
+    cropKey: 'apple',
     diseaseName: 'Apple Scab',
     kannadaName: 'ಸೇಬು ಸ್ಕ್ಯಾಬ್ ಶಿಲೀಂಧ್ರ',
     pathogen: 'Venturia inaequalis',
@@ -60,19 +44,11 @@ const DIAGNOSIS_DATA = {
     severityGrade: 'Grade 1: Mild Severity (1.8% lesion ratio)',
     severityColor: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30',
     description: 'Olive-green to velvety brown velvety spots on upper leaf surface, progressing to corky circular spots.',
-    treatment: 'Apply Mancozeb 75% WP @ 2.5g/L or Difenoconazole 25% EC @ 0.3ml/L immediately after petal fall.',
-    sprayWindow: {
-      status: 'SAFE TO SPRAY NOW',
-      safeHours: 36,
-      rainArrivesIn: 42,
-      rainIntensity: '2.1 mm/hr',
-      windSpeed: '5.2 km/h',
-      statusColor: 'text-[#22C55E] bg-[#22C55E]/10 border-[#22C55E]/30'
-    },
-    bountyReward: 15.00
+    treatment: 'Apply Mancozeb 75% WP @ 2.5g/L or Difenoconazole 25% EC @ 0.3ml/L immediately after petal fall.'
   },
   tomato: {
     crop: 'Tomato (ಟೊಮೆಟೊ)',
+    cropKey: 'tomato',
     diseaseName: 'Early Blight',
     kannadaName: 'ಟೊಮೆಟೊ ಅರ್ಲಿ ಬ್ಲೈಟ್',
     pathogen: 'Alternaria solani',
@@ -80,38 +56,30 @@ const DIAGNOSIS_DATA = {
     severityGrade: 'Grade 2: Moderate Severity (9.1% lesion ratio)',
     severityColor: 'text-amber-500 bg-amber-500/10 border-amber-500/30',
     description: 'Dark brown concentric target-like rings surrounded by yellow chlorotic halos on lower foliage.',
-    treatment: 'Spray Chlorothalonil 75% WP @ 2g/L or Azoxystrobin 23% SC @ 1ml/L at 10-day intervals.',
-    sprayWindow: {
-      status: 'SAFE TO SPRAY NOW',
-      safeHours: 20,
-      rainArrivesIn: 26,
-      rainIntensity: '6.5 mm/hr',
-      windSpeed: '8.3 km/h',
-      statusColor: 'text-[#22C55E] bg-[#22C55E]/10 border-[#22C55E]/30'
-    },
-    bountyReward: 8.00
+    treatment: 'Spray Chlorothalonil 75% WP @ 2g/L or Azoxystrobin 23% SC @ 1ml/L at 10-day intervals.'
   }
 };
 
 export default function DetectResult() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, lang, setLang, theme, toggleTheme, isDark, t } = useAuth();
+  const { user, lang, setLang, toggleTheme, isDark, t } = useAuth();
 
   // State from location or sensible defaults
   const state = location.state || {};
   const image = state.image || '/samples/sample_arecanut.jpg';
-  const sampleId = state.sampleId || 'arecanut';
-  const isOod = state.isOod || sampleId === 'noncrop';
+  const cropHint = (state.crop || state.sampleId || 'arecanut').toLowerCase();
+  const isOod = state.isOod || cropHint === 'noncrop';
   
   // Grad-CAM Slider Value (0 = 100% original, 100 = 100% Grad-CAM heatmap)
   const [sliderPos, setSliderPos] = useState(50);
-  const [sprayedLogged, setSprayedLogged] = useState(false);
 
   // Selected Diagnosis details (Live from FastAPI PyTorch or pre-calibrated benchmark)
   const live = state.liveResult;
+  const baseKey = DIAGNOSIS_DATA[cropHint] ? cropHint : 'arecanut';
   const diagnosis = live ? {
     crop: `${live.crop}`,
+    cropKey: live.crop.toLowerCase(),
     diseaseName: live.disease.replace(/_/g, ' ').toUpperCase(),
     kannadaName: live.disease.replace(/_/g, ' '),
     pathogen: live.crop === 'Arecanut' ? 'Phytophthora meadii' : live.crop === 'Paddy' ? 'Magnaporthe oryzae' : 'Agricultural Pathogen',
@@ -119,17 +87,8 @@ export default function DetectResult() {
     severityGrade: `Grade ${live.severity?.grade || 1}: ${live.severity?.label || 'Mild'} (${live.severity?.lesion_ratio_pct || 0}% lesion ratio)`,
     severityColor: live.severity?.grade >= 3 ? 'text-rose-500 bg-rose-500/10 border-rose-500/30' : 'text-amber-500 bg-amber-500/10 border-amber-500/30',
     description: `Diagnosed live using CropVisionEngine ResNet-18 neural network and CORN ordinal loss.`,
-    treatment: live.weather_advisory?.spray_window?.advisory || 'Apply prophylactic Bordeaux mixture (1%) with Rosin sticker during safe morning hours.',
-    sprayWindow: {
-      status: live.weather_advisory?.spray_window?.badge || 'SAFE TO SPRAY NOW',
-      safeHours: 24,
-      rainArrivesIn: 28,
-      rainIntensity: '0.0 mm/hr',
-      windSpeed: '7.5 km/h',
-      statusColor: 'text-[#22C55E] bg-[#22C55E]/10 border-[#22C55E]/30'
-    },
-    bountyReward: 10.00
-  } : (DIAGNOSIS_DATA[sampleId] || DIAGNOSIS_DATA.arecanut);
+    treatment: live.weather_advisory?.spray_window?.advisory || 'Apply prophylactic Bordeaux mixture (1%) with Rosin sticker during safe morning hours.'
+  } : DIAGNOSIS_DATA[baseKey];
 
   return (
     <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
@@ -154,7 +113,7 @@ export default function DetectResult() {
               {t('result_title')}
             </h1>
             <p className={`text-[11px] hidden sm:block ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-              Verified by ResNet-18 + CORN Ordinal Grader + Open-Meteo Bioclimatic Engine
+              Verified by ResNet-18 + CORN Ordinal Lesion Grader
             </p>
           </div>
         </div>
@@ -211,7 +170,7 @@ export default function DetectResult() {
       </header>
 
       {/* ── MAIN CONTENT ── */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8">
         
         {/* CASE 1: OUT OF DISTRIBUTION REJECTION */}
         {isOod ? (
@@ -232,26 +191,15 @@ export default function DetectResult() {
               </h2>
               
               <p className={`text-sm max-w-lg mx-auto mb-6 ${isDark ? 'text-gray-300' : 'text-[#556B5C]'}`}>
-                This uploaded object is not recognized as a supported agricultural crop leaf. Our Mahalanobis distance filter measured an outlier score of <strong>DM = 48.7</strong> (safe threshold τ = 24.5).
+                This uploaded object is not recognized as a supported agricultural crop leaf. Sasya rejects out-of-distribution inputs to protect farmer finances and prevent unnecessary chemical purchases.
               </p>
 
               {/* Uploaded Thumbnail */}
-              <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-rose-500/40 mx-auto mb-6 shadow-md">
-                <img src={image} alt="Rejected sample" className="w-full h-full object-cover" />
-              </div>
-
-              {/* Technical Justification Box */}
-              <div className={`p-4 rounded-xl border text-left text-xs mb-6 ${
-                isDark ? 'bg-[#0B1712] border-[#1E3A2B] text-gray-300' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
-              }`}>
-                <h4 className="font-bold flex items-center gap-1.5 mb-1 text-rose-400">
-                  <Info className="w-4 h-4 shrink-0" />
-                  Why did Sasya reject this image?
-                </h4>
-                <p className="leading-relaxed opacity-90">
-                  Standard crop AI models blindly hallucinate disease diagnoses on non-crop objects (shoes, hands, keyboards), leading farmers to buy unnecessary, toxic chemicals. Sasya rejects out-of-distribution inputs to protect farmer finances and environmental safety.
-                </p>
-              </div>
+              {image && (
+                <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-rose-500/40 mx-auto mb-6 shadow-md">
+                  <img src={image} alt="Rejected sample" className="w-full h-full object-cover" />
+                </div>
+              )}
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
@@ -267,7 +215,7 @@ export default function DetectResult() {
         ) : (
 
         /* CASE 2: VALID CROP PATHOLOGY DIAGNOSIS */
-        <div className="space-y-6">
+        <div className="space-y-6 animate-card-in">
           
           {/* Top Disease Header Card */}
           <div className={`p-5 sm:p-6 rounded-[16px] border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 ${
@@ -305,16 +253,16 @@ export default function DetectResult() {
                   {diagnosis.confidence}
                 </div>
                 <div className="text-[9px] text-[#8BA695]">
-                  Temp-Scaled Softmax
+                  ResNet-18 Softmax
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            {/* Left Column: Interactive Grad-CAM Attention Heatmap Slider (7 cols) */}
-            <div className="lg:col-span-7 space-y-4">
+            {/* Left Column: Interactive Grad-CAM Attention Heatmap Slider (6 cols) */}
+            <div className="lg:col-span-6 space-y-4">
               
               <div className={`p-4 sm:p-5 rounded-[16px] border shadow-xs ${
                 isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
@@ -334,13 +282,15 @@ export default function DetectResult() {
                 </div>
 
                 {/* Interactive Slider Viewport */}
-                <div className="relative aspect-square w-full max-w-md mx-auto rounded-[14px] overflow-hidden border border-[#91BA94]/40 shadow-inner select-none bg-black/10">
+                <div className="relative aspect-square w-full max-w-sm mx-auto rounded-[14px] overflow-hidden border border-[#91BA94]/40 shadow-inner select-none bg-black/10">
                   {/* Base Original Leaf */}
-                  <img 
-                    src={image} 
-                    alt="Original specimen" 
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
+                  {image && (
+                    <img 
+                      src={image} 
+                      alt="Original specimen" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  )}
 
                   {/* Grad-CAM Heatmap Layer with variable opacity */}
                   {live?.visuals?.gradcam_image ? (
@@ -394,161 +344,90 @@ export default function DetectResult() {
                     className="w-full accent-[#22C55E] cursor-ew-resize h-2 bg-gray-200 dark:bg-gray-700 rounded-lg"
                   />
                   <p className={`text-[11px] text-center ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                    Drag right to see the exact lesion pixels activating the ResNet-18 neural network.
+                    Drag right to visualize the lesion pixels activating the ResNet-18 neural classifier.
                   </p>
                 </div>
 
               </div>
 
+            </div>
+
+            {/* Right Column: Agronomic Treatment & Community Advice (6 cols) */}
+            <div className="lg:col-span-6 space-y-4">
+              
               {/* Recommended Pathology Treatment */}
-              <div className={`p-4 sm:p-5 rounded-[16px] border shadow-xs ${
+              <div className={`p-5 rounded-[16px] border shadow-xs space-y-3 ${
                 isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
               }`}>
-                <h4 className="font-extrabold text-sm mb-2 flex items-center gap-2">
+                <h4 className="font-extrabold text-sm flex items-center gap-2">
                   <Shield className="w-4 h-4 text-[#22C55E]" />
                   <span>Agronomic Treatment Plan</span>
                 </h4>
-                <p className={`text-xs leading-relaxed mb-3 ${isDark ? 'text-gray-300' : 'text-[#556B5C]'}`}>
+                <p className={`text-xs leading-relaxed ${isDark ? 'text-gray-300' : 'text-[#556B5C]'}`}>
                   {diagnosis.treatment}
                 </p>
                 <div className={`p-3 rounded-xl border text-[11px] font-medium flex items-center gap-2 ${
                   isDark ? 'bg-[#142C1E] border-[#1E3A2B] text-[#34D399]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
                 }`}>
                   <CheckCircle2 className="w-4 h-4 text-[#22C55E] shrink-0" />
-                  <span>Approved by ICAR-CPCRI Disease Management Guidelines</span>
+                  <span>Verified by ICAR-CPCRI Disease Management Guidelines</span>
                 </div>
               </div>
 
-            </div>
-
-            {/* Right Column: 48-Hour Open-Meteo Bioclimatic Spray Window (5 cols) */}
-            <div className="lg:col-span-5 space-y-4">
-              
-              {/* Spray Window Status Banner */}
-              <div className={`p-5 rounded-[16px] border shadow-xs ${
+              {/* Symptoms & Pathogen Info */}
+              <div className={`p-5 rounded-[16px] border shadow-xs space-y-2 ${
                 isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
               }`}>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Droplets className="w-4 h-4 text-[#22C55E]" />
-                    <h3 className="font-extrabold text-sm">
-                      48-Hour Spray Window
-                    </h3>
-                  </div>
-                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${diagnosis.sprayWindow.statusColor}`}>
-                    {diagnosis.sprayWindow.status}
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  <div className={`p-3.5 rounded-xl border ${
-                    isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#F9F9F6] border-[#91BA94]'
-                  }`}>
-                    <div className="text-xs font-semibold text-[#8BA695]">
-                      Safe Weather Margin Before Rain:
-                    </div>
-                    <div className="text-xl font-black text-[#22C55E] mt-0.5">
-                      Next {diagnosis.sprayWindow.safeHours} Hours Safe
-                    </div>
-                    <p className={`text-[11px] mt-1 ${isDark ? 'text-gray-300' : 'text-[#556B5C]'}`}>
-                      Rainfall of <strong>{diagnosis.sprayWindow.rainIntensity}</strong> forecast at Hour +{diagnosis.sprayWindow.rainArrivesIn}. Spray now to allow the required 4h chemical adhesion window!
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className={`p-2.5 rounded-xl border ${
-                      isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#F9F9F6] border-[#91BA94]'
-                    }`}>
-                      <div className="text-[10px] text-[#8BA695]">Wind Velocity</div>
-                      <div className="font-bold flex items-center gap-1 mt-0.5">
-                        <Wind className="w-3.5 h-3.5 text-[#22C55E]" />
-                        <span>{diagnosis.sprayWindow.windSpeed}</span>
-                      </div>
-                    </div>
-                    <div className={`p-2.5 rounded-xl border ${
-                      isDark ? 'bg-[#0E1E16] border-[#1E3A2B]' : 'bg-[#F9F9F6] border-[#91BA94]'
-                    }`}>
-                      <div className="text-[10px] text-[#8BA695]">Washout Threat</div>
-                      <div className="font-bold text-amber-500 flex items-center gap-1 mt-0.5">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>High at +{diagnosis.sprayWindow.rainArrivesIn}h</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Mark Field as Sprayed Toggle */}
-                  <button
-                    onClick={() => setSprayedLogged(!sprayedLogged)}
-                    className={`w-full py-2.5 rounded-xl text-xs font-bold border transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
-                      sprayedLogged
-                        ? 'bg-[#22C55E] text-[#0B1712] border-[#22C55E]'
-                        : isDark
-                          ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:border-[#22C55E]'
-                          : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
-                    }`}
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>{sprayedLogged ? '✓ Spray Logged in Farm Registry' : 'Mark Field as Sprayed Today'}</span>
-                  </button>
-                </div>
+                <h4 className="font-extrabold text-xs uppercase tracking-wider text-[#8BA695]">
+                  Pathology Observations
+                </h4>
+                <p className={`text-xs leading-relaxed ${isDark ? 'text-gray-300' : 'text-[#556B5C]'}`}>
+                  {diagnosis.description}
+                </p>
               </div>
 
-              {/* Young Farmer Community & Bounty Actions */}
+              {/* Young Farmer Community & 1-on-1 Chat Actions */}
               <div className={`p-5 rounded-[16px] border shadow-xs space-y-3 ${
                 isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
               }`}>
                 <h4 className="font-extrabold text-sm flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-[#22C55E]" />
-                  <span>Young Farmer Actions</span>
+                  <span>Farmer Community & Chat</span>
                 </h4>
 
-                {/* Share to Crop Sub */}
-                <Link
-                  to="/c/arecanut"
-                  className={`w-full p-3 rounded-xl border flex items-center justify-between text-xs font-bold transition-all duration-200 hover:scale-[1.01] ${
-                    isDark 
-                      ? 'bg-[#142C1E] border-[#1E3A2B] text-white hover:border-[#22C55E]' 
-                      : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637] hover:bg-[#d9ebd9]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Share2 className="w-4 h-4 text-[#22C55E]" />
-                    <span>Ask r/arecanut Farmers for Advice</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 opacity-70" />
-                </Link>
+                <div className="space-y-2">
+                  {/* Share to Crop Subreddit */}
+                  <Link
+                    to={`/c/${diagnosis.cropKey || 'arecanut'}`}
+                    className={`w-full p-3 rounded-xl border flex items-center justify-between text-xs font-bold transition-all duration-200 hover:scale-[1.01] ${
+                      isDark 
+                        ? 'bg-[#142C1E] border-[#1E3A2B] text-white hover:border-[#22C55E]' 
+                        : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637] hover:bg-[#d9ebd9]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <MessageSquare className="w-4 h-4 text-[#22C55E]" />
+                      <span>Discuss with r/{diagnosis.cropKey || 'arecanut'} Farmers</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 opacity-70" />
+                  </Link>
 
-                {/* Bounty Wallet Unlock */}
-                <Link
-                  to="/wallet"
-                  className={`w-full p-3 rounded-xl border flex items-center justify-between text-xs font-bold transition-all duration-200 hover:scale-[1.01] ${
-                    isDark 
-                      ? 'bg-[#1A2510] border-[#F6D05F]/40 text-[#FCD34D] hover:border-[#F6D05F]' 
-                      : 'bg-[#FFF9E6] border-[#F6D05F] text-[#275637] hover:bg-[#FFF3CC]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Award className="w-4 h-4 text-[#F6D05F]" />
-                    <span>Contribute to Dataset (+₹{diagnosis.bountyReward})</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 opacity-70" />
-                </Link>
-
-                {/* Link to 48h Weather Advisory */}
-                <Link
-                  to="/risk"
-                  className={`w-full p-3 rounded-xl border flex items-center justify-between text-xs font-bold transition-all duration-200 hover:scale-[1.01] ${
-                    isDark 
-                      ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:border-[#22C55E]' 
-                      : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#F9F9F6]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Clock className="w-4 h-4 text-[#22C55E]" />
-                    <span>View 48-Hour Open-Meteo Curve</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 opacity-70" />
-                </Link>
+                  {/* Private 1-on-1 Chat */}
+                  <Link
+                    to={`/c/${diagnosis.cropKey || 'arecanut'}?chat=open`}
+                    className={`w-full p-3 rounded-xl border flex items-center justify-between text-xs font-bold transition-all duration-200 hover:scale-[1.01] ${
+                      isDark 
+                        ? 'bg-[#12241A] border-[#1E3A2B] text-emerald-400 hover:border-[#22C55E]' 
+                        : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#F9F9F6]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span>💬</span>
+                      <span>Open 1-on-1 Farmer Chat (Private)</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 opacity-70" />
+                  </Link>
+                </div>
               </div>
 
             </div>
