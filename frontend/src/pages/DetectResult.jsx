@@ -146,7 +146,7 @@ const DIAGNOSIS_DATA = {
     nextSteps: [
       "Carefully pinch off infected lower leaves touching wet soil and dispose of them outside the plot.",
       "Water only at ground level with drip irrigation; avoid overhead splashing on tomato leaves.",
-      "Share your scan in r/tomato to see what organic biocontrols neighboring growers are using."
+      "Share your scan in s/tomato to see what organic biocontrols neighboring growers are using."
     ]
   }
 };
@@ -744,7 +744,7 @@ export default function DetectResult() {
               }`}>
                 <div>
                   <div className="text-xs font-bold">Ask Local Growers</div>
-                  <div className="text-[11px] text-gray-400">See if other farmers in r/{diagnosis.cropKey || 'arecanut'} have seen this</div>
+                  <div className="text-[11px] text-gray-400">See if other farmers in s/{diagnosis.cropKey || 'arecanut'} have seen this</div>
                 </div>
 
                 <Link
@@ -844,9 +844,9 @@ export default function DetectResult() {
                       }`}>
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                            📝 Community Post Draft
+                            📝 Sasya Group Post Draft
                           </span>
-                          <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400">r/{msg.draft.crop}</span>
+                          <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400">s/{msg.draft.crop}</span>
                         </div>
                         <h5 className={`font-extrabold text-sm sm:text-base leading-snug ${
                           isDark ? 'text-white' : 'text-[#1B4329]'
@@ -872,7 +872,7 @@ export default function DetectResult() {
                           }}
                           className="w-full min-h-[44px] py-2.5 rounded-xl bg-[#275637] hover:bg-[#1E462B] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
                         >
-                          <span>🚀 Publish to r/{msg.draft.crop}</span>
+                          <span>🚀 Publish to s/{msg.draft.crop}</span>
                         </button>
                       </div>
                     )}

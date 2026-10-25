@@ -18,22 +18,22 @@
 
 **Sasya (ಸಸ್ಯ)** is built to solve the real challenges faced by young, isolated farmers and plantation growers across Coastal Karnataka, Malnad, and Northern agricultural belts. Young farmers often inherit land without an experienced peer group or direct access to certified agronomists, while traditional farming portals suffer from high typing friction, dense scientific jargon, and pesticide liability risks.
 
-Sasya combines **Reddit-style crop communities**, **safe AI communication tools**, and **deep-learning leaf pathology diagnosis** into a lightweight, trilingual web application designed for mobile and rural connectivity.
+Sasya combines **Sasya Groups (Crop Communities)**, **safe AI communication tools**, and **deep-learning leaf pathology diagnosis** into a lightweight, trilingual web application designed for mobile and rural connectivity.
 
 ---
 
 ## ✨ Key Capabilities
 
-### 1. 👥 Crop-Specific Reddit Communities
+### 1. 👥 Crop-Specific Sasya Groups
 Dedicated, focused discussion spaces tailored to each crop ecosystem:
-* **`r/arecanut`** — Arecanut Plantation Growers (Koleroga alerts, palm climbers, bunch covers).
-* **`r/paddy`** — Paddy & Rice Agronomy (Blast lesions, seedling nurseries, transplanting crews).
-* **`r/tomato`** — Solanaceous & Vegetable Growers (Early & Late Blight, bamboo trellising).
-* **`r/apple`** — High-Altitude Apple Orchards (Apple scab, post-harvest orchard hygiene).
+* **`s/arecanut`** — Arecanut Plantation Growers (Koleroga alerts, palm climbers, bunch covers).
+* **`s/paddy`** — Paddy & Rice Agronomy (Blast lesions, seedling nurseries, transplanting crews).
+* **`s/tomato`** — Solanaceous & Vegetable Growers (Early & Late Blight, bamboo trellising).
+* **`s/apple`** — High-Altitude Apple Orchards (Apple scab, post-harvest orchard hygiene).
 
 **Features:**
-* **Reddit Interaction Model**: Upvoting, downvoting, nested comment replies, saved bookmarks, and category flairs (`Labour Request`, `Equipment Rental`, `Disease Query`, `Weather Advisory`, `General Discussion`).
-* **1-on-1 Reddit Private Chat (DMs)**: Message growers, equipment owners, and labour contractors directly without publishing private phone numbers.
+* **Community Interaction Model**: Upvoting, downvoting, nested comment replies, saved bookmarks, and category flairs (`Labour Request`, `Equipment Rental`, `Disease Query`, `Weather Advisory`, `General Discussion`).
+* **1-on-1 Farmer Private Chat (DMs)**: Message growers, equipment owners, and labour contractors directly without publishing private phone numbers.
 * **Open Grower Network**: 1-click farmer following (`+ Follow`); followed growers are automatically prioritized at the top of feeds.
 * **Live Cloud Sync**: Local-first offline persistence combined with automatic 6-second cloud synchronization with the Render backend.
 
@@ -130,7 +130,7 @@ hackcache/
 │   │   ├── data/                 # adminMockData
 │   │   ├── locales/              # translations.js (EN, KN, HI)
 │   │   ├── pages/                # Community, DetectResult, AIAssistant, Home, etc.
-│   │   │   ├── Community.jsx     # Reddit replica with Voice Quick Draft & 1-Tap Translate
+│   │   │   ├── Community.jsx     # Sasya Groups with Voice Quick Draft & 1-Tap Translate
 │   │   │   ├── DetectResult.jsx  # Plain-words diagnosis & Expert Question drafter
 │   │   │   └── AIAssistant.jsx   # Safe cultural advice & Labour/Equipment planner
 │   │   └── services/

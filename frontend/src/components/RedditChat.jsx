@@ -1,4 +1,4 @@
-// src/components/RedditChat.jsx - Reddit-Style 1-on-1 Farmer Private Conversations
+// src/components/RedditChat.jsx - Sasya Group 1-on-1 Farmer Private Conversations
 // 100% Anonymous: Strict pseudonymous handles (u/username), zero phone numbers, zero land records
 import React, { useState, useEffect, useRef } from 'react';
 import { 
@@ -445,7 +445,7 @@ export default function RedditChat({
           </div>
           <div>
             <div className="font-extrabold text-xs sm:text-sm flex items-center gap-1.5">
-              <span>Reddit Chat (Direct Messages)</span>
+              <span>Farmer Chat (Direct Messages)</span>
               <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
                 Anonymous
               </span>
@@ -548,7 +548,7 @@ export default function RedditChat({
               })}
             </div>
 
-            {/* Reddit Privacy Footer Notice */}
+            {/* Privacy Footer Notice */}
             <div className={`p-2 border-t text-[10px] leading-tight flex items-center gap-1.5 ${
               isDark ? 'border-[#1E3A2B] text-gray-400' : 'border-[#D8E4DA] text-[#556B5C]'
             }`}>
@@ -618,7 +618,7 @@ export default function RedditChat({
               {/* Message Thread Scrollable Area */}
               <div className="flex-1 p-3 overflow-y-auto space-y-3">
                 
-                {/* Reddit Privacy Disclaimer Header */}
+                {/* Privacy Disclaimer Header */}
                 <div className={`p-3 rounded-xl border text-[11px] leading-relaxed flex items-start gap-2 ${
                   isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-gray-300' : 'bg-[#EBF3ED] border-[#91BA94] text-[#275637]'
                 }`}>

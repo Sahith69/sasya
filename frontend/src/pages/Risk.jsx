@@ -498,7 +498,7 @@ export default function Risk() {
               className="px-4 py-2 rounded-xl bg-[#275637] hover:bg-[#1E462B] text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer self-stretch sm:self-auto justify-center"
             >
               <Share2 className="w-3.5 h-3.5" />
-              <span>Share Alert to r/{dist.crop}</span>
+              <span>Share Alert to s/{dist.crop}</span>
             </Link>
           </div>
         </div>

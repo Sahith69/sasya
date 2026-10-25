@@ -1,4 +1,4 @@
-// src/pages/Community.jsx - Reddit Replica for Crop Communities (r/arecanut, r/paddy, r/tomato, r/apple)
+// src/pages/Community.jsx - Sasya Groups & Young Farmer Community (s/arecanut, s/paddy, s/tomato, s/apple)
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -19,16 +19,16 @@ import {
   Mic, MicOff, Globe, Bot, ShieldAlert
 } from 'lucide-react';
 
-// Subreddit Crop Metadata (Grounded, realistic member counts)
-const SUBREDDITS = {
+// Sasya Group Crop Metadata (Grounded, realistic member counts)
+const SASYA_GROUPS = {
   arecanut: {
     id: 'arecanut',
-    name: 'r/arecanut',
+    name: 's/arecanut',
     displayName: 'Arecanut Plantation Growers',
     icon: '🌴',
     members: '24 members',
     online: '5 active',
-    description: 'Community for arecanut palm cultivators, plant pathologists, and agronomists across Coastal & Malnad Karnataka. Share Koleroga alerts, spray schedules, and harvest techniques.',
+    description: 'Sasya Group for arecanut palm cultivators, plant pathologists, and agronomists across Coastal & Malnad Karnataka. Share Koleroga alerts, spray schedules, and harvest techniques.',
     rules: [
       'Be specific about palm canopy symptoms and leaf wetness',
       'Attach clear photos when requesting disease identification',
@@ -37,7 +37,7 @@ const SUBREDDITS = {
   },
   paddy: {
     id: 'paddy',
-    name: 'r/paddy',
+    name: 's/paddy',
     displayName: 'Paddy & Rice Agronomy',
     icon: '🌾',
     members: '31 members',
@@ -50,7 +50,7 @@ const SUBREDDITS = {
   },
   tomato: {
     id: 'tomato',
-    name: 'r/tomato',
+    name: 's/tomato',
     displayName: 'Tomato & Solanaceous Growers',
     icon: '🍅',
     members: '18 members',
@@ -63,7 +63,7 @@ const SUBREDDITS = {
   },
   apple: {
     id: 'apple',
-    name: 'r/apple',
+    name: 's/apple',
     displayName: 'Himachal & Kashmir Apple Orchards',
     icon: '🍏',
     members: '14 members',
@@ -76,8 +76,10 @@ const SUBREDDITS = {
   }
 };
 
+const SUBREDDITS = SASYA_GROUPS; // Backward compatibility alias
+
 const INITIAL_POSTS = [
-  // ── r/arecanut (4 Posts) ──
+  // ── s/arecanut (4 Posts) ──
   {
     id: 1,
     crop: 'arecanut',
@@ -151,7 +153,7 @@ const INITIAL_POSTS = [
     comments: []
   },
 
-  // ── r/paddy (2 Posts) ──
+  // ── s/paddy (2 Posts) ──
   {
     id: 5,
     crop: 'paddy',
@@ -189,7 +191,7 @@ const INITIAL_POSTS = [
     comments: []
   },
 
-  // ── r/tomato (2 Posts) ──
+  // ── s/tomato (2 Posts) ──
   {
     id: 7,
     crop: 'tomato',
@@ -227,7 +229,7 @@ const INITIAL_POSTS = [
     comments: []
   },
 
-  // ── r/apple (2 Posts) ──
+  // ── s/apple (2 Posts) ──
   {
     id: 9,
     crop: 'apple',
@@ -279,7 +281,7 @@ export default function Community() {
   // Feed State - Persisted across refreshes in localStorage
   const [posts, setPosts] = useState(() => {
     try {
-      const saved = localStorage.getItem('sasya_community_posts_v5');
+      const saved = localStorage.getItem('sasya_community_posts_v6');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -340,7 +342,7 @@ export default function Community() {
       if (anyNew) {
         setPosts(updatedPosts);
         try {
-          localStorage.setItem('sasya_community_posts', JSON.stringify(updatedPosts));
+          localStorage.setItem('sasya_community_posts_v6', JSON.stringify(updatedPosts));
         } catch {}
       }
     } catch (e) {
@@ -635,7 +637,7 @@ export default function Community() {
 
     setPosts(nextPosts);
     try {
-      localStorage.setItem('sasya_community_posts', JSON.stringify(nextPosts));
+      localStorage.setItem('sasya_community_posts_v6', JSON.stringify(nextPosts));
     } catch {}
 
     // Cloud sync upvote to Render backend
@@ -668,7 +670,7 @@ export default function Community() {
 
     setPosts(nextPosts);
     try {
-      localStorage.setItem('sasya_community_posts', JSON.stringify(nextPosts));
+      localStorage.setItem('sasya_community_posts_v6', JSON.stringify(nextPosts));
     } catch {}
   };
 
@@ -716,7 +718,7 @@ export default function Community() {
 
     setPosts(nextPosts);
     try {
-      localStorage.setItem('sasya_community_posts', JSON.stringify(nextPosts));
+      localStorage.setItem('sasya_community_posts_v6', JSON.stringify(nextPosts));
     } catch {}
 
     setCommentInputs({ ...commentInputs, [postId]: '' });
@@ -764,7 +766,7 @@ export default function Community() {
 
     setPosts(nextPosts);
     try {
-      localStorage.setItem('sasya_community_posts', JSON.stringify(nextPosts));
+      localStorage.setItem('sasya_community_posts_v6', JSON.stringify(nextPosts));
     } catch {}
 
     setReplyInputs({ ...replyInputs, [parentCommentId]: '' });
@@ -830,7 +832,7 @@ export default function Community() {
     const nextPosts = [newPost, ...posts];
     setPosts(nextPosts);
     try {
-      localStorage.setItem('sasya_community_posts', JSON.stringify(nextPosts));
+      localStorage.setItem('sasya_community_posts_v6', JSON.stringify(nextPosts));
     } catch {}
 
     setNewTitle('');
@@ -939,7 +941,7 @@ export default function Community() {
                 ? 'bg-[#12241A] border-[#1E3A2B] text-emerald-400 hover:bg-[#162F20]' 
                 : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
             }`}
-            title="Open 1-on-1 Reddit Farmer Chat"
+            title="Open 1-on-1 Farmer Chat"
           >
             <MessageSquare className="w-3.5 h-3.5 text-emerald-500" />
             <span className="hidden sm:inline">Farmer Chat</span>
@@ -1013,6 +1015,23 @@ export default function Community() {
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 mb-0.5">
+            <button
+              onClick={() => {
+                const el = document.getElementById('group-rules-card');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className={`px-3 py-1.5 rounded-full font-bold text-xs border flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors ${
+                isDark 
+                  ? 'bg-[#12241A] border-[#22C55E]/40 text-emerald-400 hover:bg-[#183223]' 
+                  : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
+              }`}
+            >
+              <span>📋</span>
+              <span>{currentSubreddit.name} Rules</span>
+              <span className="text-[10px] font-mono px-1 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold">
+                {currentSubreddit.rules.length}
+              </span>
+            </button>
             <button className="px-3.5 sm:px-4 py-1.5 rounded-full font-bold text-xs bg-[#22C55E] text-[#0B1712] hover:bg-[#16A34A] cursor-pointer shadow-xs">
               {t('btn_joined') || 'Joined'} ✓
             </button>
@@ -1028,13 +1047,13 @@ export default function Community() {
         </div>
       )}
 
-      {/* ── MAIN 2-COLUMN REDDIT LAYOUT ── */}
+      {/* ── MAIN 2-COLUMN SASYA GROUP LAYOUT ── */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-2 sm:px-4 py-4 grid grid-cols-1 lg:grid-cols-12 gap-5 overflow-hidden">
         
         {/* ── LEFT FEED COLUMN (8 cols) ── */}
         <div className="lg:col-span-8 space-y-3 min-w-0 w-full">
           
-          {/* Reddit Create Post Card */}
+          {/* Create Post Card */}
           <div 
             onClick={() => setIsCreateModalOpen(true)}
             className={`p-2.5 sm:p-3 rounded-xl border flex items-center gap-2.5 sm:gap-3 cursor-pointer transition-colors shadow-xs w-full min-w-0 ${
@@ -1057,7 +1076,37 @@ export default function Community() {
             </button>
           </div>
 
-          {/* Reddit Sort & Filter Strip */}
+          {/* ── SASYA GROUP RULES & GUIDELINES (Always Visible Above Feed) ── */}
+          <div 
+            id="group-rules-card"
+            className={`p-3.5 sm:p-4 rounded-xl border text-xs shadow-xs space-y-2.5 transition-all ${
+              isDark ? 'bg-[#102217] border-[#22C55E]/30' : 'bg-[#F4F8F5] border-[#91BA94]'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-base">📋</span>
+                <h3 className="font-black text-xs uppercase tracking-wider text-[#275637] dark:text-emerald-400 flex items-center gap-1.5">
+                  <span>{currentSubreddit.name} Rules</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 lowercase font-mono">
+                    guidelines
+                  </span>
+                </h3>
+              </div>
+              <span className="text-[11px] font-semibold text-[#556B5C] dark:text-gray-400">
+                Guidelines for all posts
+              </span>
+            </div>
+            <ol className="list-decimal pl-5 space-y-1.5 text-xs text-gray-700 dark:text-gray-200 font-medium">
+              {currentSubreddit.rules.map((rule, idx) => (
+                <li key={idx} className="leading-snug">
+                  <span className="font-semibold text-[#1E462B] dark:text-emerald-300">{rule}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {/* Sort & Filter Strip */}
           <div className={`p-2 rounded-xl border flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 text-xs font-bold shadow-xs w-full min-w-0 ${
             isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
           }`}>
@@ -1398,7 +1447,7 @@ export default function Community() {
                             crop: SUBREDDITS[post.crop]?.displayName || 'Grower'
                           })}
                           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer text-emerald-600 dark:text-emerald-400 font-semibold"
-                          title={`Open Reddit-style 1-on-1 private chat with u/${post.author}`}
+                          title={`Open 1-on-1 private chat with u/${post.author}`}
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
                           <span>{t('btn_chat') || 'Chat'}</span>
@@ -1636,15 +1685,15 @@ export default function Community() {
 
         </div>
 
-        {/* ── RIGHT REDDIT SIDEBAR (4 cols) ── */}
+        {/* ── RIGHT SIDEBAR (4 cols) ── */}
         <aside className="lg:col-span-4 space-y-4">
           
-          {/* About Subreddit Card */}
+          {/* About Sasya Group Card */}
           <div className={`rounded-xl border overflow-hidden shadow-xs ${
             isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
           }`}>
             <div className="p-3 bg-[#275637] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-between">
-              <span>About Community</span>
+              <span>About Sasya Group</span>
               <span>{currentSubreddit.icon}</span>
             </div>
             
@@ -1736,12 +1785,12 @@ export default function Community() {
             </div>
           </div>
 
-          {/* Crop Subreddits Switcher Card */}
+          {/* Crop Sasya Groups Switcher Card */}
           <div className={`p-4 rounded-xl border text-xs shadow-xs space-y-2.5 ${
             isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
           }`}>
             <h3 className="font-bold text-xs uppercase tracking-wider text-[#556B5C] dark:text-gray-400">
-              Other Crop Subreddits
+              Other Sasya Groups
             </h3>
             <div className="space-y-1">
               {Object.values(SUBREDDITS).map((sub) => (
@@ -1783,9 +1832,27 @@ export default function Community() {
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-base font-bold mb-4 flex items-center gap-2">
+            <h3 className="text-base font-bold mb-3 flex items-center gap-2">
               <span>{t('create_post_in') || 'Create Post in'} {currentSubreddit.name}</span>
             </h3>
+
+            {/* Sasya Group Rules Reminder */}
+            <div className={`p-2.5 sm:p-3 rounded-xl border text-[11px] leading-relaxed mb-3.5 space-y-1.5 ${
+              isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-gray-300' : 'bg-[#F2F8F4] border-[#C3DCC8] text-[#275637]'
+            }`}>
+              <div className="font-bold flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1.5">
+                  <span>📋</span>
+                  <span>{currentSubreddit.name} Rules</span>
+                </span>
+                <span className="text-[10px] uppercase font-mono tracking-wider font-semibold opacity-75">Guidelines</span>
+              </div>
+              <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
+                {currentSubreddit.rules.map((rule, idx) => (
+                  <li key={idx}>{rule}</li>
+                ))}
+              </ul>
+            </div>
 
             <form onSubmit={handleCreatePost} className="space-y-3.5 text-xs font-semibold">
               {/* ── SASYA AI QUICK DRAFT (VOICE & TEXT) ── */}
@@ -2070,7 +2137,7 @@ export default function Community() {
         <button
           onClick={() => handleOpenChat(null)}
           className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-40 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full bg-[#275637] hover:bg-[#1E462B] text-white shadow-xl flex items-center gap-2 font-bold text-xs transition-all hover:scale-105 active:scale-95 cursor-pointer border border-[#91BA94]/50"
-          title="Reddit-style 1-on-1 Farmer Chat"
+          title="1-on-1 Farmer Chat"
         >
           <div className="relative">
             <MessageSquare className="w-4 h-4 text-emerald-300" />

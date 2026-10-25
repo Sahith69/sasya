@@ -111,7 +111,7 @@ const AGRONOMIC_KNOWLEDGE = [
         "• Immediately halt all urea and chemical nitrogen top-dressing (excess nitrogen creates soft leaf tissue vulnerable to blast).",
         "• Maintain a steady 2–3 cm shallow standing water layer in paddy basins to keep microclimate temperature stable.",
         "• Clip and destroy heavily infected nursery leaves before transplanting.",
-        "• Ask experienced paddy growers on [r/paddy feed](/c/paddy) to see if local blast pockets are expanding in your taluk."
+        "• Ask experienced paddy growers on [s/paddy feed](/c/paddy) to see if local blast pockets are expanding in your taluk."
       ],
       organic: "Foliar spray with beneficial bio-control agent *Pseudomonas fluorescens* or 5% neem seed kernel extract.",
       timing: "Inspect fields early morning when lesions show gray spore centers.",
@@ -162,7 +162,7 @@ const AGRONOMIC_KNOWLEDGE = [
         "• Carefully pinch off and discard yellowing lower leaves touching wet soil to stop rain splash infection.",
         "• Stake vines off the soil surface and switch to drip irrigation to keep foliage dry.",
         "• Maintain wide spacing between rows to promote cross-wind canopy drying.",
-        "• Consult your local horticulture specialist or post photos in [r/tomato](/c/tomato) for peer feedback."
+        "• Consult your local horticulture specialist or post photos in [s/tomato](/c/tomato) for peer feedback."
       ],
       organic: "Foliar spray with fermented sour butter milk solution (5%) or cow urine extract.",
       timing: "Prune lower foliage on sunny mornings to allow cut wounds to dry quickly.",
@@ -464,8 +464,8 @@ export default function AIAssistant() {
     return {
       structured: null,
       text: lang === 'kn'
-        ? "ಧನ್ಯವಾದಗಳು! ನಿಮ್ಮ ಕೃಷಿ ಸಲಹೆ ಸಿದ್ಧವಾಗಿದೆ. ಬೆಳೆ ಸಮುದಾಯದಲ್ಲಿ ಇತರ ರೈತರ ಜತೆ ಚರ್ಚಿಸಲು [r/arecanut ಫೀಡ್](/c/arecanut) ವೀಕ್ಷಿಸಿ."
-        : "Thank you! Check your crop community feed on [r/arecanut](/c/arecanut) to discuss with fellow growers."
+        ? "ಧನ್ಯವಾದಗಳು! ನಿಮ್ಮ ಕೃಷಿ ಸಲಹೆ ಸಿದ್ಧವಾಗಿದೆ. ಬೆಳೆ ಸಮುದಾಯದಲ್ಲಿ ಇತರ ರೈತರ ಜತೆ ಚರ್ಚಿಸಲು [s/arecanut ಫೀಡ್](/c/arecanut) ವೀಕ್ಷಿಸಿ."
+        : "Thank you! Check your crop community feed on [s/arecanut](/c/arecanut) to discuss with fellow growers."
     };
   };
 
@@ -693,7 +693,7 @@ export default function AIAssistant() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold text-emerald-600 dark:text-emerald-400">
                         <Sparkles className="w-3.5 h-3.5" />
-                        <span>Community Post Draft (r/{msg.draft.crop || 'arecanut'})</span>
+                        <span>Sasya Group Post Draft (s/{msg.draft.crop || 'arecanut'})</span>
                       </div>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/25">
                         {msg.draft.flair || 'Labour Request'}
@@ -725,7 +725,7 @@ export default function AIAssistant() {
                         onClick={() => handlePublishDraft(msg.draft)}
                         className="flex-1 min-h-[44px] py-2.5 px-3 rounded-xl bg-[#275637] hover:bg-[#1E462B] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
                       >
-                        <span>🚀 Publish to r/{msg.draft.crop || 'arecanut'}</span>
+                        <span>🚀 Publish to s/{msg.draft.crop || 'arecanut'}</span>
                       </button>
 
                       <button

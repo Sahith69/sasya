@@ -99,10 +99,10 @@ export default function AdminAnalyticsCommunity() {
                   <td className="py-3 text-right font-mono text-emerald-500 font-bold">{s.resolvedQueries}</td>
                   <td className="py-3 text-right">
                     <Link
-                      to={`/c/${s.sub.replace('r/', '')}`}
+                      to={`/c/${s.sub.replace('r/', '').replace('s/', '')}`}
                       className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
                     >
-                      Visit Sub
+                      Visit Group
                     </Link>
                   </td>
                 </tr>

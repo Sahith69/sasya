@@ -148,7 +148,7 @@ export const COMMUNITY_COMMENT_TRANSLATIONS = {
   201: {
     kn: "ಪ್ರಶಾಂತ್ ಅವರೇ, ನಾಳೆ ಬೆಳಗ್ಗೆ 7 ರಿಂದ ಮಧ್ಯಾಹ್ನ 12 ರವರೆಗೆ 2 ಎಕರೆಗೆ ನನಗೆ ಇದು ಬೇಕಾಗಿದೆ. ವಾಟ್ಸಾಪ್ ಅಥವಾ ಚಾಟ್‌ನಲ್ಲಿ ಸಂದೇಶ ಕಳುಹಿಸಿ!",
     hi: "प्रशांत, मुझे कल सुबह 7 बजे से दोपहर 12 बजे तक 2 एकड़ के लिए यह चाहिए। चैट या व्हाट्सएप पर संपर्क करें!",
-    en: "Prashanth, I need it tomorrow morning from 7 AM to 12 PM for 2 acres. DM me on Reddit chat!"
+    en: "Prashanth, I need it tomorrow morning from 7 AM to 12 PM for 2 acres. DM me on Farmer chat!"
   },
   401: {
     kn: "ಹೌದು, ತೇವಾಂಶ ಕಡಿಮೆ ಮಾಡಲು ಗದ್ದೆಯಲ್ಲಿ ನಿಂತ ನೀರನ್ನು ತಕ್ಷಣ ಹೊರಹಾಕಿ. ಸೂರ್ಯನ ತೀಕ್ಷ್ಣ ಬಿಸಿಲು ಬೀಳುವ ಮುನ್ನ ಮುಂಜಾನೆಯೇ ರಕ್ಷಣಾತ್ಮಕ ಕ್ರಮಗಳನ್ನು ಕೈಗೊಳ್ಳಿ.",
@@ -158,7 +158,7 @@ export const COMMUNITY_COMMENT_TRANSLATIONS = {
   701: {
     kn: "ನಾವು ಸುರಕ್ಷತಾ ಬೆಲ್ಟ್ ಮತ್ತು ಸಲಕರಣೆಗಳನ್ನು ಹೊಂದಿರುವ 4 ಜನರ ನುರಿತ ಮರ ಹತ್ತುವವರ ತಂಡ. ಗುರುವಾರದಿಂದ ಶನಿವಾರದವರೆಗೆ ಲಭ್ಯವಿದ್ದೇವೆ. ಚಾಟ್‌ನಲ್ಲಿ ಸಂದೇಶ ಕಳುಹಿಸಿದ್ದೇನೆ!",
     hi: "हम सुरक्षा हार्नेस से लैस 4 प्रशिक्षित पेड़ चढ़ने वालों का दल हैं। गुरुवार से शनिवार तक उपलब्ध हैं। मैंने चैट पर मैसेज भेजा है!",
-    en: "We are a crew of 4 trained palm climbers with safety harnesses. Available Thursday to Saturday. Sent you a DM on Reddit chat!"
+    en: "We are a crew of 4 trained palm climbers with safety harnesses. Available Thursday to Saturday. Sent you a DM on Farmer chat!"
   }
 };
 
@@ -256,7 +256,7 @@ export function parseAiListingDraft(promptText, activeCrop = 'arecanut', default
         `📍 Location: ${village}\n` +
         `👥 Requirement: ${workerLabel}\n` +
         `💰 Daily Wage: ${wage}\n` +
-        `📞 Contact via 1-on-1 Reddit Chat or reply below.` +
+        `📞 Contact via 1-on-1 Farmer Chat or reply below.` +
         safetyNudge +
         `\n\n✨ AI Draft by Sasya AI • Please review and edit before posting. (AI drafts, you confirm).`
     };
@@ -280,7 +280,7 @@ export function parseAiListingDraft(promptText, activeCrop = 'arecanut', default
         `📅 Needed Timing: ${timing}\n` +
         `📍 Location: ${village}\n` +
         `💰 Expected Budget: ${rate}\n` +
-        `📞 Contact via 1-on-1 Reddit Chat or leave a comment below.` +
+        `📞 Contact via 1-on-1 Farmer Chat or leave a comment below.` +
         safetyNudge +
         `\n\n✨ AI Draft by Sasya AI • Please review and edit before posting. (AI drafts, you confirm).`
     };

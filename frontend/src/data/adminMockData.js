@@ -334,10 +334,10 @@ export const ADMIN_BOUNTY_SPEND = {
 };
 
 export const ADMIN_COMMUNITY_STATS = [
-  { sub: 'r/arecanut', members: 24, postsThisWeek: 4, activeRentals: 1, resolvedQueries: 3 },
-  { sub: 'r/paddy', members: 31, postsThisWeek: 2, activeRentals: 1, resolvedQueries: 2 },
-  { sub: 'r/apple', members: 14, postsThisWeek: 2, activeRentals: 0, resolvedQueries: 1 },
-  { sub: 'r/tomato', members: 18, postsThisWeek: 2, activeRentals: 1, resolvedQueries: 2 }
+  { sub: 's/arecanut', members: 24, postsThisWeek: 4, activeRentals: 1, resolvedQueries: 3 },
+  { sub: 's/paddy', members: 31, postsThisWeek: 2, activeRentals: 1, resolvedQueries: 2 },
+  { sub: 's/apple', members: 14, postsThisWeek: 2, activeRentals: 0, resolvedQueries: 1 },
+  { sub: 's/tomato', members: 18, postsThisWeek: 2, activeRentals: 1, resolvedQueries: 2 }
 ];
 
 export const ADMIN_MODERATION_ITEMS = [

@@ -184,7 +184,7 @@ export default function Profile() {
       localStorage.setItem('sasya_farmer_listings', JSON.stringify(nextListings));
     } catch {}
 
-    // AUTOMATICALLY PUBLISH TO COMMUNITY FEED (r/{crop})
+    // AUTOMATICALLY PUBLISH TO SASYA GROUP FEED (s/{crop})
     const flairColor = listingCategory === 'Labour Request'
       ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30'
       : 'bg-blue-500/15 text-blue-500 border-blue-500/30';
@@ -241,7 +241,7 @@ export default function Profile() {
 
     setListingTitle('');
     setShowListingModal(false);
-    showToast(`✓ Listing added & automatically posted in r/${targetCrop} community!`);
+    showToast(`✓ Listing added & automatically posted in s/${targetCrop} Sasya Group!`);
   };
 
   // Toggle listing status in Manage modal
@@ -518,7 +518,7 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Reddit-Style 1-on-1 Farmer Chat & Communities Card */}
+            {/* 1-on-1 Farmer Chat & Sasya Groups Card */}
             <div className={`border rounded-[14px] p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
               isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
             }`}>
@@ -528,13 +528,13 @@ export default function Profile() {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-sm flex items-center gap-2">
-                    <span>1-on-1 Reddit Chat & Crop Discussions</span>
+                    <span>1-on-1 Farmer Chat & Sasya Groups</span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
                       Anonymous
                     </span>
                   </h3>
                   <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-                    Chat privately with fellow growers using Reddit-grade privacy (u/{user?.username || 'Farmer'}). Zero phone numbers or land records exposed.
+                    Chat privately with fellow growers using Sasya Group privacy (u/{user?.username || 'Farmer'}). Zero phone numbers or land records exposed.
                   </p>
                 </div>
               </div>
@@ -1070,10 +1070,10 @@ export default function Profile() {
                     isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94] text-[#275637]'
                   }`}
                 >
-                  <option value="arecanut">🌴 Arecanut (r/arecanut)</option>
-                  <option value="paddy">🌾 Paddy (r/paddy)</option>
-                  <option value="tomato">🍅 Tomato (r/tomato)</option>
-                  <option value="apple">🍎 Apple (r/apple)</option>
+                  <option value="arecanut">🌴 Arecanut (s/arecanut)</option>
+                  <option value="paddy">🌾 Paddy (s/paddy)</option>
+                  <option value="tomato">🍅 Tomato (s/tomato)</option>
+                  <option value="apple">🍎 Apple (s/apple)</option>
                 </select>
                 <p className="text-[10px] text-emerald-500 mt-1 font-semibold">
                   {t('auto_post_hint') || '✓ Automatically creates a public post in this community feed!'}
@@ -1169,7 +1169,7 @@ export default function Profile() {
                   }`}
                 >
                   <ExternalLink className="w-4 h-4" />
-                  <span>View Post in Community (r/{managingListing.crop || 'arecanut'})</span>
+                  <span>View Post in Sasya Group (s/{managingListing.crop || 'arecanut'})</span>
                 </button>
 
                 <button

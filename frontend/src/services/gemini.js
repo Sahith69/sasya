@@ -1,5 +1,5 @@
 // src/services/gemini.js - High-Fidelity Gemini 3.6 Flash Client with Instant Local Agronomy Fallback
-// Supports warm multilingual farmer greetings, crop-aware advisories, post drafting, and r/community links.
+// Supports warm multilingual farmer greetings, crop-aware advisories, post drafting, and s/community links.
 
 const FALLBACK_B64 = 'QVEuQWI4Uk42SU9YZkZNeVhERTN3Yk10N1lva1pJVEFlM0wzRUx0OXNQeGEyWVNjOVR4NGc=';
 
@@ -141,10 +141,10 @@ export function generateLocalAgronomistResponse({ query, userProfile = {}, lang 
     };
 
     const introText = lang === 'kn'
-      ? `ಖಂಡಿತ ${farmerName} ಅವರೇ! ನಿಮ್ಮ ಅಗತ್ಯಕ್ಕೆ ಅನುಗುಣವಾಗಿ ಸಮುದಾಯ ಪೋಸ್ಟ್ ಅನ್ನು ಸಿದ್ಧಪಡಿಸಿದ್ದೇನೆ:\n\nಕೆಳಗಿನ **"ಸಮುದಾಯದಲ್ಲಿ ಪ್ರಕಟಿಸಿ"** ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ ತಕ್ಷಣ **r/${cropLower}** ಫೀಡ್‌ನಲ್ಲಿ ಪೋಸ್ಟ್ ಮಾಡಬಹುದು:`
+      ? `ಖಂಡಿತ ${farmerName} ಅವರೇ! ನಿಮ್ಮ ಅಗತ್ಯಕ್ಕೆ ಅನುಗುಣವಾಗಿ ಸಮುದಾಯ ಪೋಸ್ಟ್ ಅನ್ನು ಸಿದ್ಧಪಡಿಸಿದ್ದೇನೆ:\n\nಕೆಳಗಿನ **"ಸಮುದಾಯದಲ್ಲಿ ಪ್ರಕಟಿಸಿ"** ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ ತಕ್ಷಣ **s/${cropLower}** ಫೀಡ್‌ನಲ್ಲಿ ಪೋಸ್ಟ್ ಮಾಡಬಹುದು:`
       : lang === 'hi'
-      ? `ज़रूर ${farmerName} जी! मैंने आपकी आवश्यकता के अनुसार समुदाय पोस्ट का प्रारूप तैयार कर दिया है:\n\nनीचे दिए गए **"समुदाय में प्रकाशित करें"** बटन पर क्लिक करके इसे सीधे **r/${cropLower}** में पोस्ट करें:`
-      : `Certainly ${farmerName}! I have drafted a community post for you based on your farm location in ${taluk}:\n\nReview the draft card below and tap **"Publish to Community"** to post it directly into **r/${cropLower}**:`;
+      ? `ज़रूर ${farmerName} जी! मैंने आपकी आवश्यकता के अनुसार समुदाय पोस्ट का प्रारूप तैयार कर दिया है:\n\nनीचे दिए गए **"समुदाय में प्रकाशित करें"** बटन पर क्लिक करके इसे सीधे **s/${cropLower}** में पोस्ट करें:`
+      : `Certainly ${farmerName}! I have drafted a community post for you based on your farm location in ${taluk}:\n\nReview the draft card below and tap **"Publish to Community"** to post it directly into **s/${cropLower}**:`;
 
     return {
       text: introText,
@@ -163,17 +163,17 @@ export function generateLocalAgronomistResponse({ query, userProfile = {}, lang 
 
     if (lang === 'kn') {
       return {
-        text: `📊 **${acres} ಎಕರೆ ಅಡಿಕೆ ತೋಟಕ್ಕೆ ೧% ಬೋರ್ಡೋ ದ್ರಾವಣ ತಯಾರಿಕೆಯ ಅಳತೆ:**\n\n• **ಒಟ್ಟು ಬೇಕಾಗುವ ನೀರು:** ${waterLiters} ಲೀಟರ್\n• **ಮೈಲುತುತ್ತ (Copper Sulphate):** ${cuso4Kg} ಕೆ.ಜಿ\n• **ಸುಣ್ಣದ ಪುಡಿ (Slaked Lime):** ${limeKg} ಕೆ.ಜಿ\n• **ಅಂಟುಕ (Rosin Sticker):** ${stickerGrams} ಗ್ರಾಂ ರಾಸಿನ್ + ${stickerGrams} ಗ್ರಾಂ ವಾಷಿಂಗ್ ಸೋಡಾ\n\n💡 **ಮುಖ್ಯ ಸಲಹೆ:** ಮಳೆಯ ಮುನ್ನವೇ ಸಿಂಪಡಿಸಿ. ಮರ ಹತ್ತುವವರು ಬೇಕಿದ್ದರೆ [r/arecanut ಕಾರ್ಮಿಕ ವಿನಿಮಯದಲ್ಲಿ ಪ್ರಕಟಿಸಿ](/c/arecanut).`,
+        text: `📊 **${acres} ಎಕರೆ ಅಡಿಕೆ ತೋಟಕ್ಕೆ ೧% ಬೋರ್ಡೋ ದ್ರಾವಣ ತಯಾರಿಕೆಯ ಅಳತೆ:**\n\n• **ಒಟ್ಟು ಬೇಕಾಗುವ ನೀರು:** ${waterLiters} ಲೀಟರ್\n• **ಮೈಲುತುತ್ತ (Copper Sulphate):** ${cuso4Kg} ಕೆ.ಜಿ\n• **ಸುಣ್ಣದ ಪುಡಿ (Slaked Lime):** ${limeKg} ಕೆ.ಜಿ\n• **ಅಂಟುಕ (Rosin Sticker):** ${stickerGrams} ಗ್ರಾಂ ರಾಸಿನ್ + ${stickerGrams} ಗ್ರಾಂ ವಾಷಿಂಗ್ ಸೋಡಾ\n\n💡 **ಮುಖ್ಯ ಸಲಹೆ:** ಮಳೆಯ ಮುನ್ನವೇ ಸಿಂಪಡಿಸಿ. ಮರ ಹತ್ತುವವರು ಬೇಕಿದ್ದರೆ [s/arecanut ಕಾರ್ಮಿಕ ವಿನಿಮಯದಲ್ಲಿ ಪ್ರಕಟಿಸಿ](/c/arecanut).`,
         draft: null
       };
     } else if (lang === 'hi') {
       return {
-        text: `📊 **${acres} एकड़ हेतु 1% बोर्डो मिश्रण गणना:**\n\n• **कुल पानी:** ${waterLiters} लीटर\n• **नीला थोथा (CuSO4):** ${cuso4Kg} किग्रा\n• **बुझा चूना:** ${limeKg} किग्रा\n• **राल स्टिकर:** ${stickerGrams} ग्राम राल + ${stickerGrams} ग्राम सोडा\n\n💡 **सलाह:** बारिश से पूर्व पत्तों पर तेज फुहार से छिड़काव करें। [r/arecanut समुदाय](/c/arecanut) में पूछें।`,
+        text: `📊 **${acres} एकड़ हेतु 1% बोर्डो मिश्रण गणना:**\n\n• **कुल पानी:** ${waterLiters} लीटर\n• **नीला थोथा (CuSO4):** ${cuso4Kg} किग्रा\n• **बुझा चूना:** ${limeKg} किग्रा\n• **राल स्टिकर:** ${stickerGrams} ग्राम राल + ${stickerGrams} ग्राम सोडा\n\n💡 **सलाह:** बारिश से पूर्व पत्तों पर तेज फुहार से छिड़काव करें। [s/arecanut समुदाय](/c/arecanut) में पूछें।`,
         draft: null
       };
     } else {
       return {
-        text: `📊 **1% Bordeaux Calculation for ${acres} Acre(s):**\n\n• **Total Water Required:** ${waterLiters} Liters\n• **Copper Sulphate (CuSO4):** ${cuso4Kg} kg\n• **Hydrated Quicklime:** ${limeKg} kg\n• **Rosin Sticker Adjuvant:** ${stickerGrams}g Rosin + ${stickerGrams}g Soda\n\n💡 **Pro-Tip:** Complete canopy spray before monsoon cloudbursts. Need climbing labor? [Check r/arecanut Labour Exchange](/c/arecanut).`,
+        text: `📊 **1% Bordeaux Calculation for ${acres} Acre(s):**\n\n• **Total Water Required:** ${waterLiters} Liters\n• **Copper Sulphate (CuSO4):** ${cuso4Kg} kg\n• **Hydrated Quicklime:** ${limeKg} kg\n• **Rosin Sticker Adjuvant:** ${stickerGrams}g Rosin + ${stickerGrams}g Soda\n\n💡 **Pro-Tip:** Complete canopy spray before monsoon cloudbursts. Need climbing labor? [Check s/arecanut Labour Exchange](/c/arecanut).`,
         draft: null
       };
     }
@@ -183,17 +183,17 @@ export function generateLocalAgronomistResponse({ query, userProfile = {}, lang 
   if (/(koleroga|mahali|fruit rot|ಕೊಳೆರೋಗ|ಮಹಾಲಿ|कोलेरोगा)/i.test(q) || cropLower === 'arecanut') {
     if (lang === 'kn') {
       return {
-        text: `🌴 **ಅಡಿಕೆ ಕೊಳೆರೋಗ (Phytophthora meadii) ತುರ್ತು ನಿರ್ವಹಣಾ ಕ್ರಮಗಳು:**\n\n1. **ತೋಟದ ನೈರ್ಮಲ್ಯ:** ನೆಲಕ್ಕೆ ಬಿದ್ದ ಕೊಳೆತ ಕಾಯಿಗಳನ್ನು ತಕ್ಷಣ ಆರಿಸಿ ಮಣ್ಣಿನಲ್ಲಿ ಆಳವಾಗಿ ಹೂತುಹಾಕಿ.\n2. **ಬಸಿಗಾಲುವೆ:** ತೋಟದಲ್ಲಿ ನೀರು ನಿಲ್ಲದಂತೆ ಬಸಿಗಾಲುವೆಗಳನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸಿ.\n3. **ರಕ್ಷಣಾತ್ಮಕ ಸಿಂಪರಣೆ:** ಮಳೆಯಿಲ್ಲದ ಶುಷ್ಕ ಸಮಯದಲ್ಲಿ ೧% ಬೋರ್ಡೋ ದ್ರಾವಣಕ್ಕೆ ರಾಸಿನ್ ಅಂಟು ಬೆರೆಸಿ ಸಿಂಪಡಿಸಿ.\n4. **ಸಮುದಾಯ ಚರ್ಚೆ:** ತೀರ್ಥಹಳ್ಳಿ ಮತ್ತು ವೇಣೂರಿನ ಇತರ ಬೆಳೆಗಾರರ ಅನುಭವ ತಿಳಿಯಲು [🌴 r/arecanut ಚರ್ಚೆಯನ್ನು ವೀಕ್ಷಿಸಿ](/c/arecanut).\n5. **ರೋಗ ಪತ್ತೆ:** ಎಲೆಯ ಕಲೆಗಳನ್ನು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಲು [📸 ರೋಗ ಪತ್ತೆ ಪುಟದಲ್ಲಿ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ](/detect).`,
+        text: `🌴 **ಅಡಿಕೆ ಕೊಳೆರೋಗ (Phytophthora meadii) ತುರ್ತು ನಿರ್ವಹಣಾ ಕ್ರಮಗಳು:**\n\n1. **ತೋಟದ ನೈರ್ಮಲ್ಯ:** ನೆಲಕ್ಕೆ ಬಿದ್ದ ಕೊಳೆತ ಕಾಯಿಗಳನ್ನು ತಕ್ಷಣ ಆರಿಸಿ ಮಣ್ಣಿನಲ್ಲಿ ಆಳವಾಗಿ ಹೂತುಹಾಕಿ.\n2. **ಬಸಿಗಾಲುವೆ:** ತೋಟದಲ್ಲಿ ನೀರು ನಿಲ್ಲದಂತೆ ಬಸಿಗಾಲುವೆಗಳನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸಿ.\n3. **ರಕ್ಷಣಾತ್ಮಕ ಸಿಂಪರಣೆ:** ಮಳೆಯಿಲ್ಲದ ಶುಷ್ಕ ಸಮಯದಲ್ಲಿ ೧% ಬೋರ್ಡೋ ದ್ರಾವಣಕ್ಕೆ ರಾಸಿನ್ ಅಂಟು ಬೆರೆಸಿ ಸಿಂಪಡಿಸಿ.\n4. **ಸಮುದಾಯ ಚರ್ಚೆ:** ತೀರ್ಥಹಳ್ಳಿ ಮತ್ತು ವೇಣೂರಿನ ಇತರ ಬೆಳೆಗಾರರ ಅನುಭವ ತಿಳಿಯಲು [🌴 s/arecanut ಚರ್ಚೆಯನ್ನು ವೀಕ್ಷಿಸಿ](/c/arecanut).\n5. **ರೋಗ ಪತ್ತೆ:** ಎಲೆಯ ಕಲೆಗಳನ್ನು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಲು [📸 ರೋಗ ಪತ್ತೆ ಪುಟದಲ್ಲಿ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ](/detect).`,
         draft: null
       };
     } else if (lang === 'hi') {
       return {
-        text: `🌴 **सुपारी कोलेरोगा (फल सड़न) प्रबंधन निर्देश:**\n\n1. **स्वच्छता:** नीचे गिरे सड़े फलों को तुरंत इकट्ठा कर मिट्टी में दबाएं।\n2. **जल निकासी:** खेत में पानी जमा न होने दें।\n3. **छिड़काव:** बारिश से पहले 1% बोर्डो मिश्रण में राल स्टिकर मिलाकर छिड़कें।\n4. **किसान चर्चा:** अन्य किसानों की सलाह हेतु [🌴 r/arecanut फ़ीड देखें](/c/arecanut)।\n5. **पत्ती जांच:** फोटो लेकर [📸 पत्ती स्कैन पेज पर जांचें](/detect)।`,
+        text: `🌴 **सुपारी कोलेरोगा (फल सड़न) प्रबंधन निर्देश:**\n\n1. **स्वच्छता:** नीचे गिरे सड़े फलों को तुरंत इकट्ठा कर मिट्टी में दबाएं।\n2. **जल निकासी:** खेत में पानी जमा न होने दें।\n3. **छिड़काव:** बारिश से पहले 1% बोर्डो मिश्रण में राल स्टिकर मिलाकर छिड़कें।\n4. **किसान चर्चा:** अन्य किसानों की सलाह हेतु [🌴 s/arecanut फ़ीड देखें](/c/arecanut)।\n5. **पत्ती जांच:** फोटो लेकर [📸 पत्ती स्कैन पेज पर जांचें](/detect)।`,
         draft: null
       };
     } else {
       return {
-        text: `🌴 **Arecanut Koleroga (Phytophthora meadii) Proactive Defense:**\n\n1. **Orchard Sanitation:** Promptly collect and bury all fallen rotting calyxes to halt zoospore release.\n2. **Drainage Canals:** Clear trenches to ensure heavy monsoon rainwater drains freely from the root zones.\n3. **Canopy Spray:** Apply 1% neutral Bordeaux mixture with rosin sticker during the morning dry window.\n4. **Community Discussion:** Connect with Coastal & Malnad growers on [🌴 r/arecanut Discussion Feed](/c/arecanut).\n5. **Specimen Scan:** Confirm lesion margin on the [📸 Leaf Detect Page](/detect).`,
+        text: `🌴 **Arecanut Koleroga (Phytophthora meadii) Proactive Defense:**\n\n1. **Orchard Sanitation:** Promptly collect and bury all fallen rotting calyxes to halt zoospore release.\n2. **Drainage Canals:** Clear trenches to ensure heavy monsoon rainwater drains freely from the root zones.\n3. **Canopy Spray:** Apply 1% neutral Bordeaux mixture with rosin sticker during the morning dry window.\n4. **Community Discussion:** Connect with Coastal & Malnad growers on [🌴 s/arecanut Discussion Feed](/c/arecanut).\n5. **Specimen Scan:** Confirm lesion margin on the [📸 Leaf Detect Page](/detect).`,
         draft: null
       };
     }
@@ -202,17 +202,17 @@ export function generateLocalAgronomistResponse({ query, userProfile = {}, lang 
   // 5. GENERAL COMPREHENSIVE FALLBACK
   if (lang === 'kn') {
     return {
-      text: `ಧನ್ಯವಾದಗಳು ${farmerName} ಅವರೇ! ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ ಮುಖ್ಯ ಕೃಷಿ ನಿರ್ವಹಣಾ ಕ್ರಮಗಳು:\n\n1. **ರೋಗದ ಪರೀಕ್ಷೆ:** ನಿಮ್ಮ ಬೆಳೆಯ ಎಲೆಯ ಫೋಟೋ ತೆಗೆದು [📸 ರೋಗ ಪತ್ತೆ ಪುಟದಲ್ಲಿ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ](/detect).\n2. **ಜೈವಿಕ ರಕ್ಷಣೆ:** ಟ್ರೈಕೋಡರ್ಮಾ ಅಥವಾ ೫% ಬೇವಿನ ಎಣ್ಣೆ ದ್ರಾವಣವನ್ನು ಸಿಂಪಡಿಸಿ.\n3. **ಸಮುದಾಯ ಚರ್ಚೆ:** ಇತರ ಸ್ಥಳೀಯ ರೈತರ ಅನುಭವ ತಿಳಿಯಲು [🌴 r/${cropLower} ಸಮುದಾಯ ವೇದಿಕೆಯಲ್ಲಿ ಪ್ರಶ್ನೆ ಕೇಳಿ](/c/${cropLower}).\n4. **ಪೋಸ್ಟ್ ಬರೆಯಲು:** ಆಳುಗಳು ಅಥವಾ ಬಾಡಿಗೆ ಉಪಕರಣ ಬೇಕಿದ್ದರೆ "ಪೋಸ್ಟ್ ಬರೆದುಕೊಡಿ" ಎಂದು ಕೇಳಿ.`,
+      text: `ಧನ್ಯವಾದಗಳು ${farmerName} ಅವರೇ! ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ ಮುಖ್ಯ ಕೃಷಿ ನಿರ್ವಹಣಾ ಕ್ರಮಗಳು:\n\n1. **ರೋಗದ ಪರೀಕ್ಷೆ:** ನಿಮ್ಮ ಬೆಳೆಯ ಎಲೆಯ ಫೋಟೋ ತೆಗೆದು [📸 ರೋಗ ಪತ್ತೆ ಪುಟದಲ್ಲಿ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ](/detect).\n2. **ಜೈವಿಕ ರಕ್ಷಣೆ:** ಟ್ರೈಕೋಡರ್ಮಾ ಅಥವಾ ೫% ಬೇವಿನ ಎಣ್ಣೆ ದ್ರಾವಣವನ್ನು ಸಿಂಪಡಿಸಿ.\n3. **ಸಮುದಾಯ ಚರ್ಚೆ:** ಇತರ ಸ್ಥಳೀಯ ರೈತರ ಅನುಭವ ತಿಳಿಯಲು [🌴 s/${cropLower} ಸಸ್ಯ ಗುಂಪಿನಲ್ಲಿ ಪ್ರಶ್ನೆ ಕೇಳಿ](/c/${cropLower}).\n4. **ಪೋಸ್ಟ್ ಬರೆಯಲು:** ಆಳುಗಳು ಅಥವಾ ಬಾಡಿಗೆ ಉಪಕರಣ ಬೇಕಿದ್ದರೆ "ಪೋಸ್ಟ್ ಬರೆದುಕೊಡಿ" ಎಂದು ಕೇಳಿ.`,
       draft: null
     };
   } else if (lang === 'hi') {
     return {
-      text: `धन्यवाद ${farmerName} जी! कृषि विशेषज्ञों द्वारा अनुशंसित मुख्य दिशा-निर्देश:\n\n1. **रोग पहचान:** फसल की पत्ती को [📸 पत्ती स्कैनिंग पेज पर जांचें](/detect)।\n2. **जैविक उपचार:** ट्राइकोडर्मा या 5% नीम तेल का छिड़काव करें।\n3. **किसान चर्चा:** सलाह हेतु [🌴 r/${cropLower} मंच पर पूछें](/c/${cropLower})।\n4. **पोस्ट ड्राफ्ट:** मजदूर या किराए के उपकरण हेतु पोस्ट लिखवाने के लिए "पोस्ट लिखें" कहें।`,
+      text: `धन्यवाद ${farmerName} जी! कृषि विशेषज्ञों द्वारा अनुशंसित मुख्य दिशा-निर्देश:\n\n1. **रोग पहचान:** फसल की पत्ती को [📸 पत्ती स्कैनिंग पेज पर जांचें](/detect)।\n2. **जैविक उपचार:** ट्राइकोडर्मा या 5% नीम तेल का छिड़काव करें।\n3. **किसान चर्चा:** सलाह हेतु [🌴 s/${cropLower} समूह मंच पर पूछें](/c/${cropLower})।\n4. **पोस्ट ड्राफ्ट:** मजदूर या किराए के उपकरण हेतु पोस्ट लिखवाने के लिए "पोस्ट लिखें" कहें।`,
       draft: null
     };
   } else {
     return {
-      text: `Thank you ${farmerName}! Here are the recommended agronomic guidelines:\n\n1. **Visual Diagnosis:** Upload or snap a leaf photo on the [📸 Leaf Detect Page](/detect).\n2. **Bio-control:** Apply *Trichoderma harzianum* or 5% cold-pressed neem seed extract (NSKE).\n3. **Peer Community:** Connect with local growers on [🌴 r/${cropLower} Community Forum](/c/${cropLower}).\n4. **Draft a Post:** Need climbers or rental tools? Just tell me "Help draft a post" anytime!`,
+      text: `Thank you ${farmerName}! Here are the recommended agronomic guidelines:\n\n1. **Visual Diagnosis:** Upload or snap a leaf photo on the [📸 Leaf Detect Page](/detect).\n2. **Bio-control:** Apply *Trichoderma harzianum* or 5% cold-pressed neem seed extract (NSKE).\n3. **Peer Community:** Connect with local growers on [🌴 s/${cropLower} Sasya Group](/c/${cropLower}).\n4. **Draft a Post:** Need climbers or rental tools? Just tell me "Help draft a post" anytime!`,
       draft: null
     };
   }
@@ -308,10 +308,10 @@ CORE BEHAVIORS:
 
 4. COMMUNITY LINKS:
    - Recommend relevant community feeds and discussions when helpful using markdown links:
-     - [🌴 View r/arecanut Discussion](/c/arecanut)
-     - [🌾 View r/paddy Feed](/c/paddy)
-     - [🍅 View r/tomato Feed](/c/tomato)
-     - [🍎 View r/apple Feed](/c/apple)
+     - [🌴 View s/arecanut Discussion](/c/arecanut)
+     - [🌾 View s/paddy Feed](/c/paddy)
+     - [🍅 View s/tomato Feed](/c/tomato)
+     - [🍎 View s/apple Feed](/c/apple)
      - [📸 Scan Leaf on Detect Page](/detect)
 
 5. SAFETY BOUNDARIES:

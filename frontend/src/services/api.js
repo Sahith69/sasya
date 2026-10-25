@@ -300,7 +300,7 @@ export async function reportCommunityPost(postId, reportData) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7.5. REAL-TIME CROSS-USER FARMER MESSAGING (REDDITCHAT)
+// 7.5. REAL-TIME CROSS-USER FARMER MESSAGING (FARMER CHAT)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function sendChatMessage({ sender, recipient, text }) {

@@ -92,7 +92,7 @@ function MainApp() {
         <Route path="/detect" element={<ProtectedRoute><Detect /></ProtectedRoute>} />
         <Route path="/detect/result" element={<ProtectedRoute><DetectResult /></ProtectedRoute>} />
         
-        {/* Young Farmer Crop Sub-Communities & Reddit-Style 1-on-1 Chat */}
+        {/* Young Farmer Crop Sasya Groups & 1-on-1 Farmer Chat */}
         <Route path="/c/:crop" element={<ProtectedRoute><Community /></ProtectedRoute>} />
         <Route path="/c" element={<Navigate to="/c/arecanut" replace />} />
         <Route path="/chat" element={<Navigate to="/c/arecanut?chat=open" replace />} />
