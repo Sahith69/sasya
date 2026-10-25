@@ -263,6 +263,10 @@ The farmer is directly reviewing this scanned leaf and asking questions about it
 
   const systemInstruction = `You are "Sasya AI Agronomist" (ಸಸ್ಯ ಕೃಷಿ ಸಲಹೆಗಾರ), an expert agricultural and plant pathology companion for Indian farmers in Coastal & Malnad Karnataka, Himachal Pradesh, and Uttarakhand.
 
+STRICT BRAND IDENTITY:
+- Your identity is strictly "Sasya AI Agronomist" (ಸಸ್ಯ ಕೃಷಿ ಸಲಹೆಗಾರ).
+- NEVER mention "Gemini", "Google", "LLM", "GPT", or "OpenAI". If asked, you are the native AI agronomist built for Sasya farmers.
+
 FARMER PROFILE CONTEXT:
 - Farmer Name: ${farmerName}
 - Primary Crops: ${crops}
@@ -374,7 +378,7 @@ CORE BEHAVIORS:
             success: true,
             text: cleanText || rawText,
             draft,
-            model,
+            model: 'Sasya AI',
             isLocal: false
           };
         }
@@ -387,13 +391,13 @@ CORE BEHAVIORS:
   clearTimeout(timeoutId);
 
   // Seamless fallback to our rich local engine
-  console.log('[Gemini] Using smart local fallback');
+  console.log('[SasyaAI] Using local agronomy fallback');
   const local = generateLocalAgronomistResponse({ query, userProfile, lang });
   return {
     success: true,
     text: local.text,
     draft: local.draft,
-    model: 'sasya-local-engine',
+    model: 'Sasya AI',
     isLocal: true
   };
 }

@@ -6,9 +6,9 @@ import {
   Bot, Sparkles, Send, Mic, MicOff, Volume2, ArrowLeft, 
   Sun, Moon, RotateCcw, Camera, ShieldCheck, CheckCircle2, 
   AlertTriangle, Leaf, HelpCircle, ChevronRight, Copy, Check,
-  Key, Users, FileText
+  Users, FileText, User
 } from 'lucide-react';
-import { callGeminiAgronomist, getGeminiApiKey, setGeminiApiKey, getDefaultGeminiKey } from '../services/gemini';
+import { callGeminiAgronomist } from '../services/gemini';
 
 // Helper component to render interactive markdown links inside assistant responses
 function RenderMessageText({ text, onNavigate }) {
@@ -265,8 +265,6 @@ export default function AIAssistant() {
   const { user, lang, setLang, toggleTheme, isDark, t } = useAuth();
 
   const [inputQuery, setInputQuery] = useState('');
-  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
-  const [apiKeyInput, setApiKeyInput] = useState(() => getGeminiApiKey());
   
   const [messages, setMessages] = useState(() => [
     {
@@ -480,15 +478,15 @@ export default function AIAssistant() {
   ];
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
+    <div className={`min-h-[100dvh] flex flex-col transition-colors duration-300 pb-24 md:pb-6 ${
       isDark ? 'bg-[#0B1712] text-white' : 'bg-[#F9F9F6] text-[#275637]'
     }`}>
 
       {/* ── HEADER ── */}
-      <header className={`sticky top-0 z-40 backdrop-blur-md border-b px-4 sm:px-8 h-16 flex items-center justify-between ${
+      <header className={`sticky top-0 z-40 backdrop-blur-md border-b px-3 sm:px-8 h-14 sm:h-16 flex items-center justify-between ${
         isDark ? 'bg-[#0B1712]/90 border-[#162C20]' : 'bg-[#F9F9F6]/90 border-[#91BA94]/60'
       }`}>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button 
             onClick={() => navigate('/home')}
             className={`p-2 rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
@@ -499,20 +497,20 @@ export default function AIAssistant() {
             <ArrowLeft className="w-4 h-4" />
           </button>
           
-          <div className="flex items-center gap-2.5">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-xs ${
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold shadow-xs ${
               isDark ? 'bg-[#162C20] text-[#22C55E] border border-[#22C55E]/30' : 'bg-[#E8F2EA] text-[#275637] border border-[#91BA94]'
             }`}>
-              <Bot className="w-5 h-5 text-emerald-500 animate-pulse" />
+              <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 animate-pulse" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-extrabold text-base sm:text-lg tracking-tight">
+                <h1 className="font-extrabold text-sm sm:text-lg tracking-tight">
                   {t('ai_page_title') || 'Sasya AI Agronomist'}
                 </h1>
                 <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Gemini 3.6 Flash Active</span>
+                  <span>AI Agronomist Active</span>
                 </span>
               </div>
               <p className={`text-[11px] hidden sm:block ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
@@ -523,19 +521,7 @@ export default function AIAssistant() {
         </div>
 
         {/* Right Controls */}
-        <div className="flex items-center gap-2">
-          {/* Gemini API Key Settings Button */}
-          <button
-            type="button"
-            onClick={() => setApiKeyModalOpen(true)}
-            className={`p-2 rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
-              isDark ? 'bg-[#12241A] border-[#1E3A2B] text-amber-400 hover:bg-[#183526]' : 'bg-white border-[#91BA94] text-amber-600 hover:bg-[#E8F2EA]'
-            }`}
-            title="Gemini API Key Settings"
-          >
-            <Key className="w-4 h-4" />
-          </button>
-
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Clear Chat */}
           <button
             onClick={handleClearChat}
@@ -701,11 +687,11 @@ export default function AIAssistant() {
 
                 {/* ── INTERACTIVE COMMUNITY POST DRAFT CARD (IF DRAFTED) ── */}
                 {msg.draft && (
-                  <div className={`mt-3.5 p-3.5 sm:p-4 rounded-xl border space-y-2.5 animate-fadeIn ${
+                  <div className={`mt-3.5 p-3.5 sm:p-4 rounded-xl border space-y-2.5 animate-fadeIn shadow-xs ${
                     isDark ? 'bg-[#0E1E16] border-[#22C55E]/40' : 'bg-[#F4F8F5] border-[#91BA94]'
                   }`}>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold text-emerald-500">
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase font-bold text-emerald-600 dark:text-emerald-400">
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>Community Post Draft (r/{msg.draft.crop || 'arecanut'})</span>
                       </div>
@@ -714,26 +700,30 @@ export default function AIAssistant() {
                       </span>
                     </div>
 
-                    <h4 className="font-extrabold text-xs sm:text-sm text-gray-900 dark:text-white">
+                    <h4 className={`font-extrabold text-sm sm:text-base leading-snug ${
+                      isDark ? 'text-white' : 'text-[#1B4329]'
+                    }`}>
                       {msg.draft.title}
                     </h4>
 
-                    <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                    <p className={`text-xs sm:text-sm leading-relaxed whitespace-pre-line ${
+                      isDark ? 'text-gray-200' : 'text-[#2C3E32]'
+                    }`}>
                       {msg.draft.content}
                     </p>
 
                     {(msg.draft.workers || msg.draft.wage) && (
-                      <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold pt-1">
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] sm:text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold pt-1">
                         {msg.draft.workers && <span>👥 {msg.draft.workers}</span>}
                         {msg.draft.wage && <span>💰 {msg.draft.wage}</span>}
                       </div>
                     )}
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-800">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-gray-200/80 dark:border-gray-800">
                       <button
                         type="button"
                         onClick={() => handlePublishDraft(msg.draft)}
-                        className="flex-1 py-2 px-3 rounded-xl bg-[#275637] hover:bg-[#1E462B] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                        className="flex-1 min-h-[44px] py-2.5 px-3 rounded-xl bg-[#275637] hover:bg-[#1E462B] text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
                       >
                         <span>🚀 Publish to r/{msg.draft.crop || 'arecanut'}</span>
                       </button>
@@ -741,21 +731,35 @@ export default function AIAssistant() {
                       <button
                         type="button"
                         onClick={() => handleCopy(msg.draft.title + '\n\n' + msg.draft.content, 'draft_' + msg.id)}
-                        className="py-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-xs font-bold transition-all cursor-pointer"
+                        className={`min-h-[44px] py-2.5 px-3.5 rounded-xl border text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                          isDark 
+                            ? 'border-[#1E3A2B] bg-[#12241A] text-gray-200 hover:bg-[#183526]' 
+                            : 'border-[#91BA94] bg-white text-[#275637] hover:bg-[#E8F2EA]'
+                        }`}
                       >
-                        {copiedId === 'draft_' + msg.id ? 'Copied ✓' : 'Copy'}
+                        {copiedId === 'draft_' + msg.id ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-500" />
+                            <span>Copied ✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Copy</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* Footer Controls: Time, Audio Listen, Copy & Model Indicator */}
+                {/* Footer Controls: Time, Audio Listen, Copy & Brand Indicator */}
                 <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-800/80 flex items-center justify-between text-[11px] text-gray-400">
                   <div className="flex items-center gap-2">
                     <span>{msg.timestamp}</span>
-                    {msg.sender === 'ai' && msg.model && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-gray-500/10 text-gray-400">
-                        {msg.model}
+                    {msg.sender === 'ai' && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        Sasya AI
                       </span>
                     )}
                   </div>
@@ -832,7 +836,7 @@ export default function AIAssistant() {
             <button
               type="button"
               onClick={handleToggleVoice}
-              className={`p-2.5 rounded-xl border transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer shrink-0 ${
+              className={`min-h-[44px] min-w-[44px] p-2.5 rounded-xl border flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer shrink-0 ${
                 isListening
                   ? 'bg-rose-500 text-white border-rose-600 animate-pulse'
                   : isDark ? 'bg-[#142C1E] border-[#1E3A2B] text-gray-300 hover:text-white' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
@@ -842,13 +846,13 @@ export default function AIAssistant() {
               {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             </button>
 
-            {/* Free-form Input Field */}
+            {/* Free-form Input Field - 16px text-base on mobile prevents iOS Safari auto-zoom */}
             <input
               type="text"
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
               placeholder={lang === 'kn' ? "ಪ್ರಶ್ನೆ ಕೇಳಿ ಅಥವಾ 'ಪೋಸ್ಟ್ ಬರೆಯಿರಿ' ಎನ್ನಿ..." : lang === 'hi' ? "प्रश्न पूछें या 'पोस्ट लिखें' कहें..." : "Ask agronomy question or say 'help draft a post'..."}
-              className={`flex-1 text-xs sm:text-sm px-3 py-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
+              className={`flex-1 min-h-[44px] text-base sm:text-sm px-3.5 py-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
                 isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white placeholder-gray-500' : 'bg-[#FAFCFA] border-gray-300 text-gray-800 placeholder-gray-400'
               }`}
             />
@@ -857,13 +861,13 @@ export default function AIAssistant() {
             <button
               type="submit"
               disabled={!inputQuery.trim() || isTyping}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0 ${
+              className={`min-h-[44px] px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0 ${
                 inputQuery.trim() && !isTyping
                   ? 'bg-[#275637] hover:bg-[#1E462B] text-white hover:scale-105 active:scale-95'
                   : 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed opacity-60'
               }`}
             >
-              <span>Send</span>
+              <span className="hidden xs:inline">Send</span>
               <Send className="w-3.5 h-3.5" />
             </button>
           </form>
@@ -879,7 +883,7 @@ export default function AIAssistant() {
               to="/detect"
               className="text-emerald-500 hover:underline flex items-center gap-1 font-semibold"
             >
-              <Camera className="w-3 h-3" />
+              <Camera className="w-3.5 h-3.5" />
               <span>Scan Leaf Instead ➔</span>
             </Link>
           </div>
@@ -887,68 +891,60 @@ export default function AIAssistant() {
 
       </main>
 
-      {/* ── GEMINI API KEY MODAL ── */}
-      {apiKeyModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className={`max-w-md w-full rounded-2xl border p-6 shadow-2xl animate-card-in ${
-            isDark ? 'bg-[#102217] border-[#1E3A2B] text-white' : 'bg-white border-[#91BA94] text-[#275637]'
-          }`}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Key className="w-5 h-5 text-amber-500" />
-                <h3 className="font-extrabold text-base">Gemini API Key Settings</h3>
-              </div>
-              <button 
-                onClick={() => setApiKeyModalOpen(false)}
-                className="text-xs font-bold opacity-70 hover:opacity-100 cursor-pointer"
-              >
-                ✕ Close
-              </button>
-            </div>
+      {/* ── MOBILE BOTTOM NAVIGATION (CONSISTENT APP SHELL) ── */}
+      <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-40 border-t flex items-center justify-around py-1.5 px-2 backdrop-blur-md ${
+        isDark ? 'bg-[#0B1712]/95 border-[#162C20]' : 'bg-[#F9F9F6]/95 border-[#91BA94]/60'
+      }`}>
+        <button 
+          onClick={() => navigate('/home')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform ${
+            isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
+          }`}
+        >
+          <span className="text-base">🌱</span>
+          <span className="text-[10px] font-semibold">{t('nav_home') || 'Home'}</span>
+        </button>
 
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-              Sasya connects to Google Gemini (3.6 Flash) for natural language understanding, community drafting, and multilingual support.
-            </p>
+        <button 
+          onClick={() => navigate('/c/arecanut')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform ${
+            isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
+          }`}
+        >
+          <span className="text-base">💬</span>
+          <span className="text-[10px] font-semibold">{t('nav_community') || 'Community'}</span>
+        </button>
 
-            <div className="space-y-3">
-              <input
-                type="password"
-                value={apiKeyInput}
-                onChange={(e) => setApiKeyInput(e.target.value)}
-                placeholder="Paste Gemini API Key"
-                className={`w-full p-2.5 rounded-xl border text-xs font-mono outline-none ${
-                  isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-gray-50 border-gray-300 text-gray-900'
-                }`}
-              />
+        <button 
+          onClick={() => navigate('/detect')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform ${
+            isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
+          }`}
+        >
+          <Camera className="w-4 h-4 text-emerald-500" />
+          <span className="text-[10px] font-semibold">{t('nav_detect') || 'Detect'}</span>
+        </button>
 
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setGeminiApiKey(apiKeyInput);
-                    setApiKeyModalOpen(false);
-                  }}
-                  className="flex-1 py-2 rounded-xl bg-[#275637] hover:bg-[#1E462B] text-white font-bold text-xs cursor-pointer shadow-xs"
-                >
-                  Save API Key
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const defaultKey = getDefaultGeminiKey();
-                    setApiKeyInput(defaultKey);
-                    setGeminiApiKey(defaultKey);
-                    setApiKeyModalOpen(false);
-                  }}
-                  className="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 text-xs font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white cursor-pointer"
-                >
-                  Reset Default
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+        <button 
+          onClick={() => navigate('/ai')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform ${
+            isDark ? 'text-[#22C55E] font-bold' : 'text-[#275637] font-bold'
+          }`}
+        >
+          <Bot className="w-4 h-4 text-emerald-500 animate-pulse" />
+          <span className="text-[10px] font-bold">{t('nav_ai') || 'Sasya AI'}</span>
+        </button>
+
+        <button 
+          onClick={() => navigate('/profile')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform ${
+            isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
+          }`}
+        >
+          <User className="w-4 h-4" />
+          <span className="text-[10px] font-semibold">{t('menu_profile') || 'Profile'}</span>
+        </button>
+      </nav>
 
     </div>
   );

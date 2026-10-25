@@ -266,8 +266,8 @@ If rejected by Gatekeeper:
           return {
             success: parsed.is_valid_crop !== false,
             ...parsed,
-            modelUsed: model,
-            isLiveGemini: true
+            modelUsed: 'Sasya Vision AI',
+            isLiveAI: true
           };
         }
       }

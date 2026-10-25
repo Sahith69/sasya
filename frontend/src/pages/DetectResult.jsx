@@ -802,8 +802,8 @@ export default function DetectResult() {
                 <div>
                   <h3 className="font-extrabold text-base flex items-center gap-2">
                     <span>Ask Sasya AI Agronomist About This Scan</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
-                      Gemini 3.6 Flash Active
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                      AI Agronomist Active
                     </span>
                   </h3>
                   <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
@@ -869,26 +869,38 @@ export default function DetectResult() {
 
                     {/* Community Post Draft Card if drafted */}
                     {msg.draft && (
-                      <div className="mt-3 p-3.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 dark:bg-[#0E1E16]">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-500">
+                      <div className={`mt-3 p-3.5 sm:p-4 rounded-xl border space-y-2 shadow-xs ${
+                        isDark ? 'bg-[#0E1E16] border-[#22C55E]/40' : 'bg-[#F4F8F5] border-[#91BA94]'
+                      }`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                             📝 Community Post Draft
                           </span>
-                          <span className="text-[10px] font-mono text-gray-400">r/{msg.draft.crop}</span>
+                          <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400">r/{msg.draft.crop}</span>
                         </div>
-                        <h5 className="font-extrabold text-xs mb-1">{msg.draft.title}</h5>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-300 mb-2 leading-relaxed">{msg.draft.content}</p>
-                        <div className="flex items-center justify-between text-[11px] mb-2 text-emerald-600 dark:text-emerald-400 font-bold">
-                          <span>{msg.draft.workers}</span>
-                          <span>{msg.draft.wage}</span>
-                        </div>
+                        <h5 className={`font-extrabold text-sm sm:text-base leading-snug ${
+                          isDark ? 'text-white' : 'text-[#1B4329]'
+                        }`}>
+                          {msg.draft.title}
+                        </h5>
+                        <p className={`text-xs sm:text-sm leading-relaxed whitespace-pre-line ${
+                          isDark ? 'text-gray-200' : 'text-[#2C3E32]'
+                        }`}>
+                          {msg.draft.content}
+                        </p>
+                        {(msg.draft.workers || msg.draft.wage) && (
+                          <div className="flex items-center gap-3 text-xs text-emerald-600 dark:text-emerald-400 font-bold py-1">
+                            {msg.draft.workers && <span>👥 {msg.draft.workers}</span>}
+                            {msg.draft.wage && <span>💰 {msg.draft.wage}</span>}
+                          </div>
+                        )}
                         <button
                           type="button"
                           onClick={() => {
                             sessionStorage.setItem('sasya_pending_community_draft', JSON.stringify(msg.draft));
                             navigate(`/c/${msg.draft.crop}`);
                           }}
-                          className="w-full py-2 rounded-lg bg-[#275637] hover:bg-[#1E462B] text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                          className="w-full min-h-[44px] py-2.5 rounded-xl bg-[#275637] hover:bg-[#1E462B] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
                         >
                           <span>🚀 Publish to r/{msg.draft.crop}</span>
                         </button>
@@ -923,7 +935,7 @@ export default function DetectResult() {
               <button
                 type="button"
                 onClick={handleToggleVoice}
-                className={`p-2.5 rounded-xl border transition-all cursor-pointer shrink-0 ${
+                className={`min-h-[44px] min-w-[44px] p-2.5 rounded-xl border flex items-center justify-center transition-all cursor-pointer shrink-0 ${
                   isListening
                     ? 'bg-rose-500 text-white border-rose-600 animate-pulse'
                     : isDark ? 'bg-[#142C1E] border-[#1E3A2B] text-gray-300 hover:text-white' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
@@ -944,7 +956,7 @@ export default function DetectResult() {
                     ? `प्रश्न पूछें (उदा: ${diagnosis.diseaseName} रोकथाम हेतु क्या करें?)...`
                     : `Ask question (e.g. Can I spray Bordeaux today for this ${diagnosis.diseaseName}?)...`
                 }
-                className={`flex-1 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
+                className={`flex-1 min-h-[44px] text-base sm:text-sm px-3.5 py-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-[#22C55E] ${
                   isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white placeholder-gray-500' : 'bg-[#FAFCFA] border-gray-300 text-gray-900 placeholder-gray-400'
                 }`}
               />
@@ -952,13 +964,13 @@ export default function DetectResult() {
               <button
                 type="submit"
                 disabled={!chatQuery.trim() || isAiTyping}
-                className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0 ${
+                className={`min-h-[44px] px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0 ${
                   chatQuery.trim() && !isAiTyping
                     ? 'bg-[#275637] hover:bg-[#1E462B] text-white hover:scale-105 active:scale-95'
                     : 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed opacity-60'
                 }`}
               >
-                <span>Send</span>
+                <span className="hidden xs:inline">Send</span>
                 <Send className="w-3.5 h-3.5" />
               </button>
             </form>
