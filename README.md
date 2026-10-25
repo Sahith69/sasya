@@ -6,7 +6,7 @@
 **A Trilingual Crop Intelligence, Safe Agronomic AI & Rural Exchange Platform for Young Farmers**
 
 [![Live Backend](https://img.shields.io/badge/Render-Backend%20Live-22c55e?logo=render&style=flat-square)](https://sasya-backend.onrender.com/api/health)
-[![Vite](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite-646cff?logo=vite&style=flat-square)](http://localhost:5173/)
+[![Live Demo](https://img.shields.io/badge/Vercel-Live%20Demo-22c55e?logo=vercel&style=flat-square)](https://sasya-nine.vercel.app)
 [![Languages](https://img.shields.io/badge/Languages-English%20%7C%20%E0%B2%95%E0%B2%A8%E0%B3%8D%E0%B2%A8%E0%B2%A1%20%7C%20%E0%A4%B9%E0%A4%BF%E0%A4%82%E0%A4%A6%E0%A4%80-emerald?style=flat-square)]()
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)]()
 
@@ -115,7 +115,23 @@ To protect rural farmers from crop damage and eliminate liability, Sasya follows
 * **Frontend**: React 18, Vite 5, Tailwind CSS, Lucide React icons, Web Speech API.
 * **Backend**: FastAPI 0.110, Uvicorn 0.28, PyTorch 2.2, Torchvision 0.17, OpenCV, Pillow, Pydantic 2.6.
 * **Localization**: Full trilingual dictionary across English, Kannada (ಕನ್ನಡ), and Hindi (हिंदी).
-* **Hosting**: Render cloud container for backend (`uvicorn app_api:app`), local/static frontend.
+* **Hosting**: Vercel Edge for frontend ([https://sasya-nine.vercel.app](https://sasya-nine.vercel.app)), Render cloud container for backend API (`uvicorn app_api:app`).
+
+---
+
+## ⚖️ Real vs. Simulated
+
+To provide full transparency for HackCache '26 judging:
+* **Real & Operational**: PyTorch ResNet-18 leaf pathology classification, Grad-CAM visual attention heatmaps, live Open-Meteo hourly bioclimatic weather telemetry, Web Speech voice quick draft, and trilingual translation (EN, KN, HI).
+* **Simulated for Demo**: Expert pathologist review queue & Bhoomi land registry records (backed by seeded realistic SQLite data), and 5 localized demonstration farmer profiles across Karnataka & Himachal Pradesh.
+
+---
+
+## 🕒 What Existed Before the Hackathon
+
+To clearly separate pre-existing assets from work built during HackCache '26:
+* **Pre-existing**: Offline PyTorch model weights for crop leaf pathology classification and preliminary dataset collection across Arecanut, Paddy, Tomato, and Apple.
+* **Built During HackCache '26**: The complete end-to-end platform was designed and built during the hackathon—including the trilingual React frontend (Sasya Groups, 1-on-1 Farmer Chat, voice Quick Draft via Web Speech API), the FastAPI cloud backend with 54 routes, live Open-Meteo bioclimatic risk engine, Bhoomi parcel simulation, expert review queue, and full cloud deployment on Vercel and Render.
 
 ---
 
@@ -163,7 +179,7 @@ cd frontend
 npm install
 npm run dev
 ```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open [http://localhost:5173](http://localhost:5173) in your browser (or visit the live deployment at [https://sasya-nine.vercel.app](https://sasya-nine.vercel.app)).
 
 ### 2. Backend Setup
 ```bash
@@ -186,5 +202,6 @@ python3 test_app_api.py
 
 ## 👥 Authors & Acknowledgments
 
-* **Sasya Team**
-* Built with local-first open software for rural Indian agricultural communities.
+* **Sahith K** ([@Sahith69](https://github.com/Sahith69))
+* **Kritika M** ([@KRITIKA-7](https://github.com/KRITIKA-7))
+* Built for **HackCache '26** with local-first open software for rural Indian agricultural communities.
