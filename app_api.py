@@ -321,7 +321,13 @@ Return ONLY valid JSON."""
         "generationConfig": {"responseMimeType": "application/json"}
     }
     
-    candidate_models = ["gemini-3.6-flash", "gemini-3.7-flash", "gemini-flash-latest"]
+    candidate_models = [
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-flash-lite-latest",
+        "gemini-3-flash-preview",
+        "gemini-flash-latest"
+    ]
     for m in candidate_models:
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={api_key}"

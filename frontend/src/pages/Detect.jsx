@@ -160,8 +160,8 @@ export default function Detect() {
 
     let liveDiag = null;
     try {
-      // 7.5s maximum safety ceiling: guarantees diagnosis navigation even on erratic networks
-      const safetyTimeout = new Promise((resolve) => setTimeout(() => resolve(null), 7500));
+      // 12s maximum safety ceiling: guarantees diagnosis navigation even on slow cellular connections
+      const safetyTimeout = new Promise((resolve) => setTimeout(() => resolve(null), 12000));
       const diagnosisPromise = runCropDiagnosis({
         file: uploadedFile,
         imageBase64: selectedImage,

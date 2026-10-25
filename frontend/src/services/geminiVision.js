@@ -127,7 +127,7 @@ async function toCleanBase64(input, maxDim = 768, quality = 0.82) {
     const safetyTimer = setTimeout(() => {
       // Fallback: try raw reader
       readRawBase64(input).then(resolve).catch(() => resolve({ base64: '', mimeType: 'image/jpeg' }));
-    }, 1200);
+    }, 2500);
 
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -305,11 +305,17 @@ If rejected by Gatekeeper:
     }
   };
 
-  const candidateModels = ['gemini-3.6-flash', 'gemini-3.7-flash'];
+  const candidateModels = [
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite',
+    'gemini-flash-lite-latest',
+    'gemini-3-flash-preview',
+    'gemini-flash-latest'
+  ];
 
   for (const model of candidateModels) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5500);
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
 
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -325,15 +331,25 @@ If rejected by Gatekeeper:
         const data = await res.json();
         const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (rawText) {
-          let cleanText = rawText.trim();
-          cleanText = cleanText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
-          const parsed = JSON.parse(cleanText);
-          return {
-            success: parsed.is_valid_crop !== false,
-            ...parsed,
-            modelUsed: 'Sasya Vision AI',
-            isLiveAI: true
-          };
+          let parsed = null;
+          let cleanText = rawText.trim().replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+          try {
+            parsed = JSON.parse(cleanText);
+          } catch {
+            const match = cleanText.match(/\{[\s\S]*\}/);
+            if (match) {
+              try { parsed = JSON.parse(match[0]); } catch {}
+            }
+          }
+
+          if (parsed) {
+            return {
+              success: parsed.is_valid_crop !== false,
+              ...parsed,
+              modelUsed: 'Sasya Vision AI',
+              isLiveAI: true
+            };
+          }
         }
       }
     } catch (e) {

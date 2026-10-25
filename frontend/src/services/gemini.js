@@ -347,7 +347,13 @@ CORE BEHAVIORS:
   const timeoutId = setTimeout(() => controller.abort(), 12000);
 
   // Candidate models in preference order
-  const candidateModels = ['gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest'];
+  const candidateModels = [
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite',
+    'gemini-flash-lite-latest',
+    'gemini-3-flash-preview',
+    'gemini-flash-latest'
+  ];
 
   for (const model of candidateModels) {
     try {
