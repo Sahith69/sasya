@@ -427,8 +427,10 @@ export default function RedditChat({
   );
 
   return (
-    <div className={`fixed bottom-4 right-4 z-50 rounded-2xl border shadow-2xl overflow-hidden flex flex-col transition-all duration-200 animate-card-in ${
-      isMinimized ? 'h-14 w-80' : 'h-[520px] w-[95vw] sm:w-[480px] md:w-[600px]'
+    <div className={`fixed z-50 rounded-2xl border shadow-2xl overflow-hidden flex flex-col transition-all duration-200 animate-card-in ${
+      isMinimized 
+        ? 'bottom-20 right-2 sm:bottom-4 sm:right-4 h-14 w-[calc(100vw-1rem)] sm:w-80' 
+        : 'bottom-20 inset-x-2 sm:bottom-4 sm:inset-x-auto sm:right-4 h-[520px] max-h-[75vh] w-auto sm:w-[480px] md:w-[600px]'
     } ${
       isDark ? 'bg-[#0B1712] border-[#1E3A2B] text-white' : 'bg-[#FFFFFF] border-[#D8E4DA] text-[#275637]'
     }`}>

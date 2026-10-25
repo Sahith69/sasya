@@ -914,19 +914,19 @@ export default function Community() {
     });
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${
+    <div className={`min-h-screen flex flex-col w-full max-w-full overflow-x-hidden transition-colors duration-300 pb-20 md:pb-8 ${
       isDark ? 'bg-[#0B1712] text-white' : 'bg-[#F9F9F6] text-[#275637]'
     }`}>
 
       {/* ── REDDIT TOP HEADER (HACKATHON THEME) ── */}
-      <header className={`sticky top-0 z-40 border-b h-14 px-4 flex items-center justify-between backdrop-blur-md ${
+      <header className={`sticky top-0 z-40 border-b h-14 px-2.5 sm:px-4 flex items-center justify-between backdrop-blur-md w-full max-w-full overflow-hidden ${
         isDark ? 'bg-[#0B1712]/90 border-[#162C20]' : 'bg-[#F9F9F6]/90 border-[#91BA94]/60'
       }`}>
         {/* Left: Back & Subreddit Identity */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 min-w-0">
           <button 
             onClick={() => navigate('/home')}
-            className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
+            className={`p-1.5 rounded-xl border transition-all cursor-pointer shrink-0 ${
               isDark ? 'bg-[#12241A] border-[#1E3A2B] text-white hover:bg-[#162F20]' : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
             }`}
             title="Back to Dashboard"
@@ -934,9 +934,11 @@ export default function Community() {
             <ArrowLeft className="w-4 h-4" />
           </button>
 
-          <Link to={`/c/${activeCrop}`} className="flex items-center gap-2 font-black text-sm sm:text-base">
-            <span className="text-xl">{currentSubreddit.icon}</span>
-            <span className={isDark ? 'text-white' : 'text-[#275637]'}>{currentSubreddit.name}</span>
+          <Link to={`/c/${activeCrop}`} className="flex items-center gap-1.5 sm:gap-2 font-black text-xs sm:text-base min-w-0">
+            <span className="text-lg sm:text-xl shrink-0">{currentSubreddit.icon}</span>
+            <span className={`truncate max-w-[100px] xs:max-w-[130px] sm:max-w-none ${isDark ? 'text-white' : 'text-[#275637]'}`}>
+              {currentSubreddit.name}
+            </span>
           </Link>
         </div>
 
@@ -959,10 +961,10 @@ export default function Community() {
         </div>
 
         {/* Right Controls: Chat, Create Post CTA, Theme */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <button
             onClick={() => handleOpenChat(null)}
-            className={`px-3 py-1.5 rounded-full border text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`p-2 sm:px-3 sm:py-1.5 rounded-xl sm:rounded-full border text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
               isDark 
                 ? 'bg-[#12241A] border-[#1E3A2B] text-emerald-400 hover:bg-[#162F20]' 
                 : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
@@ -975,26 +977,26 @@ export default function Community() {
 
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-full text-xs font-black bg-[#275637] hover:bg-[#1E462B] text-white flex items-center gap-1.5 shadow-xs transition-transform active:scale-95 cursor-pointer"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-xl sm:rounded-full text-xs font-black bg-[#275637] hover:bg-[#1E462B] text-white flex items-center gap-1 shadow-xs transition-transform active:scale-95 cursor-pointer shrink-0"
           >
             <Plus className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Create Post</span>
-            <span className="sm:hidden">Post</span>
+            <span className="sm:hidden text-[11px]">Post</span>
           </button>
 
-          {/* Trilingual Switcher (Consistent Everywhere) */}
-          <div className={`flex items-center p-1 rounded-xl border text-xs shadow-xs ${
+          {/* Trilingual Switcher (Compact on Mobile to Prevent Overflow) */}
+          <div className={`flex items-center p-0.5 sm:p-1 rounded-xl border text-[10px] sm:text-xs shadow-xs shrink-0 ${
             isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
           }`}>
             {[
-              { code: 'en', label: 'EN' },
-              { code: 'kn', label: 'ಕನ್ನಡ' },
-              { code: 'hi', label: 'हिंदी' }
+              { code: 'en', label: 'EN', short: 'EN' },
+              { code: 'kn', label: 'ಕನ್ನಡ', short: 'ಕ' },
+              { code: 'hi', label: 'हिंदी', short: 'हि' }
             ].map((item) => (
               <button
                 key={item.code}
                 onClick={() => setLang(item.code)}
-                className={`px-2 py-0.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                className={`px-1.5 sm:px-2 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
                   lang === item.code
                     ? isDark 
                       ? 'bg-[#22C55E] text-[#0B1712] shadow-xs' 
@@ -1004,14 +1006,15 @@ export default function Community() {
                       : 'text-[#275637] hover:bg-[#E8F2EA]'
                 }`}
               >
-                {item.label}
+                <span className="hidden xs:inline">{item.label}</span>
+                <span className="xs:hidden">{item.short}</span>
               </button>
             ))}
           </div>
 
           <button
             onClick={toggleTheme}
-            className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
+            className={`p-1.5 rounded-xl border transition-all cursor-pointer shrink-0 ${
               isDark ? 'bg-[#12241A] border-[#1E3A2B] text-amber-400' : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#E8F2EA]'
             }`}
             title="Toggle theme"
@@ -1022,25 +1025,25 @@ export default function Community() {
       </header>
 
       {/* ── SUBREDDIT BANNER ── */}
-      <div className={`border-b ${isDark ? 'bg-[#102217] border-[#1A2820]' : 'bg-white border-[#D8E4DA]'}`}>
-        <div className="h-16 sm:h-20 bg-gradient-to-r from-[#275637] via-[#1E462B] to-[#12241A] relative" />
-        <div className="max-w-5xl mx-auto px-4 pb-3 flex items-end justify-between -mt-6 sm:-mt-8 relative z-10">
-          <div className="flex items-end gap-3 sm:gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-[#F9F9F6] dark:border-[#102217] bg-[#12241A] flex items-center justify-center text-3xl sm:text-4xl shadow-md">
+      <div className={`border-b w-full overflow-hidden ${isDark ? 'bg-[#102217] border-[#1A2820]' : 'bg-white border-[#D8E4DA]'}`}>
+        <div className="h-14 sm:h-20 bg-gradient-to-r from-[#275637] via-[#1E462B] to-[#12241A] relative" />
+        <div className="max-w-5xl mx-auto px-3 sm:px-4 pb-3 flex flex-col sm:flex-row sm:items-end justify-between gap-2.5 sm:gap-4 -mt-5 sm:-mt-8 relative z-10 w-full min-w-0">
+          <div className="flex items-end gap-2.5 sm:gap-4 min-w-0 flex-1">
+            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full border-4 border-[#F9F9F6] dark:border-[#102217] bg-[#12241A] flex items-center justify-center text-2xl sm:text-4xl shadow-md shrink-0">
               {currentSubreddit.icon}
             </div>
-            <div className="mb-1">
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2">
-                <span>{currentSubreddit.displayName}</span>
+            <div className="mb-0.5 min-w-0 flex-1">
+              <h1 className="text-base sm:text-2xl font-black tracking-tight flex items-center gap-2">
+                <span className="truncate">{currentSubreddit.displayName}</span>
               </h1>
-              <div className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+              <div className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 font-mono truncate">
                 {currentSubreddit.name} • {currentSubreddit.members} • {currentSubreddit.online}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mb-1">
-            <button className="px-4 py-1.5 rounded-full font-bold text-xs bg-[#22C55E] text-[#0B1712] hover:bg-[#16A34A] cursor-pointer shadow-xs">
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 mb-0.5">
+            <button className="px-3.5 sm:px-4 py-1.5 rounded-full font-bold text-xs bg-[#22C55E] text-[#0B1712] hover:bg-[#16A34A] cursor-pointer shadow-xs">
               {t('btn_joined') || 'Joined'} ✓
             </button>
           </div>
@@ -1056,39 +1059,39 @@ export default function Community() {
       )}
 
       {/* ── MAIN 2-COLUMN REDDIT LAYOUT ── */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-2 sm:px-4 py-4 grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-2 sm:px-4 py-4 grid grid-cols-1 lg:grid-cols-12 gap-5 overflow-hidden">
         
         {/* ── LEFT FEED COLUMN (8 cols) ── */}
-        <div className="lg:col-span-8 space-y-3">
+        <div className="lg:col-span-8 space-y-3 min-w-0 w-full">
           
           {/* Reddit Create Post Card */}
           <div 
             onClick={() => setIsCreateModalOpen(true)}
-            className={`p-2.5 sm:p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-colors shadow-xs ${
+            className={`p-2.5 sm:p-3 rounded-xl border flex items-center gap-2.5 sm:gap-3 cursor-pointer transition-colors shadow-xs w-full min-w-0 ${
               isDark ? 'bg-[#102217] border-[#1E3A2B] hover:border-gray-500' : 'bg-white border-[#D8E4DA] hover:border-[#275637]'
             }`}
           >
-            <div className="w-8 h-8 rounded-full bg-[#275637] text-white flex items-center justify-center text-xs font-bold">
+            <div className="w-8 h-8 rounded-full bg-[#275637] text-white flex items-center justify-center text-xs font-bold shrink-0">
               {user?.username ? user.username.substring(0, 2).toUpperCase() : 'AR'}
             </div>
             <input 
               type="text" 
               readOnly 
               placeholder={t('create_post_placeholder') || `Create Post in ${currentSubreddit.name}...`}
-              className={`flex-1 px-3.5 py-1.5 rounded-lg text-xs font-medium border outline-none cursor-pointer ${
+              className={`flex-1 min-w-0 px-3 py-1.5 rounded-lg text-xs font-medium border outline-none cursor-pointer truncate ${
                 isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-gray-400' : 'bg-[#FAFCFA] border-[#D8E4DA] text-gray-500'
               }`}
             />
-            <button className="p-2 rounded-lg text-gray-400 hover:text-[#275637] dark:hover:text-[#22C55E]">
+            <button className="p-1.5 sm:p-2 rounded-lg text-gray-400 hover:text-[#275637] dark:hover:text-[#22C55E] shrink-0">
               <ImageIcon className="w-4 h-4" />
             </button>
           </div>
 
           {/* Reddit Sort & Filter Strip */}
-          <div className={`p-2 rounded-xl border flex items-center justify-between text-xs font-bold shadow-xs ${
+          <div className={`p-2 rounded-xl border flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 text-xs font-bold shadow-xs w-full min-w-0 ${
             isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
           }`}>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               {[
                 { id: 'hot', label: 'Hot', icon: Flame },
                 { id: 'new', label: 'New', icon: Sparkles },
@@ -1097,7 +1100,7 @@ export default function Community() {
                 <button
                   key={sort.id}
                   onClick={() => setSortFilter(sort.id)}
-                  className={`px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-all cursor-pointer ${
                     sortFilter === sort.id
                       ? isDark ? 'bg-[#1E3A2B] text-[#22C55E]' : 'bg-[#E8F2EA] text-[#275637]'
                       : 'text-gray-400 hover:text-gray-200'
@@ -1113,7 +1116,7 @@ export default function Community() {
             <select
               value={flairFilter}
               onChange={(e) => setFlairFilter(e.target.value)}
-              className={`px-2 py-1 rounded-lg text-xs font-semibold border outline-none cursor-pointer ${
+              className={`max-w-[130px] sm:max-w-none px-2 py-1 rounded-lg text-xs font-semibold border outline-none cursor-pointer truncate shrink-0 ${
                 isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-[#FAFCFA] border-[#D8E4DA] text-gray-800'
               }`}
             >
@@ -1127,7 +1130,7 @@ export default function Community() {
           </div>
 
           {/* Quick Flair Filter Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
+          <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none w-full max-w-full">
             {[
               { id: 'All', label: 'All', icon: null },
               { id: 'Labour Request', label: '👥 Labour Request' },
@@ -1138,7 +1141,7 @@ export default function Community() {
               <button
                 key={f.id}
                 onClick={() => setFlairFilter(f.id)}
-                className={`px-3 py-1 rounded-full text-xs font-bold border transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1 rounded-full text-xs font-bold border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   flairFilter === f.id
                     ? isDark ? 'bg-[#22C55E] text-[#0B1712] border-[#22C55E]' : 'bg-[#275637] text-white border-[#275637]'
                     : isDark ? 'bg-[#102217] border-[#1E3A2B] text-gray-300 hover:border-gray-500' : 'bg-white border-[#D8E4DA] text-gray-700 hover:bg-[#E8F2EA]'
@@ -1151,12 +1154,12 @@ export default function Community() {
 
           {/* Active Search Filter Banner */}
           {searchQuery.trim() && (
-            <div className={`p-3 rounded-xl border flex items-center justify-between text-xs font-bold animate-fadeIn ${
+            <div className={`p-3 rounded-xl border flex items-center justify-between text-xs font-bold animate-fadeIn w-full min-w-0 ${
               isDark ? 'bg-[#102217] border-[#1E3A2B] text-emerald-400' : 'bg-[#EBF3ED] border-[#91BA94] text-[#275637]'
             }`}>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <Search className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>
+                <span className="truncate">
                   Filtering discussions for <strong className="underline">"{searchQuery}"</strong> ({filteredPosts.length} matching {filteredPosts.length === 1 ? 'post' : 'posts'})
                 </span>
               </div>
@@ -1165,16 +1168,16 @@ export default function Community() {
                   setSearchQuery('');
                   setSearchParams({});
                 }}
-                className="text-xs hover:underline text-gray-400 hover:text-rose-500 cursor-pointer shrink-0"
+                className="text-xs hover:underline text-gray-400 hover:text-rose-500 cursor-pointer shrink-0 ml-2"
               >
-                Clear Search ✕
+                Clear ✕
               </button>
             </div>
           )}
 
           {/* Reddit Posts List */}
           {filteredPosts.length === 0 ? (
-            <div className={`p-8 rounded-xl border text-center text-xs text-gray-400 ${
+            <div className={`p-8 rounded-xl border text-center text-xs text-gray-400 w-full ${
               isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
             }`}>
               No posts found in {currentSubreddit.name} matching your filter. Be the first to start a discussion!
@@ -1189,7 +1192,7 @@ export default function Community() {
                 <article
                   key={post.id}
                   id={`post-${post.id}`}
-                  className={`rounded-xl border transition-all duration-300 overflow-hidden shadow-xs hover:border-[#275637] dark:hover:border-gray-500 ${
+                  className={`rounded-xl border transition-all duration-300 overflow-hidden shadow-xs w-full max-w-full hover:border-[#275637] dark:hover:border-gray-500 ${
                     highlightedPostId === post.id
                       ? 'ring-4 ring-[#22C55E] border-[#22C55E] shadow-2xl scale-[1.01] bg-[#22C55E]/[0.04]'
                       : isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
@@ -1207,10 +1210,10 @@ export default function Community() {
                       </span>
                     </div>
                   )}
-                  <div className="flex items-start">
+                  <div className="flex items-start w-full min-w-0">
                     
                     {/* LEFT REDDIT VOTING STRIP (Desktop & Mobile) */}
-                    <div className={`w-10 sm:w-12 pt-3 pb-2 flex flex-col items-center shrink-0 ${
+                    <div className={`w-9 sm:w-12 pt-3 pb-2 flex flex-col items-center shrink-0 ${
                       isDark ? 'bg-[#0E1E16]' : 'bg-[#FAFCFA]'
                     }`}>
                       <button
@@ -1241,10 +1244,10 @@ export default function Community() {
                     </div>
 
                     {/* MAIN POST CONTENT */}
-                    <div className="flex-1 p-3 sm:p-4 min-w-0">
+                    <div className="flex-1 p-2.5 sm:p-4 min-w-0 w-full overflow-hidden">
                       
                       {/* Post Metadata Header */}
-                      <div className="flex items-center gap-2 text-[11px] text-gray-400 flex-wrap mb-1.5">
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-gray-400 flex-wrap mb-1.5 min-w-0 w-full">
                         <span className="font-bold text-gray-800 dark:text-gray-200">
                           {currentSubreddit.name}
                         </span>
@@ -2096,7 +2099,7 @@ export default function Community() {
       {!isChatOpen && (
         <button
           onClick={() => handleOpenChat(null)}
-          className="fixed bottom-5 right-5 z-40 px-4 py-2.5 rounded-full bg-[#275637] hover:bg-[#1E462B] text-white shadow-xl flex items-center gap-2 font-bold text-xs transition-all hover:scale-105 active:scale-95 cursor-pointer border border-[#91BA94]/50"
+          className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-40 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full bg-[#275637] hover:bg-[#1E462B] text-white shadow-xl flex items-center gap-2 font-bold text-xs transition-all hover:scale-105 active:scale-95 cursor-pointer border border-[#91BA94]/50"
           title="Reddit-style 1-on-1 Farmer Chat"
         >
           <div className="relative">
@@ -2104,7 +2107,8 @@ export default function Community() {
             <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400" />
           </div>
-          <span>Farmer Chat (Private)</span>
+          <span className="hidden xs:inline">Farmer Chat</span>
+          <span className="xs:hidden">Chat</span>
         </button>
       )}
 
@@ -2116,6 +2120,61 @@ export default function Community() {
         isDark={isDark}
         currentUser={user}
       />
+
+      {/* ── MOBILE BOTTOM NAVIGATION (CONSISTENT APP SHELL) ── */}
+      <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-40 border-t flex items-center justify-around py-1.5 px-2 backdrop-blur-md ${
+        isDark ? 'bg-[#0B1712]/95 border-[#162C20]' : 'bg-[#F9F9F6]/95 border-[#91BA94]/60'
+      }`}>
+        <button 
+          onClick={() => navigate('/home')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform ${
+            isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
+          }`}
+        >
+          <span className="text-base">🌱</span>
+          <span className="text-[10px] font-semibold">{t('nav_home') || 'Home'}</span>
+        </button>
+
+        <button 
+          onClick={() => navigate(`/c/${activeCrop}`)}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform ${
+            isDark ? 'text-[#22C55E] font-bold' : 'text-[#275637] font-bold'
+          }`}
+        >
+          <span className="text-base">💬</span>
+          <span className="text-[10px] font-bold">{t('nav_community') || 'Community'}</span>
+        </button>
+
+        <button 
+          onClick={() => navigate('/detect')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform ${
+            isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
+          }`}
+        >
+          <Camera className="w-4 h-4 text-emerald-500" />
+          <span className="text-[10px] font-semibold">{t('nav_detect') || 'Detect'}</span>
+        </button>
+
+        <button 
+          onClick={() => navigate('/ai')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform ${
+            isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
+          }`}
+        >
+          <Bot className="w-4 h-4" />
+          <span className="text-[10px] font-semibold">{t('nav_ai') || 'Sasya AI'}</span>
+        </button>
+
+        <button 
+          onClick={() => navigate('/profile')}
+          className={`min-h-[44px] flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-transform ${
+            isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span className="text-[10px] font-semibold">{t('menu_profile') || 'Profile'}</span>
+        </button>
+      </nav>
 
     </div>
   );
