@@ -28,7 +28,7 @@ export default function AdminExport() {
       spatial_privacy_k: 5,
       anonymized_contributor_token: `anon_ka_${(idx + 1).toString().padStart(4, '0')}`,
       verification_status: sub.status,
-      verified_by_institution: sub.verifiedBy ? 'ICAR-CPCRI / UAHS Accredited Reviewer' : 'Unverified',
+      verified_by_institution: sub.verifiedBy ? 'Accredited Agronomy Reviewer' : 'Unverified',
       triage_timestamp: sub.submittedAt
     }));
 
@@ -87,7 +87,7 @@ export default function AdminExport() {
               Zero-PII & Centroid Aggregation Guarantee
             </h3>
             <p className={`mt-0.5 ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-              Farmer names, mobile numbers, Bhoomi RTC records, and exact coordinates are stripped before serialization. Only anonymized hash tokens and district centroids are shared.
+              Farmer names, mobile numbers, and exact coordinates are stripped before serialization. Only anonymized hash tokens and district centroids are shared.
             </p>
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function AdminExport() {
             }`}
           >
             <div className="text-sm font-black">Gold Standard Split</div>
-            <div className="text-xs text-gray-400 mt-1">Only verified, approved specimens by ICAR pathologists.</div>
+            <div className="text-xs text-gray-400 mt-1">Only verified, approved specimens by expert reviewers.</div>
           </button>
 
           <button

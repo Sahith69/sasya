@@ -22,8 +22,8 @@ export default function AdminLogin() {
 
     setTimeout(() => {
       setIsSubmitting(false);
-      // Valid passwords: admin123, cpcri2026, or environment standard
-      if (password === 'admin123' || password === 'cpcri2026') {
+      // Valid passwords: admin123, admin2026, or environment standard
+      if (password === 'admin123' || password === 'admin2026') {
         sessionStorage.setItem('sasya_admin_auth', 'true');
         navigate('/admin');
       } else {
@@ -139,7 +139,7 @@ export default function AdminLogin() {
 
       {/* Footer */}
       <footer className="py-4 text-center text-xs opacity-60 font-mono">
-        ICAR-CPCRI Vittal &bull; Karnataka Open Agricultural AI Security Gateway
+        Sasya Operations &bull; Agricultural AI Security Gateway
       </footer>
     </div>
   );

@@ -688,10 +688,10 @@ export default function SurveillanceMap() {
             <div><b>${t('map_crops_monitored') || 'Crops Monitored'}:</b> <span style="color:#FFFFFF;">${crops}</span></div>
           </div>
 
-          <!-- 48-Hour Spray Window & Agronomic Advisory -->
+          <!-- Agronomic & Field Advisory -->
           <div style="background:rgba(255,255,255,0.08); border-left:3.5px solid ${d.sprayBorderColor}; padding:7px 9px; border-radius:7px; margin-bottom:8px; box-sizing:border-box; word-break:break-word;">
             <div style="font-size:10px; font-weight:800; color:${d.sprayHeadingColor}; text-transform:uppercase; display:flex; align-items:center; gap:4px;">
-              <span>⚡</span> <span>${sprayWin}</span>
+              <span>🌱</span> <span>${t('map_spray_window_title') || 'Agronomic Advisory'}</span>
             </div>
             <div style="font-size:10.5px; margin-top:3px; color:#E2E8F0; line-height:1.35; word-break:break-word;">
               ${sprayAdv}
@@ -705,9 +705,9 @@ export default function SurveillanceMap() {
             </div>
           ` : ''}
 
-          <!-- Privacy Shield Guarantee -->
+          <!-- Privacy Centroid -->
           <div style="margin-top:6px; font-size:9px; font-family:monospace; color:#86EFAC; display:flex; align-items:center; gap:4px;">
-            <span>🔒</span> <span>${t('map_shielded_centroid') || 'Shielded Centroid'} (${d.lat.toFixed(2)}°N, ${d.lon.toFixed(2)}°E • k ≥ 5)</span>
+            <span>🔒</span> <span>${t('map_shielded_centroid') || 'Centroid'} (${d.lat.toFixed(2)}°N, ${d.lon.toFixed(2)}°E)</span>
           </div>
         </div>
       `;
@@ -985,7 +985,7 @@ export default function SurveillanceMap() {
               isDark ? 'bg-[#0B1712]/90 border-[#1E3A2B] text-white' : 'bg-white/95 border-[#91BA94] text-[#275637]'
             }`}>
               <Compass className="w-4 h-4 text-[#22C55E]" />
-              <span>{t('map_floating_title') || 'India Disease Outbreak & Spray Windows'}</span>
+              <span>{t('map_floating_title') || 'India Disease Outbreak Radar'}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </div>
           </div>
@@ -1012,7 +1012,7 @@ export default function SurveillanceMap() {
                 <span>{t('map_multicrop') || 'Multi-Crop Cluster'}</span>
               </span>
               <span className={`text-[11px] italic font-normal ${isDark ? 'text-gray-400' : 'text-[#556B5C]'}`}>
-                {t('map_legend_help') || '(Hover or click any cluster to view 48h Spray Window & Risk)'}
+                {t('map_legend_help') || '(Hover or click any cluster to view outbreak details & agronomic advisory)'}
               </span>
             </div>
           </div>
@@ -1029,7 +1029,7 @@ export default function SurveillanceMap() {
             </span>
           </div>
           <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-500/30">
-            k ≥ 5 Shield
+            Centroid Level
           </span>
         </div>
 

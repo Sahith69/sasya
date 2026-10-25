@@ -118,61 +118,7 @@ export async function fetchBioclimaticRisk(district = 'Dakshina Kannada', crop =
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 4. BHOOMI RTC LAND RECORDS & PARCELS
-// ─────────────────────────────────────────────────────────────────────────────
 
-export async function getBhoomiHierarchy() {
-  return apiCall('/rtc/hierarchy', {}, { success: true, hierarchy: {} });
-}
-
-export async function lookupBhoomiRtc(params) {
-  return apiCall('/rtc/lookup', {
-    method: 'POST',
-    body: JSON.stringify(params)
-  }, {
-    success: true,
-    record: {
-      owner_name: 'Verified Landholder',
-      extent_acres: 3.5,
-      extent_guntas: 15,
-      soil_type: 'Laterite Acidic Soil',
-      registered_crop: params.crop || 'Arecanut',
-      rtc_certificate_no: `KA-BHOOMI-2026-${Math.floor(10000 + Math.random() * 90000)}`
-    }
-  });
-}
-
-export async function registerBhoomiParcel(params) {
-  return apiCall('/rtc/register', {
-    method: 'POST',
-    body: JSON.stringify(params)
-  }, { success: true, parcel_id: Math.floor(10 + Math.random() * 90), message: 'Registered locally.' });
-}
-
-export async function getFarmerParcels(farmerId) {
-  return apiCall(`/rtc/parcels/${farmerId}`, {}, {
-    success: true,
-    parcels: [
-      {
-        id: 1,
-        survey_no: '42',
-        district: 'Dakshina Kannada',
-        taluk: 'Belthangady',
-        village: 'Kashipatna',
-        registered_crop: 'Arecanut',
-        extent_acres: 4.0,
-        extent_guntas: 10,
-        soil_type: 'Laterite Acidic Soil',
-        owner_name: 'Ramesh Gowda'
-      }
-    ]
-  });
-}
-
-export async function getParcelAdvisory(parcelId) {
-  return apiCall(`/rtc/advisory/${parcelId}`, {}, { success: true, spray_window: { safe_to_spray: true } });
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 5. MULTIMODAL NEURAL FUSION & WHAT-IF SIMULATOR

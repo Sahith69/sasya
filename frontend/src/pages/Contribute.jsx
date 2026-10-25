@@ -33,7 +33,7 @@ const INITIAL_CONTRIBUTIONS = [
     condition: 'Koleroga (Phytophthora meadii)',
     date: 'Oct 23, 2026',
     qualityScore: '94% Quality',
-    status: 'Verified by ICAR-CPCRI',
+    status: 'Verified by Agronomist',
     image: '/samples/sample_arecanut.jpg'
   },
   {
@@ -207,7 +207,7 @@ export default function Contribute() {
         condition: selectedCondition,
         date: 'Today (Just now)',
         qualityScore: '96% Quality',
-        status: 'Submitted to ICAR-CPCRI Queue',
+        status: 'Submitted for Review',
         image: selectedImage || '/samples/sample_arecanut.jpg'
       };
 
@@ -462,7 +462,7 @@ export default function Contribute() {
             <p className={`text-xs sm:text-sm mt-1.5 font-medium ml-7 ${
               isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'
             }`}>
-              Donate verified diseased or healthy leaf photos to help ICAR-CPCRI and universities train open pathology AI models for smallholders.
+              Donate diseased or healthy leaf photos to help train open pathology AI models for smallholders.
             </p>
           </div>
 
@@ -486,9 +486,9 @@ export default function Contribute() {
           <div className={`p-4 rounded-xl border shadow-xs ${
             isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
           }`}>
-            <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>Research Partner</div>
-            <div className="text-sm font-black mt-1">ICAR-CPCRI</div>
-            <div className="text-[10px] text-gray-400">Kasaragod & Vittal</div>
+            <div className={`text-xs font-semibold ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>Dataset Type</div>
+            <div className="text-sm font-black mt-1">Open Agronomy</div>
+            <div className="text-[10px] text-gray-400">Public Domain</div>
           </div>
 
           <div className={`p-4 rounded-xl border shadow-xs ${
@@ -737,12 +737,12 @@ export default function Contribute() {
                 {isSubmitting ? (
                   <>
                     <Cpu className="w-4 h-4 animate-spin" />
-                    <span>Transmitting to ICAR Open Repository...</span>
+                    <span>Transmitting to Open Repository...</span>
                   </>
                 ) : (
                   <>
                     <UploadCloud className="w-4 h-4" />
-                    <span>Submit Specimen to ICAR Open Dataset</span>
+                    <span>Submit Specimen to Open Dataset</span>
                   </>
                 )}
               </button>

@@ -105,7 +105,7 @@ export default function ExpertQueue() {
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                 isDark ? 'bg-[#12241A] border-[#1E3A2B] text-[#34D399]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
               }`}>
-                ICAR-CPCRI / KVK Portal
+                Agronomy Review Desk
               </span>
             </div>
             <p className={`text-[11px] hidden sm:block ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
@@ -187,8 +187,8 @@ export default function ExpertQueue() {
 
           <div className={`p-4 rounded-[14px] border ${isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'}`}>
             <div className="text-[10px] font-bold uppercase tracking-wider text-[#8BA695]">Centroid Privacy</div>
-            <div className="text-2xl font-black text-[#22C55E] mt-1">100% Active</div>
-            <div className="text-[10px] text-[#8BA695]">k ≥ 5 spatial aggregation</div>
+            <div className="text-2xl font-black text-[#22C55E] mt-1">Active</div>
+            <div className="text-[10px] text-[#8BA695]">Regional spatial aggregation</div>
           </div>
         </div>
 

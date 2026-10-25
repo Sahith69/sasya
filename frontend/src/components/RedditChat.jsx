@@ -12,9 +12,9 @@ import { sendChatMessage, getChatMessages } from '../services/api';
 const INITIAL_CONVERSATIONS = [
   {
     id: 'dr_hegde',
-    username: 'Dr_Hegde_CPCRI',
+    username: 'Dr_Hegde_Agronomist',
     displayName: 'Dr. Hegde',
-    badge: 'Verified Scientist',
+    badge: 'Agronomy Specialist',
     badgeColor: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
     avatar: 'DH',
     crop: 'Arecanut Pathology',
@@ -24,7 +24,7 @@ const INITIAL_CONVERSATIONS = [
     messages: [
       {
         id: 1,
-        sender: 'Dr_Hegde_CPCRI',
+        sender: 'Dr_Hegde_Agronomist',
         text: 'Namaskara! Saw your post regarding Koleroga in Venur. What is the current bunch age in that north-slope block?',
         time: '10:14 AM',
         isMe: false
@@ -38,7 +38,7 @@ const INITIAL_CONVERSATIONS = [
       },
       {
         id: 3,
-        sender: 'Dr_Hegde_CPCRI',
+        sender: 'Dr_Hegde_Agronomist',
         text: 'Good catch early. Stick to 1% neutral Bordeaux mixture + rosin sticker before 3 PM today. If rain starts tonight, hold off on chemical sprays until the canopy is dry.',
         time: '10:28 AM',
         isMe: false
@@ -274,7 +274,7 @@ export default function RedditChat({
 
   const getSimulatedReply = (partnerName, userMsg) => {
     const lower = userMsg.toLowerCase();
-    if (partnerName.includes('Hegde_CPCRI') || partnerName.includes('Doctor') || partnerName.includes('Hegde')) {
+    if (partnerName.includes('Hegde') || partnerName.includes('Doctor')) {
       if (lower.includes('bordeaux') || lower.includes('koleroga') || lower.includes('spray')) {
         return 'Neutralize the Bordeaux mix carefully (pH 7.0-7.2) and add 100g Rosin sticker per 100L. Spray before 3 PM while foliage is dry.';
       }
@@ -348,7 +348,7 @@ export default function RedditChat({
       console.info("Chat saved locally:", err);
     }
 
-    // AI Agronomist Simulation: Only auto-replies when messaging Dr_Hegde_CPCRI / Doctor persona
+    // AI Agronomist Simulation: Only auto-replies when messaging Dr_Hegde / Doctor persona
     const isAiPersona = targetUsername.toLowerCase().includes('hegde') || targetUsername.toLowerCase().includes('doctor');
     if (isAiPersona) {
       setIsTyping(true);
@@ -621,7 +621,7 @@ export default function RedditChat({
                 }`}>
                   <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                   <div>
-                    <strong>Reddit-Grade Privacy Protection:</strong> Phone numbers, official Bhoomi land survey numbers, and GPS farm boundaries are never revealed. Messages are private between you and <strong>u/{activeConv.username}</strong>.
+                    <strong>Privacy Protection:</strong> Phone numbers, personal identity, and exact GPS farm boundaries are never revealed. Messages are private between you and <strong>u/{activeConv.username}</strong>.
                   </div>
                 </div>
 

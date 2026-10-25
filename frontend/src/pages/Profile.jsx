@@ -21,7 +21,7 @@ export default function Profile() {
   
   // Active Tab from query param (defaults to 'profile', clean fallback for old links)
   const rawTab = searchParams.get('tab') || 'profile';
-  const activeTab = (rawTab === 'wallet' || rawTab === 'bhoomi') ? 'profile' : (rawTab === 'requests' ? 'network' : rawTab);
+  const activeTab = rawTab === 'wallet' ? 'profile' : (rawTab === 'requests' ? 'network' : rawTab);
   const setActiveTab = (tab) => setSearchParams({ tab });
 
   // Followers State
@@ -31,7 +31,7 @@ export default function Profile() {
       if (saved) return JSON.parse(saved);
     } catch {}
     return [
-      { username: 'Dr_Hegde_CPCRI', name: 'Dr. Hegde', badge: 'Verified Scientist', location: 'Bantwal Centroid', avatar: 'DH', crop: 'Arecanut' },
+      { username: 'Dr_Hegde', name: 'Dr. Hegde', badge: 'Agronomy Specialist', location: 'Bantwal Centroid', avatar: 'DH', crop: 'Arecanut' },
       { username: 'Ganesh_Bhat_Thalli', name: 'Ganesh Bhat', badge: 'Experienced Grower', location: 'Sullia Centroid', avatar: 'GB', crop: 'Arecanut' }
     ];
   });
@@ -43,7 +43,7 @@ export default function Profile() {
       if (saved) return JSON.parse(saved);
     } catch {}
     return [
-      { username: 'Dr_Hegde_CPCRI', name: 'Dr. Hegde', badge: 'Verified Scientist', location: 'Bantwal Centroid', avatar: 'DH', crop: 'Arecanut' },
+      { username: 'Dr_Hegde', name: 'Dr. Hegde', badge: 'Agronomy Specialist', location: 'Bantwal Centroid', avatar: 'DH', crop: 'Arecanut' },
       { username: 'Suresh_Hegde', name: 'Suresh Hegde', badge: 'Arecanut Cultivator', location: 'Belthangady Centroid', avatar: 'SH', crop: 'Arecanut' },
       { username: 'Suresh_Rai_Koppa', name: 'Suresh Rai', badge: 'Grower', location: 'Koppa Centroid', avatar: 'SR', crop: 'Paddy' }
     ];

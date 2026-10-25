@@ -30,7 +30,7 @@ export default function AdminAnalyticsBounty() {
           <div>
             <h1 className="text-2xl font-black">{t('admin_nav_bounty')}</h1>
             <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-              ICAR-CPCRI research grant utilization, average cost per verified specimen, and runway.
+              Agricultural research dataset grant utilization, average cost per verified specimen, and runway.
             </p>
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function AdminAnalyticsBounty() {
         <div className="flex items-center justify-between">
           <h2 className="font-bold text-base flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-[#22C55E]" />
-            Grant Allocation & Pacing (ICAR Research Dataset Fund)
+            Grant Allocation & Pacing (Agricultural Research Dataset Fund)
           </h2>
           <span className="text-xs font-mono font-bold text-emerald-500">{percentSpent}% Utilized</span>
         </div>

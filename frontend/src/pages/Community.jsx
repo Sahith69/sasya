@@ -5,11 +5,18 @@ import { useAuth } from '../context/AuthContext';
 import { addCommunityComment, createCommunityPost, getCommunityComments, upvoteCommunityPost } from '../services/api';
 import RedditChat from '../components/RedditChat';
 import { 
+  COMMUNITY_POST_TRANSLATIONS, 
+  COMMUNITY_COMMENT_TRANSLATIONS, 
+  parseAiListingDraft, 
+  translateDynamicText 
+} from '../services/communityAi';
+import { 
   ArrowLeft, MessageSquare, Share2, Bookmark, Flag, 
   Send, Sparkles, Filter, AlertTriangle, ShieldCheck, 
   Sun, Moon, MapPin, Tag, Plus, CheckCircle2, ChevronDown,
   ChevronUp, Wrench, Clock, Users, Camera, Flame, 
-  TrendingUp, Image as ImageIcon, Check, X, Search, MoreHorizontal
+  TrendingUp, Image as ImageIcon, Check, X, Search, MoreHorizontal,
+  Mic, MicOff, Globe, Bot, ShieldAlert
 } from 'lucide-react';
 
 // Subreddit Crop Metadata
@@ -82,15 +89,15 @@ const INITIAL_POSTS = [
     title: 'Koleroga spotted after continuous mist. Is 1% Bordeaux mixture enough or should I add rosin sticker?',
     content: 'Noticed dark water-soaked rot starting on 3-month-old nut calyxes on the north-facing slope. Sasya ResNet scan flagged 96.4% confidence Koleroga (Phytophthora meadii). With Open-Meteo forecasting rainfall in 22 hours, is standard neutral Bordeaux spray sufficient or is rosin sticker mandatory to stop wash-off?',
     image: '/samples/sample_arecanut.jpg',
-    aiBadge: 'Sasya AI Verified: Grade 2 Koleroga (Phytophthora meadii)',
+    aiBadge: 'Sasya AI: Koleroga (Phytophthora meadii)',
     upvotes: 34,
     userVote: 1, // 1 for up, -1 for down, 0 for none
     saved: false,
     comments: [
       {
         id: 101,
-        author: 'Dr_Hegde_CPCRI',
-        badge: 'Verified Scientist',
+        author: 'Dr_Hegde',
+        badge: 'Agronomy Specialist',
         badgeColor: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
         content: 'Ramesh, definitely add 100g Rosin sticker per 100L of 1% Bordeaux mixture. With the forecast predicting 14mm rain tomorrow afternoon, unbonded copper particles will wash off within 45 minutes. Complete spraying before 3 PM today while leaf surfaces are dry.',
         timeAgo: '1 hour ago',
@@ -332,11 +339,11 @@ export default function Community() {
                 );
 
                 if (!isAlreadyPresent) {
-                  const isScientist = (bc.author_id || '').includes('cpcri') || (bc.author_name || '').includes('Dr_');
+                  const isExpert = (bc.author_name || '').includes('Dr_');
                   currentComments.push({
                     id: `cloud_${bc.id || Date.now() + Math.random()}`,
                     author: bc.author_name || bc.author_id || 'Farmer',
-                    badge: isScientist ? 'Verified Scientist' : 'Grower (Verified)',
+                    badge: isExpert ? 'Agronomy Specialist' : 'Grower',
                     badgeColor: isScientist 
                       ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30' 
                       : 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
@@ -441,7 +448,7 @@ export default function Community() {
       if (saved) return JSON.parse(saved);
     } catch {}
     return {
-      'Dr_Hegde_CPCRI': 'following',
+      'Dr_Hegde': 'following',
       'Suresh_Hegde': 'following'
     };
   });
@@ -492,6 +499,129 @@ export default function Community() {
   const [commentInputs, setCommentInputs] = useState({});
   const [replyingToCommentId, setReplyingToCommentId] = useState(null);
   const [replyInputs, setReplyInputs] = useState({});
+
+  // ── SASYA AI QUICK DRAFT & TRANSLATION STATE ──
+  const [aiDraftPrompt, setAiDraftPrompt] = useState('');
+  const [isAiListening, setIsAiListening] = useState(false);
+  const [isAiDrafting, setIsAiDrafting] = useState(false);
+  const [aiDraftSuccess, setAiDraftSuccess] = useState(null);
+  const speechRecognitionRef = useRef(null);
+
+  // 1-Tap Trilingual Translation State (postId -> 'kn' | 'hi' | 'en' | null)
+  const [postTranslations, setPostTranslations] = useState({});
+  // commentId -> 'kn' | 'hi' | 'en' | null
+  const [commentTranslations, setCommentTranslations] = useState({});
+
+  // Web Speech API Voice Dictation for Listing Draft
+  const handleToggleAiVoiceDraft = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      showToast('Voice input is not supported in this browser. Please type your request.');
+      return;
+    }
+
+    if (isAiListening) {
+      if (speechRecognitionRef.current) {
+        try { speechRecognitionRef.current.stop(); } catch {}
+      }
+      setIsAiListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = lang === 'kn' ? 'kn-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
+
+      recognition.onstart = () => {
+        setIsAiListening(true);
+        showToast(
+          lang === 'kn' ? '🎙️ ಸಸ್ಯ AI ಆಲಿಸುತ್ತಿದೆ... ಮಾತನಾಡಿ (ಉದಾ: 2 ಜನ ಆಳುಗಳು ಬೇಕು)'
+          : lang === 'hi' ? '🎙️ सस्य AI सुन रहा है... बोलिए (उदा: 2 मजदूर चाहिए)'
+          : '🎙️ Sasya AI listening... Speak e.g. "need 2 climbers Thursday, Venur"'
+        );
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results?.[0]?.[0]?.transcript || '';
+        if (transcript) {
+          setAiDraftPrompt(transcript);
+          showToast(`🎙️ "${transcript}"`);
+          handleApplyAiDraft(transcript);
+        }
+      };
+
+      recognition.onerror = (err) => {
+        console.warn('Speech recognition warning:', err);
+        setIsAiListening(false);
+        showToast('Could not hear voice. Please type or speak again.');
+      };
+
+      recognition.onend = () => {
+        setIsAiListening(false);
+      };
+
+      speechRecognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error('Speech recognition error:', err);
+      setIsAiListening(false);
+    }
+  };
+
+  // AI Listing Formatter (Labour, Equipment, or Agronomic Query with Automatic Safety Nudge)
+  const handleApplyAiDraft = (promptInput) => {
+    const text = (typeof promptInput === 'string' ? promptInput : aiDraftPrompt).trim();
+    if (!text) {
+      showToast('Please type or speak your request first (e.g. "need 2 climbers Thursday, Venur")');
+      return;
+    }
+
+    setIsAiDrafting(true);
+    const draft = parseAiListingDraft(text, activeCrop, user?.village || 'Venur');
+
+    if (draft) {
+      setNewFlair(draft.flair);
+      if (draft.workers) setLabourWorkers(draft.workers);
+      if (draft.wage) setLabourWage(draft.wage);
+      setNewTitle(draft.title);
+      setNewContent(draft.content);
+      setAiDraftSuccess('✓ AI Draft created! Review and edit below before posting.');
+      showToast('✓ AI Draft applied to form! (AI drafts, you confirm)');
+      setTimeout(() => setAiDraftSuccess(null), 6000);
+    }
+    setIsAiDrafting(false);
+  };
+
+  // 1-Tap Translation Handlers
+  const handleTogglePostTranslation = (postId, targetLang) => {
+    setPostTranslations(prev => {
+      const current = prev[postId];
+      if (current === targetLang) {
+        const next = { ...prev };
+        delete next[postId];
+        showToast('Viewing original post');
+        return next;
+      }
+      showToast(`Post translated to ${targetLang === 'kn' ? 'ಕನ್ನಡ' : targetLang === 'hi' ? 'हिंदी' : 'English'}`);
+      return { ...prev, [postId]: targetLang };
+    });
+  };
+
+  const handleToggleCommentTranslation = (commentId, defaultTarget = (lang === 'en' ? 'kn' : 'en')) => {
+    setCommentTranslations(prev => {
+      const current = prev[commentId];
+      if (current) {
+        const next = { ...prev };
+        delete next[commentId];
+        showToast('Viewing original comment');
+        return next;
+      }
+      showToast(`Comment translated to ${defaultTarget === 'kn' ? 'ಕನ್ನಡ' : defaultTarget === 'hi' ? 'हिंदी' : 'English'}`);
+      return { ...prev, [commentId]: defaultTarget };
+    });
+  };
 
   // Toast State
   const [toastMessage, setToastMessage] = useState(null);
@@ -1157,20 +1287,71 @@ export default function Community() {
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${post.flairColor}`}>
                           {post.flair}
                         </span>
+
+                        {/* 1-Tap Post Translation Switcher */}
+                        <div className="flex items-center gap-1 sm:ml-auto">
+                          <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
+                            <Globe className="w-3 h-3 text-emerald-500" />
+                          </span>
+                          {[
+                            { code: 'kn', label: 'ಕನ್ನಡ' },
+                            { code: 'hi', label: 'हिंदी' },
+                            { code: 'en', label: 'EN' }
+                          ].map((tItem) => (
+                            <button
+                              key={tItem.code}
+                              type="button"
+                              onClick={() => handleTogglePostTranslation(post.id, tItem.code)}
+                              className={`px-1.5 py-0.2 rounded text-[10px] font-bold border transition-all cursor-pointer ${
+                                postTranslations[post.id] === tItem.code
+                                  ? 'bg-[#275637] text-white border-[#275637] shadow-xs'
+                                  : isDark 
+                                    ? 'border-[#1E3A2B] text-gray-400 hover:text-white hover:border-emerald-500' 
+                                    : 'border-gray-200 text-gray-600 hover:bg-[#E8F2EA] hover:text-[#275637]'
+                              }`}
+                              title={`Translate post to ${tItem.label}`}
+                            >
+                              {tItem.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
+
+                      {/* Active Translation Indicator Banner */}
+                      {postTranslations[post.id] && (
+                        <div className="mb-2 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center justify-between animate-fadeIn">
+                          <div className="flex items-center gap-1.5">
+                            <Globe className="w-3.5 h-3.5" />
+                            <span>
+                              Translated to <strong>{postTranslations[post.id] === 'kn' ? 'ಕನ್ನಡ' : postTranslations[post.id] === 'hi' ? 'हिंदी' : 'English'}</strong> (AI Translation)
+                            </span>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={() => handleTogglePostTranslation(post.id, postTranslations[post.id])}
+                            className="underline hover:text-emerald-300 cursor-pointer text-[10px]"
+                          >
+                            Show Original
+                          </button>
+                        </div>
+                      )}
 
                       {/* Post Title */}
                       <h2 className={`text-sm sm:text-base font-bold leading-snug tracking-tight mb-2 ${
                         isDark ? 'text-white' : 'text-gray-900'
                       }`}>
-                        {post.title}
+                        {postTranslations[post.id]
+                          ? (COMMUNITY_POST_TRANSLATIONS[post.id]?.[postTranslations[post.id]]?.title || translateDynamicText(post.title, postTranslations[post.id]))
+                          : post.title}
                       </h2>
 
                       {/* Post Body */}
                       <p className={`text-xs sm:text-sm leading-relaxed mb-3 whitespace-pre-line ${
                         isDark ? 'text-gray-300' : 'text-gray-700'
                       }`}>
-                        {post.content}
+                        {postTranslations[post.id]
+                          ? (COMMUNITY_POST_TRANSLATIONS[post.id]?.[postTranslations[post.id]]?.content || translateDynamicText(post.content, postTranslations[post.id]))
+                          : post.content}
                       </p>
 
                       {/* Attached Image (if present) */}
@@ -1193,13 +1374,27 @@ export default function Community() {
                       )}
 
                       {/* REDDIT ACTION BAR */}
-                      <div className="flex items-center gap-1 sm:gap-2 text-xs font-bold text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-800">
+                      <div className="flex items-center gap-1 sm:gap-2 text-xs font-bold text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-800 flex-wrap">
                         <button
                           onClick={() => setExpandedPostId(isExpanded ? null : post.id)}
                           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                         >
                           <MessageSquare className="w-4 h-4" />
                           <span>{post.comments.length} Comments</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleTogglePostTranslation(post.id, postTranslations[post.id] ? postTranslations[post.id] : (lang === 'en' ? 'kn' : 'en'))}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                            postTranslations[post.id]
+                              ? 'text-emerald-500 bg-emerald-500/10'
+                              : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                          }`}
+                          title="1-Tap Translate this post"
+                        >
+                          <Globe className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>{postTranslations[post.id] ? 'Original' : 'Translate'}</span>
                         </button>
 
                         <button
@@ -1317,9 +1512,16 @@ export default function Community() {
                                       <span>{comment.timeAgo}</span>
                                     </div>
                                     <p className={`text-xs leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                      {comment.content}
+                                      {commentTranslations[comment.id]
+                                        ? (COMMUNITY_COMMENT_TRANSLATIONS[comment.id]?.[commentTranslations[comment.id]] || translateDynamicText(comment.content, commentTranslations[comment.id]))
+                                        : comment.content}
                                     </p>
-                                    <div className="flex items-center gap-3 text-[10px] text-gray-400 pt-0.5">
+                                    {commentTranslations[comment.id] && (
+                                      <span className="inline-block text-[9px] font-semibold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.2 rounded mt-0.5">
+                                        🌐 Translated to {commentTranslations[comment.id] === 'kn' ? 'ಕನ್ನಡ' : commentTranslations[comment.id] === 'hi' ? 'हिंदी' : 'English'}
+                                      </span>
+                                    )}
+                                    <div className="flex items-center gap-3 text-[10px] text-gray-400 pt-0.5 flex-wrap">
                                       <button
                                         type="button"
                                         onClick={() => handleCommentVote(post.id, comment.id)}
@@ -1345,6 +1547,17 @@ export default function Community() {
                                         title={`Chat privately with u/${comment.author}`}
                                       >
                                         💬 Chat
+                                      </button>
+                                      <button 
+                                        type="button"
+                                        onClick={() => handleToggleCommentTranslation(comment.id, commentTranslations[comment.id] ? commentTranslations[comment.id] : (lang === 'en' ? 'kn' : 'en'))}
+                                        className={`hover:underline cursor-pointer flex items-center gap-1 font-semibold ${
+                                          commentTranslations[comment.id] ? 'text-emerald-500 font-bold' : 'text-gray-400 hover:text-emerald-400'
+                                        }`}
+                                        title="1-Tap Translate comment"
+                                      >
+                                        <Globe className="w-3 h-3 text-emerald-500" />
+                                        <span>{commentTranslations[comment.id] ? 'Original' : (lang === 'en' ? 'Translate' : 'ಅನುವಾದ')}</span>
                                       </button>
                                       <button 
                                         type="button"
@@ -1583,6 +1796,119 @@ export default function Community() {
             </h3>
 
             <form onSubmit={handleCreatePost} className="space-y-3.5 text-xs font-semibold">
+              {/* ── SASYA AI QUICK DRAFT (VOICE & TEXT) ── */}
+              <div className={`p-3.5 sm:p-4 rounded-2xl border space-y-2.5 transition-all ${
+                isDark 
+                  ? 'bg-gradient-to-br from-[#12241A] to-[#0A1710] border-[#22C55E]/40' 
+                  : 'bg-gradient-to-br from-[#E8F2EA] to-[#F4F8F5] border-[#91BA94]'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-[#275637] text-white shadow-xs">
+                      <Sparkles className="w-4 h-4 text-emerald-300 animate-pulse" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black flex items-center gap-1.5 text-gray-900 dark:text-white">
+                        <span>✨ Sasya AI Quick Draft</span>
+                        <span className="text-[10px] px-1.5 py-0.2 rounded font-mono bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                          Voice or Text
+                        </span>
+                      </h4>
+                      <p className="text-[10px] sm:text-[11px] text-gray-500 dark:text-gray-400 font-normal">
+                        Speak or type what you need. AI fills the listing card in 10 seconds.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      value={aiDraftPrompt}
+                      onChange={(e) => setAiDraftPrompt(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleApplyAiDraft();
+                        }
+                      }}
+                      placeholder="e.g. need 2 climbers Thursday, Venur or 2 ಜನ ಆಳುಗಳು ಬೇಕು..."
+                      className={`w-full pl-3 pr-24 py-2.5 rounded-xl border text-xs outline-none ${
+                        isDark 
+                          ? 'bg-[#07100C] border-[#1E3A2B] text-white placeholder-gray-500 focus:border-[#22C55E]' 
+                          : 'bg-white border-gray-300 text-gray-800 placeholder-gray-400 focus:border-[#275637]'
+                      }`}
+                    />
+                    <div className="absolute right-1.5 flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={handleToggleAiVoiceDraft}
+                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          isAiListening 
+                            ? 'bg-rose-500 text-white border-rose-600 animate-pulse' 
+                            : isDark 
+                              ? 'bg-[#12241A] border-[#1E3A2B] text-emerald-400 hover:bg-[#1A3324]' 
+                              : 'bg-[#FAFCFA] border-gray-200 text-[#275637] hover:bg-gray-100'
+                        }`}
+                        title={isAiListening ? 'Listening... click to stop' : 'Click to speak in Kannada, Hindi, or English'}
+                      >
+                        {isAiListening ? <MicOff className="w-3.5 h-3.5 text-white" /> : <Mic className="w-3.5 h-3.5 text-emerald-500" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleApplyAiDraft()}
+                        disabled={isAiDrafting}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-black bg-[#275637] hover:bg-[#1E462B] text-white flex items-center gap-1 cursor-pointer transition-transform active:scale-95 disabled:opacity-50 shadow-xs"
+                      >
+                        <Sparkles className="w-3 h-3 text-emerald-300" />
+                        <span>Draft</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 1-Tap Quick Examples */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                    <span className="text-[10px] text-gray-400 font-medium">Try:</span>
+                    {[
+                      { label: '👥 2 Climbers Thursday (Venur)', prompt: 'need 2 climbers Thursday, Venur' },
+                      { label: '🛠️ Power Sprayer Rental', prompt: 'need power sprayer for rent tomorrow' },
+                      { label: 'ಕನ್ನಡ: 2 ಜನ ಮರ ಹತ್ತುವವರು ಬೇಕು', prompt: '2 ಜನ ಮರ ಹತ್ತುವವರು ಬೇಕು ಗುರುವಾರ ವೇಣೂರು' },
+                      { label: 'हिंदी: 2 मजदूर चाहिए', prompt: 'गुरुवार को 2 मजदूर चाहिए वेणूर में' }
+                    ].map((ex, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          setAiDraftPrompt(ex.prompt);
+                          handleApplyAiDraft(ex.prompt);
+                        }}
+                        className={`text-[10px] px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
+                          isDark 
+                            ? 'bg-[#0E1E16] border-[#1E3A2B] text-gray-300 hover:border-emerald-500 hover:text-emerald-400' 
+                            : 'bg-white border-gray-200 text-gray-600 hover:bg-[#E8F2EA] hover:text-[#275637]'
+                        }`}
+                      >
+                        {ex.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* AI Draft Applied Feedback Banner */}
+                  {aiDraftSuccess && (
+                    <div className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-[11px] font-bold text-emerald-500 flex items-center gap-1.5 animate-fadeIn">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <span>{aiDraftSuccess}</span>
+                    </div>
+                  )}
+
+                  {/* Safety Boundary / Human in the loop rule */}
+                  <div className="text-[10px] text-gray-400 dark:text-gray-500 italic flex items-center gap-1">
+                    <span>🛡️ The AI drafts and you confirm. Nothing posts by itself. Zero dosages recommended.</span>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block mb-1 text-[11px] uppercase tracking-wider text-gray-400">Flair / Category</label>
                 <select

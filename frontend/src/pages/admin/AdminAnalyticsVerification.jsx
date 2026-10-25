@@ -28,7 +28,7 @@ export default function AdminAnalyticsVerification() {
         <div>
           <h1 className="text-2xl font-black">{t('admin_nav_verification')}</h1>
           <p className={`text-xs ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-            Triage speed, diagnostic approval rates, and pathologist review throughput for ICAR-CPCRI.
+            Triage speed, diagnostic approval rates, and review throughput.
           </p>
         </div>
       </div>

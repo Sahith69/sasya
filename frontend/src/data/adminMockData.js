@@ -296,7 +296,7 @@ export const ADMIN_VERIFICATION_METRICS = {
   avgTurnaroundMinutes: 108, // 1.8 hrs
   slaCompliance4Hours: '98.4%',
   reviewerStats: [
-    { name: 'Dr. Subrahmanya Bhat', institution: 'ICAR-CPCRI', reviewed: 512, approvalRate: '91.2%', avgTime: '1.2h' },
+    { name: 'Dr. Subrahmanya Bhat', institution: 'Regional Agronomy Center', reviewed: 512, approvalRate: '91.2%', avgTime: '1.2h' },
     { name: 'Dr. Rekha Hegde', institution: 'UAHS Shimoga', reviewed: 384, approvalRate: '88.5%', avgTime: '1.9h' },
     { name: 'Dr. S. K. Nayak', institution: 'KVK Brahmavar', reviewed: 290, approvalRate: '87.1%', avgTime: '2.4h' }
   ]
@@ -368,7 +368,7 @@ export const ADMIN_EXPERTS = [
     id: 'EXP-01',
     name: 'Dr. Subrahmanya Bhat',
     title: 'Senior Plant Pathologist',
-    institution: 'ICAR - Central Plantation Crops Research Institute (CPCRI), Vittal',
+    institution: 'Regional Agronomy Research Station, Vittal',
     specialty: 'Arecanut & Palms Pathology',
     status: 'Active Reviewer',
     verifiedCount: 512,

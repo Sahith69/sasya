@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { 
   Camera, CloudRain, Users, LogOut, Search, 
   MapPin, ChevronRight, User, Settings, FileText, 
-  UploadCloud, Sun, Moon
+  UploadCloud, Sun, Moon, Bot, Sparkles
 } from 'lucide-react';
 
 export default function Home() {
@@ -111,7 +111,7 @@ export default function Home() {
               {[
                 { label: t('nav_community'), to: '/c/arecanut' },
                 { label: t('nav_detect'), to: '/detect' },
-                { label: t('nav_risk'), to: '/risk' },
+                { label: t('nav_ai') || 'Ask AI', to: '/ai' },
                 { label: t('nav_contribute'), to: '/wallet' },
                 { label: t('nav_map'), to: '/map' }
               ].map((link) => (
@@ -341,8 +341,8 @@ export default function Home() {
           {/* Quick Action Chips with Tactile Hover Animations */}
           <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs">
             {[
-              { label: '🍃 Koleroga Spray Alert', to: '/c/arecanut?q=Koleroga' },
-              { label: '🌾 Paddy Blast: High Risk', to: '/c/paddy?q=Blast' },
+              { label: '🍃 Koleroga Outbreak', to: '/c/arecanut?q=Koleroga' },
+              { label: '🌾 Paddy Blast Hotspot', to: '/c/paddy?q=Blast' },
               { label: '📤 Open Dataset Upload', to: '/contribute' }
             ].map((chip, idx) => (
               <button 
@@ -445,16 +445,16 @@ export default function Home() {
             <div className={`mt-5 pt-3 border-t flex items-center justify-between text-[11px] font-semibold ${
               isDark ? 'border-[#1A3324] text-[#5A7363]' : 'border-[#E8F0E9] text-[#556B5C]'
             }`}>
-              <span>ResNet-18 + Grad-CAM</span>
+              <span>AI Leaf Pathology</span>
               <span className={`px-2 py-0.5 rounded-md font-bold ${
                 isDark ? 'bg-[#0D4A3E] text-[#34D399]' : 'bg-[#B1D27D] text-[#275637]'
-              }`}>2.1s</span>
+              }`}>Instant</span>
             </div>
           </div>
 
-          {/* Card 3: Spray window (Priority 3) */}
+          {/* Card 3: Sasya AI Agronomist (Priority 3) */}
           <div 
-            onClick={() => navigate('/risk')}
+            onClick={() => navigate('/ai')}
             className={`group border rounded-[14px] p-6 shadow-xs hover:-translate-y-1.5 active:scale-[0.99] transition-all duration-200 cursor-pointer flex flex-col justify-between ${
               isDark 
                 ? 'bg-[#12241A] border-[#1E3A2B] hover:border-[#22C55E]/60 hover:bg-[#152B1F]' 
@@ -468,7 +468,7 @@ export default function Home() {
                     ? 'bg-[#162C20] border-[#22C55E]/30 text-[#22C55E]' 
                     : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637]'
                 }`}>
-                  <CloudRain className="w-5 h-5" />
+                  <Bot className="w-5 h-5 text-emerald-500" />
                 </span>
                 <ChevronRight className={`w-4 h-4 group-hover:translate-x-1 transition-all ${
                   isDark ? 'text-[#5A7363] group-hover:text-[#22C55E]' : 'text-[#91BA94] group-hover:text-[#275637]'
@@ -477,22 +477,22 @@ export default function Home() {
               <h3 className={`text-lg font-bold transition-colors ${
                 isDark ? 'text-white group-hover:text-[#22C55E]' : 'text-[#275637] group-hover:text-[#1E462B]'
               }`}>
-                {t('card_weather_title')}
+                {t('card_ai_title') || 'Ask Sasya AI'}
               </h3>
               <p className={`text-xs sm:text-sm mt-2 font-medium leading-relaxed ${
                 isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'
               }`}>
-                {t('card_weather_sub')}
+                {t('card_ai_sub') || '24/7 AI agronomist for safe cultural prevention, organic management, and labour planning.'}
               </p>
             </div>
 
             <div className={`mt-5 pt-3 border-t flex items-center justify-between text-[11px] font-semibold ${
               isDark ? 'border-[#1A3324] text-[#5A7363]' : 'border-[#E8F0E9] text-[#556B5C]'
             }`}>
-              <span>Open-Meteo rain alerts</span>
+              <span>Agronomy Guidance</span>
               <span className={`px-2 py-0.5 rounded-md font-bold ${
-                isDark ? 'bg-[#2A2111] text-[#F59E0B]' : 'bg-[#F6D05F] text-[#275637]'
-              }`}>48-Hour</span>
+                isDark ? 'bg-[#162C20] text-[#22C55E]' : 'bg-[#E8F2EA] text-[#275637]'
+              }`}>24/7 AI</span>
             </div>
           </div>
 
@@ -533,10 +533,10 @@ export default function Home() {
             <div className={`mt-5 pt-3 border-t flex items-center justify-between text-[11px] font-semibold ${
               isDark ? 'border-[#1A3324] text-[#5A7363]' : 'border-[#E8F0E9] text-[#556B5C]'
             }`}>
-              <span>Verified pathology pool</span>
+              <span>Open Pathology Pool</span>
               <span className={`px-2 py-0.5 rounded-md font-bold ${
                 isDark ? 'bg-[#162C20] text-[#22C55E]' : 'bg-[#E8F2EA] text-[#275637]'
-              }`}>Public AI</span>
+              }`}>Community</span>
             </div>
           </div>
 
@@ -581,13 +581,13 @@ export default function Home() {
         </button>
 
         <button 
-          onClick={() => navigate('/risk')}
+          onClick={() => navigate('/ai')}
           className={`min-h-[48px] flex flex-col items-center justify-center gap-1 active:scale-90 transition-transform ${
             isDark ? 'text-[#8BA695] hover:text-white' : 'text-[#556B5C] hover:text-[#275637]'
           }`}
         >
-          <CloudRain className="w-5 h-5" />
-          <span className="text-[10px] font-semibold">Weather</span>
+          <Bot className="w-5 h-5 text-emerald-500" />
+          <span className="text-[10px] font-semibold">{t('nav_ai') || 'Ask AI'}</span>
         </button>
 
         <button 

@@ -14,6 +14,7 @@ import EditProfile from './pages/EditProfile';
 import Detect from './pages/Detect';
 import DetectResult from './pages/DetectResult';
 import Community from './pages/Community';
+import AIAssistant from './pages/AIAssistant';
 import Risk from './pages/Risk';
 import Wallet from './pages/Wallet';
 import Contribute from './pages/Contribute';
@@ -97,9 +98,15 @@ function MainApp() {
         <Route path="/chat" element={<Navigate to="/c/arecanut?chat=open" replace />} />
         <Route path="/messages" element={<Navigate to="/c/arecanut?chat=open" replace />} />
         
-        {/* 48-Hour Bioclimatic Weather Defense & Safe Spray Window */}
-        <Route path="/risk" element={<ProtectedRoute><Risk /></ProtectedRoute>} />
-        <Route path="/spray" element={<Navigate to="/risk" replace />} />
+        {/* Sasya AI Agronomist & Pathology Assistant */}
+        <Route path="/ai" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
+        <Route path="/assistant" element={<Navigate to="/ai" replace />} />
+        <Route path="/ask" element={<Navigate to="/ai" replace />} />
+
+        {/* Deprecated /risk and /spray routes redirected to /home */}
+        <Route path="/risk" element={<Navigate to="/home" replace />} />
+        <Route path="/spray" element={<Navigate to="/home" replace />} />
+        <Route path="/weather" element={<Navigate to="/home" replace />} />
         
         {/* Open Agronomy Dataset Contribution Desk */}
         <Route path="/contribute" element={<ProtectedRoute><Contribute /></ProtectedRoute>} />
@@ -112,7 +119,7 @@ function MainApp() {
         <Route path="/expert/queue" element={<ProtectedRoute><ExpertQueue /></ProtectedRoute>} />
         <Route path="/expert" element={<Navigate to="/expert/queue" replace />} />
 
-        {/* ── ICAR-CPCRI ADMIN & OPERATIONS CONSOLE (17 Exact Routes) ── */}
+        {/* ── OPERATIONS & ADMIN CONSOLE (17 Exact Routes) ── */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminProtectedRoute><AdminOverview /></AdminProtectedRoute>} />
         <Route path="/admin/queue" element={<AdminProtectedRoute><AdminQueue /></AdminProtectedRoute>} />
@@ -138,7 +145,7 @@ function MainApp() {
 
         {/* Convenient Route Aliases */}
         <Route path="/scan" element={<Navigate to="/detect" replace />} />
-        <Route path="/weather" element={<Navigate to="/risk" replace />} />
+        <Route path="/weather" element={<Navigate to="/home" replace />} />
         <Route path="/bounty" element={<Navigate to="/profile" replace />} />
         <Route path="/settings" element={<Navigate to="/profile?tab=settings" replace />} />
         <Route path="/scans" element={<Navigate to="/profile?tab=scans" replace />} />

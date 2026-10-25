@@ -16,7 +16,7 @@ export default function AdminExperts() {
   // Form state
   const [name, setName] = useState('');
   const [title, setTitle] = useState('Senior Plant Pathologist');
-  const [institution, setInstitution] = useState('ICAR - Central Plantation Crops Research Institute (CPCRI)');
+  const [institution, setInstitution] = useState('Regional Agronomy Research Station');
   const [specialty, setSpecialty] = useState('Arecanut & Palms Pathology');
   const [avatar, setAvatar] = useState('👨‍🔬');
 
@@ -66,7 +66,7 @@ export default function AdminExperts() {
             </span>
           </div>
           <p className={`text-xs mt-1 ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
-            Accredited scientists from ICAR-CPCRI, UAHS Shimoga, and KVKs verifying farm scans and fine-tuning AI.
+            Accredited agronomists and plant pathologists verifying farm scans and fine-tuning AI.
           </p>
         </div>
 
@@ -211,7 +211,7 @@ export default function AdminExperts() {
                     isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-white' : 'bg-[#F9F9F6] border-[#91BA94]/50'
                   }`}
                 >
-                  <option value="ICAR - Central Plantation Crops Research Institute (CPCRI)">ICAR - CPCRI Vittal</option>
+                  <option value="Regional Agronomy Research Station">Regional Agronomy Research Station</option>
                   <option value="University of Agricultural & Horticultural Sciences (UAHS), Shimoga">UAHS Shimoga</option>
                   <option value="Krishi Vigyan Kendra (KVK), Brahmavar">KVK Brahmavar</option>
                   <option value="University of Agricultural Sciences (UAS), GKVK Bangalore">UAS GKVK Bangalore</option>
