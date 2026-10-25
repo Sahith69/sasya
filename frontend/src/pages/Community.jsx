@@ -380,6 +380,40 @@ export default function Community() {
   const [sortFilter, setSortFilter] = useState('hot'); // 'hot', 'new', 'top'
   const [flairFilter, setFlairFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
+  const [highlightedPostId, setHighlightedPostId] = useState(() => {
+    const p = searchParams.get('post');
+    return p ? Number(p) : null;
+  });
+
+  // Handle direct scroll & highlight for incoming post parameter (?post=123)
+  useEffect(() => {
+    const postParam = searchParams.get('post');
+    if (postParam) {
+      const targetId = Number(postParam);
+      setHighlightedPostId(targetId);
+      setFlairFilter('All');
+      setSearchQuery('');
+      setExpandedPostId(targetId);
+
+      // Smooth scroll directly to the exact target post
+      const scrollTimer = setTimeout(() => {
+        const el = document.getElementById(`post-${targetId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 350);
+
+      // Pulse highlight for 5 seconds
+      const highlightTimer = setTimeout(() => {
+        setHighlightedPostId(null);
+      }, 5000);
+
+      return () => {
+        clearTimeout(scrollTimer);
+        clearTimeout(highlightTimer);
+      };
+    }
+  }, [searchParams, posts]);
 
   // Synchronize searchQuery when URL query ?q= changes
   useEffect(() => {
@@ -1005,10 +1039,25 @@ export default function Community() {
               return (
                 <article
                   key={post.id}
-                  className={`rounded-xl border transition-all duration-150 overflow-hidden shadow-xs hover:border-[#275637] dark:hover:border-gray-500 ${
-                    isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
+                  id={`post-${post.id}`}
+                  className={`rounded-xl border transition-all duration-300 overflow-hidden shadow-xs hover:border-[#275637] dark:hover:border-gray-500 ${
+                    highlightedPostId === post.id
+                      ? 'ring-4 ring-[#22C55E] border-[#22C55E] shadow-2xl scale-[1.01] bg-[#22C55E]/[0.04]'
+                      : isDark ? 'bg-[#102217] border-[#1E3A2B]' : 'bg-white border-[#D8E4DA]'
                   }`}
                 >
+                  {/* Focused Post Banner (when arriving via View in Feed) */}
+                  {highlightedPostId === post.id && (
+                    <div className="bg-[#22C55E] text-[#0B1712] px-3.5 py-1.5 text-xs font-black flex items-center justify-between shadow-xs">
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-[#0B1712]" />
+                        <span>Focused Listing from Rural Exchange</span>
+                      </div>
+                      <span className="text-[10px] tracking-wider uppercase font-mono font-bold bg-[#0B1712]/15 px-2 py-0.5 rounded">
+                        Active Post
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-start">
                     
                     {/* LEFT REDDIT VOTING STRIP (Desktop & Mobile) */}

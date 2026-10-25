@@ -113,6 +113,7 @@ export default function Profile() {
     return [
       { 
         id: 1,
+        postId: 2,
         title: '500L High-Pressure Power Sprayer for Rent', 
         category: 'Equipment Rental',
         rate: '₹800 / day', 
@@ -122,6 +123,7 @@ export default function Profile() {
       },
       { 
         id: 2,
+        postId: 7,
         title: 'URGENT: 2 Palm Climbers Needed for Koleroga Spraying', 
         category: 'Labour Request',
         rate: '₹700 / day', 
@@ -138,6 +140,13 @@ export default function Profile() {
   const [listingCategory, setListingCategory] = useState('Equipment Rental');
   const [listingCrop, setListingCrop] = useState(() => (user?.crops?.[0] || 'Arecanut').toLowerCase());
   const [listingRate, setListingRate] = useState('₹800 / day');
+
+  // Handle direct navigation to exact community post with auto-scroll
+  const handleViewInFeed = (listing) => {
+    const targetCrop = listing.crop || 'arecanut';
+    const targetPostId = listing.postId || listing.id;
+    navigate(`/c/${targetCrop}?post=${targetPostId}#post-${targetPostId}`);
+  };
 
   // Persist listings to localStorage
   useEffect(() => {
@@ -161,6 +170,7 @@ export default function Profile() {
 
     const newListing = {
       id: listingId,
+      postId: listingId,
       title: listingTitle.trim(),
       category: listingCategory,
       rate: listingRate.trim(),
@@ -886,7 +896,7 @@ export default function Profile() {
 
                   <div className="flex items-center gap-2">
                     <button 
-                      onClick={() => navigate(`/c/${listing.crop || 'arecanut'}`)}
+                      onClick={() => handleViewInFeed(listing)}
                       className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5 ${
                         isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-emerald-400 hover:border-[#22C55E]' : 'bg-white border-[#91BA94] text-[#275637] hover:bg-[#FAFCFA]'
                       }`}
@@ -1154,9 +1164,7 @@ export default function Profile() {
               <div className="space-y-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    navigate(`/c/${managingListing.crop || 'arecanut'}`);
-                  }}
+                  onClick={() => handleViewInFeed(managingListing)}
                   className={`w-full py-2.5 px-4 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
                     isDark ? 'bg-[#162C20] border-[#22C55E]/40 text-emerald-300 hover:bg-[#1E3D2C]' : 'bg-[#E8F2EA] border-[#91BA94] text-[#275637] hover:bg-[#D8E4DA]'
                   }`}
