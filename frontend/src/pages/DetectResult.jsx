@@ -126,6 +126,9 @@ export default function DetectResult() {
   const image = state.image || '/samples/sample_arecanut.jpg';
   const cropHint = (state.crop || state.sampleId || 'arecanut').toLowerCase();
   const isOod = state.isOod || cropHint === 'noncrop';
+  const rejectionReason = state.rejectionReason || 
+    state.liveResult?.rejection_reason || 
+    state.liveResult?.verification?.rejection_reason;
   
   // Grad-CAM Slider Value (0 = 100% original, 100 = 100% Grad-CAM heatmap)
   const [sliderPos, setSliderPos] = useState(50);
@@ -138,18 +141,20 @@ export default function DetectResult() {
   const rawDiag = DIAGNOSIS_DATA[baseKey];
 
   const diagnosis = live ? {
-    crop: `${live.crop}`,
-    cropKey: live.crop.toLowerCase(),
-    diseaseName: live.disease.replace(/_/g, ' ').toUpperCase(),
-    kannadaName: live.disease.replace(/_/g, ' '),
-    pathogen: live.crop === 'Arecanut' ? 'Phytophthora meadii' : live.crop === 'Paddy' ? 'Magnaporthe oryzae' : 'Agricultural Pathogen',
-    confidence: `${(live.confidence * 100).toFixed(1)}%`,
-    severityGrade: `Grade ${live.severity?.grade || 1}: ${live.severity?.label || 'Mild'} (${live.severity?.lesion_ratio_pct || 0}% lesion ratio)`,
-    severityColor: live.severity?.grade >= 3 ? 'text-rose-500 bg-rose-500/10 border-rose-500/30' : 'text-amber-500 bg-amber-500/10 border-amber-500/30',
-    description: `Diagnosed using CropVisionEngine neural model with attention activation.`,
-    plainExplanation: rawDiag.plainExplanation,
+    crop: `${live.crop || rawDiag.crop}`,
+    cropKey: (live.crop || cropHint).toLowerCase(),
+    diseaseName: live.disease?.replace(/_/g, ' ') || rawDiag.diseaseName,
+    kannadaName: live.kannada_name || live.disease?.replace(/_/g, ' ') || rawDiag.kannadaName,
+    pathogen: live.pathogen || (live.crop === 'Arecanut' ? 'Phytophthora meadii' : live.crop === 'Paddy' ? 'Magnaporthe oryzae' : 'Agricultural Pathogen'),
+    confidence: typeof live.confidence === 'number'
+      ? `${(live.confidence > 1 ? live.confidence : live.confidence * 100).toFixed(1)}%`
+      : `${live.confidence || rawDiag.confidence}`,
+    severityGrade: live.severity?.label || (live.severity?.grade !== undefined ? `Grade ${live.severity.grade}` : rawDiag.severityGrade),
+    severityColor: (live.severity?.grade >= 3) ? 'text-rose-500 bg-rose-500/10 border-rose-500/30' : 'text-amber-500 bg-amber-500/10 border-amber-500/30',
+    description: `Diagnosed using Sasya Multimodal Vision neural classifier with attention activation.`,
+    plainExplanation: live.plain_explanation || rawDiag.plainExplanation,
     severityMeaning: rawDiag.severityMeaning,
-    nextSteps: rawDiag.nextSteps
+    nextSteps: (Array.isArray(live.next_steps) && live.next_steps.length > 0) ? live.next_steps : rawDiag.nextSteps
   } : rawDiag;
 
   // Localized Explanation Text
@@ -286,8 +291,8 @@ export default function DetectResult() {
                 Non-Crop Specimen Detected
               </h2>
               
-              <p className={`text-sm max-w-lg mx-auto mb-6 ${isDark ? 'text-gray-300' : 'text-[#556B5C]'}`}>
-                This uploaded object is not recognized as a supported agricultural crop leaf. Sasya rejects out-of-distribution inputs to protect farmer finances and prevent unnecessary chemical purchases.
+              <p className={`text-sm max-w-lg mx-auto mb-6 leading-relaxed ${isDark ? 'text-gray-200' : 'text-[#275637]'}`}>
+                {rejectionReason || "This uploaded object is not recognized as a supported agricultural crop leaf. Sasya rejects out-of-distribution inputs to protect farmer finances and prevent unnecessary chemical purchases."}
               </p>
 
               {image && (

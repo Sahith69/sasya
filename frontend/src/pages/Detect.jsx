@@ -160,32 +160,38 @@ export default function Detect() {
 
     let liveDiag = null;
     try {
-      if (uploadedFile) {
-        liveDiag = await runCropDiagnosis({
-          file: uploadedFile,
-          cropHint: selectedCrop,
-          district: user?.district || 'Dakshina Kannada'
-        });
-      }
+      liveDiag = await runCropDiagnosis({
+        file: uploadedFile,
+        imageBase64: selectedImage,
+        cropHint: selectedCrop,
+        district: user?.district || 'Dakshina Kannada'
+      });
     } catch (err) {
-      console.warn('Backend diagnosis failed, falling back to local model:', err);
+      console.warn('Pathology diagnosis error:', err);
     }
 
-    setTimeout(() => {
-      clearInterval(stepInterval);
-      setIsScanning(false);
+    clearInterval(stepInterval);
+    setIsScanning(false);
 
-      navigate('/detect/result', {
-        state: {
-          image: selectedImage,
-          crop: selectedCrop,
-          sampleId: selectedCrop.toLowerCase(),
-          isOod: liveDiag?.verification?.is_valid_crop === false,
-          liveResult: liveDiag?.success ? liveDiag : null,
-          timestamp: new Date().toISOString()
-        }
-      });
-    }, 1800);
+    const isOod = liveDiag?.is_ood === true || 
+                  liveDiag?.is_valid_crop === false || 
+                  liveDiag?.verification?.is_valid_crop === false;
+
+    const rejectionReason = liveDiag?.rejection_reason || 
+                            liveDiag?.verification?.rejection_reason || 
+                            null;
+
+    navigate('/detect/result', {
+      state: {
+        image: selectedImage,
+        crop: liveDiag?.crop || selectedCrop,
+        sampleId: (liveDiag?.crop || selectedCrop).toLowerCase(),
+        isOod: Boolean(isOod),
+        rejectionReason: rejectionReason,
+        liveResult: liveDiag?.success ? liveDiag : null,
+        timestamp: new Date().toISOString()
+      }
+    });
   };
 
   return (
@@ -463,6 +469,47 @@ export default function Detect() {
                 }`}
               >
                 {crop.name.split(' ')[0]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 1-Click Verification Test Samples (Real Crop vs Non-Crop Gatekeeper) */}
+        <div className={`border rounded-[14px] p-4 mb-5 shadow-xs ${
+          isDark ? 'bg-[#12241A] border-[#1E3A2B]' : 'bg-white border-[#91BA94]'
+        }`}>
+          <div className="flex items-center justify-between mb-2">
+            <span className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-[#8BA695]' : 'text-[#556B5C]'}`}>
+              {t('detect_quick_samples') || '1-Click Test Samples (Verify Gatekeeper & Diseases)'}
+            </span>
+            <span className="text-[10px] font-mono text-emerald-500 font-bold">
+              ✓ AI Gatekeeper Active
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              { id: 'arecanut', label: '🌴 Arecanut Leaf', crop: 'Arecanut', file: '/samples/sample_arecanut.jpg' },
+              { id: 'tomato', label: '🍅 Tomato Blight', crop: 'Tomato', file: '/samples/sample_tomato.jpg' },
+              { id: 'paddy', label: '🌾 Paddy Blast', crop: 'Paddy', file: '/samples/sample_paddy.jpg' },
+              { id: 'bluebox', label: '🚫 Blue Box (Gatekeeper Test)', crop: 'Arecanut', file: '/samples/sample_blue_box.jpg' }
+            ].map((sample) => (
+              <button
+                key={sample.id}
+                type="button"
+                onClick={() => {
+                  stopCamera();
+                  setSelectedCrop(sample.crop);
+                  setSelectedImage(sample.file);
+                  setUploadedFile(null);
+                }}
+                className={`p-2 rounded-xl border text-xs font-bold transition-all text-left flex items-center gap-1.5 cursor-pointer ${
+                  selectedImage === sample.file
+                    ? isDark ? 'bg-[#22C55E]/20 border-[#22C55E] text-[#22C55E]' : 'bg-[#E8F2EA] border-[#275637] text-[#275637]'
+                    : isDark ? 'bg-[#0E1E16] border-[#1E3A2B] text-gray-300 hover:border-gray-500' : 'bg-[#FAFCFA] border-gray-200 text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <span className="truncate">{sample.label}</span>
               </button>
             ))}
           </div>

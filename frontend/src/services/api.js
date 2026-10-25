@@ -78,20 +78,51 @@ export async function getSupportedCrops() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. PATHOLOGY SCANNER & GRAD-CAM
+// 2. PATHOLOGY SCANNER & GRAD-CAM (WITH DUAL BACKEND + GEMINI VISION FALLBACK)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function runCropDiagnosis({ file, imageBase64, cropHint, district }) {
-  const formData = new FormData();
-  if (file) formData.append('file', file);
-  if (imageBase64) formData.append('image_base64', imageBase64);
-  if (cropHint) formData.append('crop_hint', cropHint);
-  if (district) formData.append('district', district || 'Dakshina Kannada');
+export async function runCropDiagnosis({ file, imageBase64, cropHint = 'Arecanut', district = 'Dakshina Kannada' }) {
+  const targetImage = file || imageBase64;
 
-  return apiCall('/detect', {
-    method: 'POST',
-    body: formData
-  }, null, 8000);
+  // 1. Attempt local / cloud backend diagnosis first (if available within 4s)
+  try {
+    const formData = new FormData();
+    if (file) formData.append('file', file);
+    if (imageBase64) formData.append('image_base64', imageBase64);
+    if (cropHint) formData.append('crop_hint', cropHint);
+    if (district) formData.append('district', district);
+
+    const backendResult = await apiCall('/detect', {
+      method: 'POST',
+      body: formData
+    }, null, 4000);
+
+    if (backendResult && (backendResult.success || backendResult.verification?.is_valid_crop === false)) {
+      return backendResult;
+    }
+  } catch (err) {
+    console.info('[API] Backend pathology engine unavailable, routing to Gemini Multimodal Vision:', err?.message);
+  }
+
+  // 2. High-precision Gemini Multimodal Vision & Gatekeeper engine
+  try {
+    const { diagnoseCropWithGeminiVision } = await import('./geminiVision.js');
+    const geminiResult = await diagnoseCropWithGeminiVision({
+      image: targetImage,
+      cropHint,
+      district
+    });
+    return geminiResult;
+  } catch (err) {
+    console.warn('[API] Gemini Vision pathology fallback failed:', err);
+    return {
+      success: false,
+      is_valid_crop: false,
+      is_ood: true,
+      rejection_reason: 'Gatekeeper could not confirm leaf features. Please take a clear, well-lit photo of the foliage.',
+      crop: cropHint
+    };
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
